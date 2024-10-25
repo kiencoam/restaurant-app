@@ -1,13 +1,66 @@
 "use client";
 
-import { Activities } from "@/components/Activities";
 import { BusinessChart } from "@/components/BusinessChart";
 import { CustomerChart } from "@/components/CustomerChart";
 import { PopularDish } from "@/components/PopularDish";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
+import Chart from "chart.js/auto";
+import {
+  Chart as ChartJS,
+  LineElement,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  Title,
+  Tooltip,
+  Legend,
+} from "chart.js";
+
+ChartJS.register(
+  LineElement,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  Title,
+  Tooltip,
+  Legend
+);
+
+const activities = [
+  {
+    id: 1,
+    event: "Quoc Co vừa bán đơn hàng với giá trị 305,000₫",
+    time: "16:29",
+  },
+  {
+    id: 2,
+    event: "Quoc Nghiep vừa bán đơn hàng với giá trị 30,000₫",
+    time: "16:50",
+  },
+  {
+    id: 3,
+    event: "Gordon Ramsey vừa làm vỡ 3 cái bát trị giá 3,000,000₫",
+    time: "17:29",
+  },
+];
 
 const DashboardPage = () => {
   const [toggle, setToggle] = useState(false);
+
+  const activitiesRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        activitiesRef.current &&
+        !activitiesRef.current.contains(event.target)
+      ) {
+        setToggle(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   return (
     <section className="h-screen w-full bg-[#f7f7f7] p-6">
@@ -40,7 +93,22 @@ const DashboardPage = () => {
             </svg>
             <div className="text-sm">Hoạt động gần đây</div>
           </button>
-          {toggle && <Activities />}
+
+          {toggle && (
+            <div
+              ref={activitiesRef}
+              className="absolute rounded-lg shadow-md p-3 w-80 min-h-[200px] max-h-[400px] overflow-auto top-12 -left-40 bg-white"
+            >
+              {activities.map((activity) => (
+                <div key={activity.id} className="border-b m-2">
+                  <div className="font-semibold">{activity.event}</div>
+                  <div className="text-[#999999] text-md font-flux">
+                    {activity.time}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
@@ -102,9 +170,9 @@ const DashboardPage = () => {
                   >
                     <path d="M5.25 12a.75.75 0 0 1 .75-.75h.01a.75.75 0 0 1 .75.75v.01a.75.75 0 0 1-.75.75H6a.75.75 0 0 1-.75-.75V12ZM6 13.25a.75.75 0 0 0-.75.75v.01c0 .414.336.75.75.75h.01a.75.75 0 0 0 .75-.75V14a.75.75 0 0 0-.75-.75H6ZM7.25 12a.75.75 0 0 1 .75-.75h.01a.75.75 0 0 1 .75.75v.01a.75.75 0 0 1-.75.75H8a.75.75 0 0 1-.75-.75V12ZM8 13.25a.75.75 0 0 0-.75.75v.01c0 .414.336.75.75.75h.01a.75.75 0 0 0 .75-.75V14a.75.75 0 0 0-.75-.75H8ZM9.25 10a.75.75 0 0 1 .75-.75h.01a.75.75 0 0 1 .75.75v.01a.75.75 0 0 1-.75.75H10a.75.75 0 0 1-.75-.75V10ZM10 11.25a.75.75 0 0 0-.75.75v.01c0 .414.336.75.75.75h.01a.75.75 0 0 0 .75-.75V12a.75.75 0 0 0-.75-.75H10ZM9.25 14a.75.75 0 0 1 .75-.75h.01a.75.75 0 0 1 .75.75v.01a.75.75 0 0 1-.75.75H10a.75.75 0 0 1-.75-.75V14ZM12 9.25a.75.75 0 0 0-.75.75v.01c0 .414.336.75.75.75h.01a.75.75 0 0 0 .75-.75V10a.75.75 0 0 0-.75-.75H12ZM11.25 12a.75.75 0 0 1 .75-.75h.01a.75.75 0 0 1 .75.75v.01a.75.75 0 0 1-.75.75H12a.75.75 0 0 1-.75-.75V12ZM12 13.25a.75.75 0 0 0-.75.75v.01c0 .414.336.75.75.75h.01a.75.75 0 0 0 .75-.75V14a.75.75 0 0 0-.75-.75H12ZM13.25 10a.75.75 0 0 1 .75-.75h.01a.75.75 0 0 1 .75.75v.01a.75.75 0 0 1-.75.75H14a.75.75 0 0 1-.75-.75V10ZM14 11.25a.75.75 0 0 0-.75.75v.01c0 .414.336.75.75.75h.01a.75.75 0 0 0 .75-.75V12a.75.75 0 0 0-.75-.75H14Z" />
                     <path
-                      fill-rule="evenodd"
+                      fillRule="evenodd"
                       d="M5.75 2a.75.75 0 0 1 .75.75V4h7V2.75a.75.75 0 0 1 1.5 0V4h.25A2.75 2.75 0 0 1 18 6.75v8.5A2.75 2.75 0 0 1 15.25 18H4.75A2.75 2.75 0 0 1 2 15.25v-8.5A2.75 2.75 0 0 1 4.75 4H5V2.75A.75.75 0 0 1 5.75 2Zm-1 5.5c-.69 0-1.25.56-1.25 1.25v6.5c0 .69.56 1.25 1.25 1.25h10.5c.69 0 1.25-.56 1.25-1.25v-6.5c0-.69-.56-1.25-1.25-1.25H4.75Z"
-                      clip-rule="evenodd"
+                      clipRule="evenodd"
                     />
                   </svg>
                 </div>
