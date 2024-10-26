@@ -1,28 +1,72 @@
-const receipt = [
-  {
-    id: 1,
-    name: "Cá kiếm Ẽcalibur",
-    quantity: 1,
-    price: 125000,
-    total: 125000,
-  },
-  {
-    id: 2,
-    name: "Cá voi xào hành tây",
-    quantity: 2,
-    price: 12000,
-    total: 24000,
-  },
-  {
-    id: 3,
-    name: "Cá vàng bơi trong chảo mỡ",
-    quantity: 2,
-    price: 1200000,
-    total: 2400000,
-  },
-];
+'use client';
 
-export function Receipt() {
+
+export function Receipt({
+  menuItems,
+  orderItems,
+  handleOrderItemsChange
+}:
+  {
+    menuItems: MenuItemEntity[],
+    orderItems: OrderItemEntity[],
+    handleOrderItemsChange: (orderItems: OrderItemEntity[]) => void
+  }) {
+
+
+  const totalCost = orderItems.reduce((acc, item) => acc + item.price, 0);
+
+  const handleNotifyKitchen = () => {
+    const newOrderItems = orderItems.map((item) => (
+      {
+        ...item,
+        reservedQuantity: item.orderedQuantity
+      }
+    ))
+
+    handleOrderItemsChange(newOrderItems);
+  }
+
+  const handleInCreaseClick = (itemId: number) => {
+    const newOrderItems = orderItems.map((item) => {
+      if (item.id == itemId) {
+        return {
+          ...item,
+          orderedQuantity: item.orderedQuantity + 1,
+          price: menuItems.find(menuItem => menuItem.id === item.menuItemId).sellingPrice * (item.orderedQuantity + 1)
+        }
+      } else {
+        return item;
+      }
+    })
+    handleOrderItemsChange(newOrderItems);
+  }
+
+  const handleDecreaseClick = (itemId: number) => {
+    const targetItem = orderItems.find(item => item.id === itemId);
+    if (targetItem.orderedQuantity === 1 && targetItem.reservedQuantity === 0) {
+      const newOrderItems = orderItems.filter(item => item.id !== itemId);
+      handleOrderItemsChange(newOrderItems);
+      return;
+    }
+
+    const newOrderItems = orderItems.map((item) => {
+      if (item.id == itemId) {
+        if (item.orderedQuantity <= item.reservedQuantity) {
+          return item;
+        }
+
+        return {
+          ...item,
+          orderedQuantity: item.orderedQuantity - 1
+        }
+      } else {
+        return item;
+      }
+    })
+    handleOrderItemsChange(newOrderItems);
+  }
+
+
   return (
     <section className="basis-1/2 h-full w-full p-4">
       <div className="relative h-full w-full flex flex-col justify-between bg-[#fafafa] shadow-sm rounded-2xl p-4 font-semibold">
@@ -38,16 +82,16 @@ export function Receipt() {
             <div className="basis-1/6 text-center">Price</div>
           </div>
           <div className="max-h-[450px] overflow-auto">
-            {receipt.map((item) => (
+            {orderItems.map((item) => (
               <div
                 key={item.id}
                 className="group flex items-center h-10 w-full my-2"
               >
                 <div className="overflow-hidden text-nowrap basis-2/3">
-                  {item.name}
+                  {menuItems.find(menuItem => menuItem.id === item.menuItemId).title}
                 </div>
                 <div className="flex justify-evenly items-center font-bold basis-1/6 rounded-full group-hover:border hover:bg-[#f0f0f0]">
-                  <button className="invisible group-hover:visible active:-translate-x-0.5">
+                  <button onClick={() => handleDecreaseClick(item.id)} className="invisible group-hover:visible active:-translate-x-0.5">
                     <svg
                       className="w-5 h-5"
                       aria-hidden="true"
@@ -66,8 +110,8 @@ export function Receipt() {
                       />
                     </svg>
                   </button>
-                  <div>{item.quantity}</div>
-                  <button className="invisible group-hover:visible active:translate-x-0.5">
+                  <div>{item.orderedQuantity}</div>
+                  <button onClick={() => handleInCreaseClick(item.id)} className="invisible group-hover:visible active:translate-x-0.5">
                     <svg
                       className="w-5 h-5"
                       aria-hidden="true"
@@ -87,22 +131,24 @@ export function Receipt() {
                     </svg>
                   </button>
                 </div>
-                <div className="basis-1/6 text-end">₫{item.total}</div>
+                <div className="basis-1/6 text-end">₫{item.price}</div>
               </div>
             ))}
           </div>
           <div className="w-full h-16 my-2 border-dotted border-y-2 border-[#adadad] flex justify-between items-center text-xl font-uniform font-bold">
             <div className="tracking-wide">TỔNG</div>
-            <div>₫12000000</div>
+            <div>₫{totalCost}</div>
           </div>
         </div>
 
         <div className="flex items-center gap-3 w-full h-10">
-          <button className="basis-1/2 h-full rounded-md shadow-sm bg-[#f7f7f7] border border-[#333333] text-[#333333] active:bg-[#333333] active:text-[#f7f7f7]">
+          <button
+            onClick={handleNotifyKitchen}
+            className="basis-1/2 h-full rounded-md shadow-sm bg-[#f7f7f7] border border-[#333333] text-[#333333] active:bg-[#333333] active:text-[#f7f7f7]">
             Báo nhà bếp
           </button>
           <button className="basis-1/2 h-full rounded-md shadow-sm bg-[#333333] border border-[#333333] text-[#f7f7f7] active:bg-[#f7f7f7] active:text-[#333333]">
-            Xác nhận phục vụ
+            Thanh toán
           </button>
         </div>
       </div>
