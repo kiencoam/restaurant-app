@@ -13,7 +13,7 @@ export function Receipt({
   }) {
 
 
-  const totalCost = orderItems.reduce((acc, item) => acc + item.price, 0);
+  const totalCost = orderItems?.reduce((acc, item) => acc + item.price, 0);
 
   const handleNotifyKitchen = () => {
     const newOrderItems = orderItems.map((item) => (
@@ -82,7 +82,7 @@ export function Receipt({
             <div className="basis-1/6 text-center">Price</div>
           </div>
           <div className="max-h-[450px] overflow-auto">
-            {orderItems.map((item) => (
+            {orderItems?.map((item) => (
               <div
                 key={item.id}
                 className="group flex items-center h-10 w-full my-2"

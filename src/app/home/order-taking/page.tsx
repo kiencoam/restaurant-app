@@ -268,9 +268,14 @@ const OrderTakingPage = () => {
             handleSelectTable={handleSelectTable}
           />
           :
-          <Menu handleAddMenuItem={handleAddMenuItem} menuItems={menuItems} />}
+          <Menu
+            handleAddMenuItem={handleAddMenuItem}
+            menuItems={menuItems} />}
       </div>
-      <Receipt menuItems={menuItems} orderItems={currentOrder.orderItems} handleOrderItemsChange={handleOrderItemsChange} />
+      <Receipt
+        menuItems={menuItems}
+        orderItems={currentOrder?.orderItems}
+        handleOrderItemsChange={handleOrderItemsChange} />
     </main>
   );
 };
