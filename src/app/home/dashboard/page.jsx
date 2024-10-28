@@ -2,11 +2,13 @@
 
 import { BusinessChart } from "@/components/BusinessChart";
 import { CustomerChart } from "@/components/CustomerChart";
+import { Chart } from "react-chartjs-2";
 import { PopularDish } from "@/components/PopularDish";
 import { useState, useRef, useEffect } from "react";
-import Chart from "chart.js/auto";
+
 import {
   Chart as ChartJS,
+  BarElement,
   LineElement,
   CategoryScale,
   LinearScale,
@@ -14,16 +16,19 @@ import {
   Title,
   Tooltip,
   Legend,
+  Filler,
 } from "chart.js";
 
 ChartJS.register(
+  BarElement,
   LineElement,
   CategoryScale,
   LinearScale,
   PointElement,
   Title,
   Tooltip,
-  Legend
+  Legend,
+  Filler
 );
 
 const activities = [
@@ -114,8 +119,8 @@ const DashboardPage = () => {
 
       <div className="flex w-full h-[700px]">
         <div className="basis-1/2 flex flex-col">
-          <div className="grid grid-cols-2 grid-rows-2 gap-6 mr-3 basis-1/3">
-            <div className="bg-[#ffffff] p-4 flex flex-col justify-between shadow-sm">
+          <div className="grid grid-cols-2 grid-rows-2 gap-6 mr-3 mb-6 basis-1/3 min-h-[280px]">
+            <div className="bg-[#ffffff] px-4 flex flex-col justify-evenly shadow-sm">
               <div className="text-[#808080] flex items-center justify-between">
                 <div>Tổng doanh số</div>
                 <div className="h-8 w-8 border rounded-full flex items-center justify-center bg-gray-200 mr-2">
@@ -135,7 +140,7 @@ const DashboardPage = () => {
                 <div className="ml-6 text-[#72ada9] font-bold">+3.67%</div>
               </div>
             </div>
-            <div className="bg-[#ffffff] p-4 flex flex-col justify-between shadow-sm">
+            <div className="bg-[#ffffff] px-4 flex flex-col justify-evenly shadow-sm">
               <div className="text-[#808080] flex items-center justify-between">
                 <div>Tổng kinh phí</div>
                 <div className="h-8 w-8 border rounded-full flex items-center justify-center bg-gray-200 mr-2">
@@ -158,7 +163,7 @@ const DashboardPage = () => {
                 <div className="ml-6 text-[#d57c72] font-bold">-3.57%</div>
               </div>
             </div>
-            <div className="bg-[#ffffff] p-4 flex flex-col justify-between shadow-sm">
+            <div className="bg-[#ffffff] px-4 flex flex-col justify-evenly shadow-sm">
               <div className="text-[#808080] flex items-center justify-between">
                 <div>2 đơn đang phục vụ</div>
                 <div className="h-8 w-8 border rounded-full flex items-center justify-center bg-gray-200 mr-2">
@@ -181,7 +186,7 @@ const DashboardPage = () => {
                 <div className="font-extrabold text-2xl">₫1,200,000</div>
               </div>
             </div>
-            <div className="bg-[#ffffff] p-4 flex flex-col justify-between shadow-sm">
+            <div className="bg-[#ffffff] px-4 flex flex-col justify-evenly shadow-sm">
               <div className="text-[#808080] flex items-center justify-between">
                 <div>Tổng số khách hàng</div>
                 <div className="h-8 w-8 border rounded-full flex items-center justify-center bg-gray-200 mr-2">
