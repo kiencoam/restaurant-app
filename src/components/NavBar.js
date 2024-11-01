@@ -114,7 +114,7 @@ const NavBar = async () => {
         <div className="rounded-md w-full h-[4rem] mx-2 hover:bg-[#454545]">
           <Link
             className="flex items-center w-full h-full"
-            href="/home/dashboard"
+            href="/home/table-booking"
           >
             <svg
               className="w-7 h-7 text-navtext ml-3 mr-4"
