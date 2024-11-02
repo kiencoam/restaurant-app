@@ -1,0 +1,38 @@
+html {
+  font-family: "Courier New", Courier, monospace;
+}
+
+.rbc-btn-group button {
+  background-color: gray;
+}
+
+/* Custom CSS for the calendar */
+.rbc-time-view {
+  overflow-x: auto;
+  overflow-y: auto;
+}
+
+.rbc-time-header,
+.rbc-time-content {
+  display: flex;
+}
+
+.rbc-time-header-cell {
+  min-width: 150px; /* Adjust this value to set the fixed width for resource columns */
+}
+
+.rbc-time-content > * + * {
+  flex: 1;
+}
+
+.rbc-time-content {
+  min-width: 1200px; /* Adjust based on the total number of hours visible */
+}
+
+.rbc-time-column {
+  min-width: 100px; /* Fixed width for each time slot */
+}
+
+.rbc-timeslot-group {
+  min-height: 40px; /* Adjust the height of each time slot as needed */
+}
