@@ -11,6 +11,16 @@
 @tailwind components;
 @tailwind utilities;
 
-::-webkit-scrollbar {
+.invisible-scrollbar::-webkit-scrollbar {
   width: 0;
+}
+
+::-webkit-scrollbar {
+  width: 3px;
+  height: 5px;
+  background-color: #aaa; /* or add it to the track */
+}
+
+::-webkit-scrollbar-thumb {
+  background: #000;
 }
