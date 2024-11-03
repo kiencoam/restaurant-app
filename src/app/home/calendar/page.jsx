@@ -8,6 +8,11 @@ import "./MyCalendar.css"; // Import custom CSS
 import withDragAndDrop from "react-big-calendar/lib/addons/dragAndDrop";
 import "react-big-calendar/lib/addons/dragAndDrop/styles.css";
 import { Modal, Box, TextField, Button, Grid } from "@mui/material";
+import { MenuItem } from "@mui/material";
+import { LocalizationProvider } from "@mui/x-date-pickers";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
+import dayjs from "dayjs";
 
 const localizer = momentLocalizer(moment);
 const DnDCalendar = withDragAndDrop(Calendar);
@@ -16,26 +21,27 @@ const sampleEvents = [
   {
     id: 1,
     title: "Event 1",
-    start: new Date(2024, 10, 2, 11, 0),
-    end: new Date(2024, 10, 2, 13, 0),
+    start: new Date(2024, 10, 3, 11, 0),
+    end: new Date(2024, 10, 3, 13, 0),
     resourceId: "table1",
   },
   {
     id: 2,
     title: "Event 2",
-    start: new Date(2024, 10, 2, 14, 0),
-    end: new Date(2024, 10, 2, 16, 0),
+    start: new Date(2024, 10, 3, 14, 0),
+    end: new Date(2024, 10, 3, 16, 0),
     resourceId: "table2",
   },
 ];
 
 const MyCalendar = () => {
+  const [selectedDate, setSelectedDate] = useState(new Date());
   const [events, setEvents] = useState(sampleEvents);
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [title, setTitle] = useState("");
-  const [newEventStart, setNewEventStart] = useState(null);
-  const [newEventEnd, setNewEventEnd] = useState(null);
+  const [start, setStart] = useState(null);
+  const [duration, setDuration] = useState(1);
   const [resourceId, setResourceId] = useState(null);
 
   const resources = [
@@ -65,32 +71,37 @@ const MyCalendar = () => {
     setEvents(nextEvents);
   };
 
-  const handleSelectEvent = (event) => {
-    setSelectedEvent(event);
-    setTitle(event.title);
-    setModalOpen(true);
-  };
-
   const handleCloseModal = () => {
     setModalOpen(false);
     setSelectedEvent(null);
+    setDuration(1);
+    setStart(null);
+    setResourceId(null);
   };
 
   const handleSaveEvent = () => {
+    const end = start.add(duration, "hour");
+
     if (selectedEvent) {
       const nextEvents = events.map((existingEvent) => {
         return existingEvent.id === selectedEvent.id
-          ? { ...existingEvent, title }
+          ? {
+              ...existingEvent,
+              title,
+              start: start.toDate(),
+              end: end.toDate(),
+              resourceId,
+            }
           : existingEvent;
       });
       setEvents(nextEvents);
       handleCloseModal();
-    } else if (newEventStart && newEventEnd) {
+    } else {
       const newEvent = {
         id: events.length + 1,
         title,
-        start: newEventStart,
-        end: newEventEnd,
+        start: start.toDate(),
+        end: end.toDate(),
         resourceId,
       };
       setEvents([...events, newEvent]);
@@ -98,88 +109,145 @@ const MyCalendar = () => {
     }
   };
 
+  const handleSelectEvent = (event) => {
+    setSelectedEvent(event);
+    setTitle(event.title);
+    setStart(dayjs(event.start));
+    setDuration((event.end - event.start) / (1000 * 60 * 60));
+    setResourceId(event.resourceId);
+    setModalOpen(true);
+  };
+
   const handleSelectSlot = ({ start, end, resourceId }) => {
-    setNewEventStart(start);
-    setNewEventEnd(end);
+    setStart(dayjs(start));
+    setDuration((end - start) / (1000 * 60 * 60));
     setResourceId(resourceId);
     setTitle("");
     setModalOpen(true);
   };
 
   const handleOpenManualEventCreation = () => {
-    setNewEventStart(new Date());
-    setNewEventEnd(new Date());
-    setResourceId(resources[0].id);
+    setStart(dayjs());
     setTitle("");
     setModalOpen(true);
   };
 
   return (
-    <Grid container spacing={2}>
-      <Grid item xs={12} md={12} style={{ overflowX: "auto" }}>
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={handleOpenManualEventCreation}
-          style={{ marginBottom: "10px" }}
-        >
-          Create New Event
-        </Button>
-        <DnDCalendar
-          localizer={localizer}
-          events={events}
-          startAccessor="start"
-          endAccessor="end"
-          defaultView={Views.DAY}
-          views={{ day: true }}
-          step={60}
-          timeslots={1}
-          resources={resources}
-          resourceIdAccessor="id"
-          resourceTitleAccessor="title"
-          style={{ height: 600 }}
-          onEventDrop={handleEventDrop}
-          onEventResize={handleEventResize}
-          onSelectEvent={handleSelectEvent}
-          onSelectSlot={handleSelectSlot}
-          selectable
-          resizable
-          draggable
-        />
-      </Grid>
-      <Modal
-        open={modalOpen}
-        onClose={handleCloseModal}
-        aria-labelledby="modal-title"
-        aria-describedby="modal-description"
-      >
-        <Box
-          sx={{
-            position: "absolute",
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%, -50%)",
-            width: 400,
-            bgcolor: "background.paper",
-            border: "2px solid #000",
-            boxShadow: 24,
-            p: 4,
-          }}
-        >
-          <h2 id="modal-title">Edit Event</h2>
-          <TextField
-            fullWidth
-            label="Event Title"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            margin="normal"
-          />
-          <Button onClick={handleSaveEvent} variant="contained" color="primary">
-            Save
+    <LocalizationProvider dateAdapter={AdapterDayjs}>
+      <Grid container spacing={2}>
+        <Grid item xs={12} md={12} style={{ overflowX: "auto" }}>
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={handleOpenManualEventCreation}
+            style={{ marginBottom: "10px" }}
+          >
+            Create New Event
           </Button>
-        </Box>
-      </Modal>
-    </Grid>
+          <DnDCalendar
+            localizer={localizer}
+            date={selectedDate}
+            onNavigate={(date) => {
+              setSelectedDate(date);
+            }}
+            toolbar={false}
+            events={events}
+            startAccessor="start"
+            endAccessor="end"
+            defaultView={Views.DAY}
+            views={{ day: true }}
+            step={30}
+            timeslots={1}
+            resources={resources}
+            resourceIdAccessor="id"
+            resourceTitleAccessor="title"
+            style={{ height: 600 }}
+            onEventDrop={handleEventDrop}
+            onEventResize={handleEventResize}
+            onSelectEvent={handleSelectEvent}
+            onSelectSlot={handleSelectSlot}
+            selectable
+            resizable
+            draggable
+          />
+        </Grid>
+        <Modal
+          open={modalOpen}
+          onClose={handleCloseModal}
+          aria-labelledby="modal-title"
+          aria-describedby="modal-description"
+        >
+          <Box
+            sx={{
+              position: "absolute",
+              top: "50%",
+              left: "50%",
+              transform: "translate(-50%, -50%)",
+              width: 400,
+              bgcolor: "background.paper",
+              border: "2px solid #000",
+              boxShadow: 24,
+              p: 4,
+            }}
+          >
+            <h2 id="modal-title">Edit Event</h2>
+            <form onSubmit={handleSaveEvent}>
+              <TextField
+                fullWidth
+                label="Event Title"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                margin="normal"
+                required
+              />
+              <DateTimePicker
+                label="Controlled picker"
+                value={start}
+                onChange={(newStart) => setStart(newStart)}
+                fullWidth
+                margin="normal"
+                required
+              />
+              <TextField
+                label="Thời lượng (h)"
+                type="number"
+                value={duration}
+                onChange={(event) => setDuration(event.target.value)}
+                variant="standard"
+                required
+                fullWidth
+                slotProps={{
+                  input: {
+                    inputProps: {
+                      min: 0,
+                      max: 24,
+                      step: "0.5",
+                    },
+                  },
+                }}
+              />
+              <TextField
+                select
+                label="Chọn bàn"
+                value={resourceId}
+                onChange={(event) => setResourceId(event.target.value)}
+                required
+                margin="normal"
+              >
+                {resources.map((option) => (
+                  <MenuItem key={option.id} value={option.id}>
+                    {option.title}
+                  </MenuItem>
+                ))}
+              </TextField>
+              <Button type="submit" variant="contained" color="primary">
+                Save
+              </Button>
+            </form>
+          </Box>
+        </Modal>
+      </Grid>
+    </LocalizationProvider>
   );
 };
 
