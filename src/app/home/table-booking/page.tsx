@@ -2,6 +2,425 @@
 import React, { useState, useEffect, useRef } from "react";
 import "react-tooltip/dist/react-tooltip.css";
 import { Tooltip } from "react-tooltip";
+import { CustomerEntity } from "./data";
+import { formatDateTime, formatDateToString } from "@/utils/timeUtils";
+
+const tables: TableEntity[] = [
+  {
+    id: 1,
+    name: "Bàn 1",
+    capacity: 4,
+    type: "NORMAL",
+    location: "Tầng 1",
+    isActive: true,
+  },
+  {
+    id: 2,
+    name: "Bàn 2",
+    capacity: 4,
+    type: "NORMAL",
+    location: "Tầng 2",
+    isActive: true,
+  },
+  {
+    id: 3,
+    name: "Bàn 3",
+    capacity: 4,
+    type: "NORMAL",
+    location: "Tầng 3",
+    isActive: true,
+  },
+  {
+    id: 4,
+    name: "Bàn 4",
+    capacity: 4,
+    type: "NORMAL",
+    location: "Tầng 1",
+    isActive: true,
+  },
+  {
+    id: 5,
+    name: "Bàn 5",
+    capacity: 4,
+    type: "NORMAL",
+    location: "Tầng 2",
+    isActive: true,
+  },
+  {
+    id: 6,
+    name: "Bàn 6",
+    capacity: 4,
+    type: "NORMAL",
+    location: "Tầng 3",
+    isActive: true,
+  },
+  {
+    id: 7,
+    name: "Phòng VIP 1",
+    capacity: 4,
+    type: "NORMAL",
+    location: "VIP 1",
+    isActive: true,
+  },
+  {
+    id: 8,
+    name: "Phòng VIP 2",
+    capacity: 4,
+    type: "NORMAL",
+    location: "VIP 2",
+    isActive: true,
+  },
+  {
+    id: 9,
+    name: "Bàn 9",
+    capacity: 4,
+    type: "NORMAL",
+    location: "Tầng 1",
+    isActive: true,
+  },
+  {
+    id: 10,
+    name: "Bàn 10",
+    capacity: 4,
+    type: "NORMAL",
+    location: "Tầng 2",
+    isActive: true,
+  },
+];
+
+const initOrders: OrderEntity[] = [
+  {
+    id: 1,
+    customerId: 1,
+    userId: 1,
+    orderStatus: "CONFIRMED",
+    totalCost: 125000,
+    numberOfPeople: 2,
+    note: "Không ớt",
+    checkInTime: "2024-04-01T12:00:00",
+    checkOutTime: "2024-04-01T13:00:00",
+    paymentId: 1,
+    paymentMethod: "CASH",
+    orderItems: [
+      {
+        id: 1,
+        orderId: 1,
+        menuItemId: 1,
+        orderedQuantity: 3,
+        reservedQuantity: 0,
+        price: 125000,
+        status: "PROCESSING",
+      },
+      {
+        id: 2,
+        orderId: 1,
+        menuItemId: 2,
+        orderedQuantity: 2,
+        reservedQuantity: 0,
+        price: 12000,
+        status: "PROCESSING",
+      },
+      {
+        id: 3,
+        orderId: 1,
+        menuItemId: 3,
+        orderedQuantity: 2,
+        reservedQuantity: 1,
+        price: 1200000,
+        status: "PROCESSING",
+      },
+    ],
+    orderTables: [
+      {
+        id: 1,
+        orderId: 1,
+        tableId: 1,
+      },
+    ],
+  },
+  {
+    id: 2,
+    customerId: 2,
+    userId: 2,
+    orderStatus: "CHECKED_IN",
+    totalCost: 125000,
+    numberOfPeople: 2,
+    note: "Không ớt",
+    checkInTime: "2024-04-01T12:00:00",
+    checkOutTime: "2024-04-01T13:00:00",
+    paymentId: 1,
+    paymentMethod: "CASH",
+    orderItems: [
+      {
+        id: 4,
+        orderId: 2,
+        menuItemId: 1,
+        orderedQuantity: 2,
+        reservedQuantity: 0,
+        price: 125000,
+        status: "PROCESSING",
+      },
+      {
+        id: 5,
+        orderId: 2,
+        menuItemId: 2,
+        orderedQuantity: 2,
+        reservedQuantity: 0,
+        price: 12000,
+        status: "PROCESSING",
+      },
+      {
+        id: 6,
+        orderId: 2,
+        menuItemId: 3,
+        orderedQuantity: 2,
+        reservedQuantity: 1,
+        price: 1200000,
+        status: "PROCESSING",
+      },
+    ],
+    orderTables: [
+      {
+        id: 2,
+        orderId: 2,
+        tableId: 3,
+      },
+    ],
+  },
+  {
+    id: 3,
+    customerId: 3,
+    userId: 3,
+    orderStatus: "ABANDONED",
+    totalCost: 125000,
+    numberOfPeople: 2,
+    note: "Không ớt",
+    checkInTime: "2024-04-01T12:00:00",
+    checkOutTime: "2024-04-01T13:00:00",
+    paymentId: 1,
+    paymentMethod: "CASH",
+    orderItems: [
+      {
+        id: 7,
+        orderId: 3,
+        menuItemId: 1,
+        orderedQuantity: 2,
+        reservedQuantity: 0,
+        price: 125000,
+        status: "PROCESSING",
+      },
+      {
+        id: 8,
+        orderId: 3,
+        menuItemId: 2,
+        orderedQuantity: 2,
+        reservedQuantity: 0,
+        price: 12000,
+        status: "PROCESSING",
+      },
+      {
+        id: 9,
+        orderId: 3,
+        menuItemId: 3,
+        orderedQuantity: 2,
+        reservedQuantity: 1,
+        price: 1200000,
+        status: "PROCESSING",
+      },
+    ],
+    orderTables: [
+      {
+        id: 3,
+        orderId: 3,
+        tableId: 5,
+      },
+    ],
+  },
+  {
+    id: 4,
+    customerId: 4,
+    userId: 4,
+    orderStatus: "CANCELLED",
+    totalCost: 125000,
+    numberOfPeople: 2,
+    note: "Không ớt",
+    checkInTime: "2024-04-01T12:00:00",
+    checkOutTime: "2024-04-01T13:00:00",
+    paymentId: 1,
+    paymentMethod: "CASH",
+    orderItems: [
+      {
+        id: 10,
+        orderId: 4,
+        menuItemId: 1,
+        orderedQuantity: 2,
+        reservedQuantity: 0,
+        price: 125000,
+        status: "PROCESSING",
+      },
+      {
+        id: 11,
+        orderId: 4,
+        menuItemId: 2,
+        orderedQuantity: 2,
+        reservedQuantity: 0,
+        price: 12000,
+        status: "PROCESSING",
+      },
+      {
+        id: 12,
+        orderId: 4,
+        menuItemId: 3,
+        orderedQuantity: 2,
+        reservedQuantity: 1,
+        price: 1200000,
+        status: "PROCESSING",
+      },
+    ],
+    orderTables: [
+      {
+        id: 4,
+        orderId: 4,
+        tableId: 7,
+      },
+    ],
+  },
+  {
+    id: 5,
+    customerId: 5,
+    userId: 5,
+    orderStatus: "COMPLETED",
+    totalCost: 125000,
+    numberOfPeople: 2,
+    note: "Không ớt",
+    checkInTime: "2024-04-01T12:00:00",
+    checkOutTime: "2024-04-01T13:00:00",
+    paymentId: 1,
+    paymentMethod: "CASH",
+    orderItems: [
+      {
+        id: 13,
+        orderId: 5,
+        menuItemId: 1,
+        orderedQuantity: 2,
+        reservedQuantity: 0,
+        price: 125000,
+        status: "PROCESSING",
+      },
+      {
+        id: 14,
+        orderId: 5,
+        menuItemId: 2,
+        orderedQuantity: 2,
+        reservedQuantity: 0,
+        price: 12000,
+        status: "PROCESSING",
+      },
+      {
+        id: 15,
+        orderId: 5,
+        menuItemId: 3,
+        orderedQuantity: 2,
+        reservedQuantity: 1,
+        price: 1200000,
+        status: "PROCESSING",
+      },
+    ],
+    orderTables: [
+      {
+        id: 5,
+        orderId: 5,
+        tableId: 9,
+      },
+    ],
+  }
+];
+
+
+const customers: CustomerEntity[] = [
+  {
+    id: 1,
+    name: "Nguyễn Văn A",
+    phoneNumber: "0123456789",
+    email: "nguyenvana@gmail.com",
+    address: "Hà Nội",
+    dob: "1990-01-01",
+    gender: "male",
+    totalCost: "1000000"
+  },
+  {
+    id: 6,
+    name: "Nguyễn Văn An",
+    phoneNumber: "0123456789",
+    email: "nguyenvana@gmail.com",
+    address: "Hà Nội",
+    dob: "1990-01-01",
+    gender: "male",
+    totalCost: "1000000"
+  },
+  {
+    id: 7,
+    name: "Nguyễn Văn Anh",
+    phoneNumber: "0123456789",
+    email: "nguyenvana@gmail.com",
+    address: "Hà Nội",
+    dob: "1990-01-01",
+    gender: "male",
+    totalCost: "1000000"
+  },
+  {
+    id: 2,
+    name: "Nguyễn Văn B",
+    phoneNumber: "0123456789",
+    email: "",
+  },
+  {
+    id: 3,
+    name: "Nguyễn Văn C",
+    phoneNumber: "0123456789",
+    email: "",
+  },
+  {
+    id: 4,
+    name: "Nguyễn Văn D",
+    phoneNumber: "0123456789",
+  },
+  {
+    id: 5,
+    name: "Nguyễn Văn E",
+    phoneNumber: "0123456789",
+  }
+]
+
+const mapOrderStatus = (status: string) => {
+  switch (status) {
+    case "CONFIRMED":
+      return "Đã xếp bàn";
+    case "CHECKED_IN":
+      return "Đã nhận bàn";
+    case "ABANDONED":
+      return "Đến muộn";
+    case "CANCELLED":
+      return "Đã hủy";
+    case "COMPLETED":
+      return "Đã thanh toán";
+    default:
+      return "Không xác định";
+  }
+}
+
+type GetOrderRequest = {
+  page?: number;
+  pageSize?: number;
+  orderStatus?: Set<string>;
+  startTime: string;
+  endTime: string;
+  paymentMethod?: string;
+  tableIds?: Set<number>;
+  userName?: string;
+  customerName?: string;
+  note?: string;
+}
 
 const ReceptionPage = () => {
   const [hoveredRow, setHoveredRow] = useState(null);
@@ -9,10 +428,64 @@ const ReceptionPage = () => {
   const [checkedRows, setCheckedRows] = useState({});
   const [masterChecked, setMasterChecked] = useState(false);
   const [searchOptionsOpen, setSearchOptionsOpen] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
+  const [isTableOpen, setIsTableOpen] = useState(false);
+  const [filterOrder, setFilterOrder] = useState<GetOrderRequest>({
+    startTime: formatDateToString(new Date()),
+    endTime: formatDateToString(new Date(new Date().setDate(new Date().getDate() + 1))),
+    orderStatus: new Set(),
+    tableIds: new Set()
+  });
   const [isFilterOpen, setIsFilterOpen] = useState(false);
-  const [newReservation, setNewReservation] = useState(false);
-  const [newCustomer, setNewCustomer] = useState(false);
+  const [isNewOrder, setIsNewOrder] = useState(false);
+  const [isNewCustomer, setIsNewCustomer] = useState(false);
+  const [searchCustomer, setSearchCustomer] = useState("");
+  const [newOrder, setNewOrder] = useState<CreateOrderRequest>({
+    customerId: null,
+    userId: null,
+    checkInTime: "",
+    checkOutTime: "",
+    numberOfPeople: 1,
+    tableIds: new Set()
+  });
+  const [newCustomer, setNewCustomer] = useState<CustomerEntity>();
+
+  const filterCustomer: CustomerEntity[] = searchCustomer.trim() === "" ? []
+    : customers.filter((customer) => customer.name.toLowerCase().includes(searchCustomer.toLowerCase()));
+  console.log("filterCustomer", filterCustomer);
+
+  console.log("filterOrder", filterOrder);
+  console.log("newOrder", newOrder);
+  console.log("newCustomer", newCustomer);
+
+  const handleFilterOrderStatusChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newOrderStatus = new Set(filterOrder.orderStatus);
+    if (e.target.checked) {
+      newOrderStatus.add(e.target.value);
+    } else {
+      newOrderStatus.delete(e.target.value);
+    }
+    setFilterOrder({ ...filterOrder, orderStatus: newOrderStatus })
+  }
+
+  const handleSelectTableToNewOrderOrderChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newTableIds = new Set(newOrder.tableIds);
+    if (e.target.checked) {
+      newTableIds.add(parseInt(e.target.value));
+    } else {
+      newTableIds.delete(parseInt(e.target.value));
+    }
+    setNewOrder({ ...newOrder, tableIds: newTableIds });
+  }
+
+  const handleSelectTableChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newTableIds = new Set(filterOrder.tableIds);
+    if (e.target.checked) {
+      newTableIds.add(parseInt(e.target.value));
+    } else {
+      newTableIds.delete(parseInt(e.target.value));
+    }
+    setFilterOrder({ ...filterOrder, tableIds: newTableIds });
+  }
 
   const filterRef = useRef(null);
 
@@ -35,16 +508,16 @@ const ReceptionPage = () => {
   };
 
   const toggleNewCustomer = () => {
-    setNewCustomer((prev) => !prev);
+    setIsNewCustomer((prev) => !prev);
   };
 
   const toggleNewReservation = () => {
-    setNewReservation((prev) => !prev);
+    setIsNewOrder((prev) => !prev);
   };
 
   const handleSearch = (e) => {
     e.preventDefault();
-    console.log("Searching for:", searchTerm);
+    console.log("Searching for:", filterOrder);
     // Add search functionality here
   };
 
@@ -139,8 +612,8 @@ const ReceptionPage = () => {
             <input
               className="p-2 bg-transparent"
               type="text"
-              placeholder="Theo mã đặt bàn"
-              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Theo tên khách hàng"
+              onChange={(e) => setFilterOrder({ ...filterOrder, customerName: e.target.value })}
             />
           </div>
           <button onClick={() => setSearchOptionsOpen(!searchOptionsOpen)}>
@@ -155,26 +628,25 @@ const ReceptionPage = () => {
             </svg>
           </button>
           {searchOptionsOpen && (
-            <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+            <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 ">
               <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full">
                 <h2 className="text-xl font-bold mb-4">Search Options</h2>
                 <form onSubmit={handleSearch}>
                   <input
-                    placeholder="Theo mã đặt bàn"
-                    className="p-2 mb-2 "
-                  ></input>
-                  <input
                     placeholder="Tìm theo khách đặt"
                     className="p-2 mb-2 "
+                    onChange={(e) => setFilterOrder({ ...filterOrder, customerName: e.target.value })}
                   ></input>
                   <input
                     placeholder="Theo người nhận đặt"
                     className="p-2 mb-2 "
+                    onChange={(e) => setFilterOrder({ ...filterOrder, userName: e.target.value })}
                   ></input>
                   <div className="flex justify-between">
                     <input
                       placeholder="Theo ghi chú"
                       className="p-2 mb-2 "
+                      onChange={(e) => setFilterOrder({ ...filterOrder, note: e.target.value })}
                     ></input>
                     <div className="flex gap-2">
                       <button
@@ -196,19 +668,25 @@ const ReceptionPage = () => {
               </div>
             </div>
           )}
-          <div>
-            <form className="max-w-sm mx-auto">
-              <select
+          <div className="ml-12">
+            <div className="max-w-sm mx-auto">
+              <div
                 id="rooms/tables"
-                className="bg-[#f7fafc] border text-sm rounded-md  p-2 shadow-sm"
+                className="bg-[#f7fafc] border text-sm rounded-md  p-2 shadow-sm relative"
               >
-                <option defaultValue>Chọn phòng/bàn</option>
-                <option value="Bàn 1">Bàn 1</option>
-                <option value="Bàn 2">Bàn 2</option>
-                <option value="Bàn 3">Bàn 3</option>
-                <option value="Phòng VIP 1">Phòng VIP 1</option>
-              </select>
-            </form>
+                <button className="text-sm font-semibold" onClick={() => setIsTableOpen(!isTableOpen)}>Chọn phòng/bàn</button>
+                {isTableOpen &&
+                  <div className="absolute top-10 left-0 w-full flex flex-col gap-2 rounded-md bg-white">
+                    {tables?.map((table) => (
+                      <div className="p-0.5 flex gap-4" key={table.id}>
+                        <input className="ml-2" type="checkbox" value={table.id} onChange={handleSelectTableChange} />
+                        <span>{table.name}</span>
+                      </div>
+                    ))}
+                  </div>
+                }
+              </div>
+            </div>
           </div>
         </div>
         <div className="flex gap-4">
@@ -290,20 +768,24 @@ const ReceptionPage = () => {
               <div className="p-2">
                 <p className="font-bold ml-2 px-2">Tình trạng</p>
                 <label className="flex items-center space-x-2 mt-2">
-                  <input type="checkbox" className="form-checkbox" />
-                  <span>Chờ xếp bàn</span>
-                </label>
-                <label className="flex items-center space-x-2 mt-2">
-                  <input type="checkbox" className="form-checkbox" />
+                  <input type="checkbox" className="form-checkbox" value={"CONFIRMED"} onChange={handleFilterOrderStatusChange} />
                   <span>Đã xếp bàn</span>
                 </label>
                 <label className="flex items-center space-x-2 mt-2">
-                  <input type="checkbox" className="form-checkbox" />
+                  <input type="checkbox" className="form-checkbox" value={"CHECKED_IN"} onChange={handleFilterOrderStatusChange} />
                   <span>Đã nhận bàn</span>
                 </label>
                 <label className="flex items-center space-x-2 mt-2">
-                  <input type="checkbox" className="form-checkbox" />
+                  <input type="checkbox" className="form-checkbox" value={"ABANDONED"} onChange={handleFilterOrderStatusChange} />
+                  <span>Đến muộn</span>
+                </label>
+                <label className="flex items-center space-x-2 mt-2">
+                  <input type="checkbox" className="form-checkbox" value={"CANCELLED"} onChange={handleFilterOrderStatusChange} />
                   <span>Đã hủy</span>
+                </label>
+                <label className="flex items-center space-x-2 mt-2">
+                  <input type="checkbox" className="form-checkbox" value={"COMPLETED"} onChange={handleFilterOrderStatusChange} />
+                  <span>Đã thanh toán</span>
                 </label>
               </div>
               <div className="p-2">
@@ -342,7 +824,7 @@ const ReceptionPage = () => {
           )}
           <button
             className="flex items-center border rounded-md px-2 shadow-sm bg-black mr-6"
-            onClick={() => setNewReservation(!newReservation)}
+            onClick={() => setIsNewOrder(!isNewOrder)}
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -355,7 +837,7 @@ const ReceptionPage = () => {
             </svg>
             <div className="p-2 text-sm font-bold text-white">Đặt bàn</div>
           </button>
-          {newReservation && (
+          {isNewOrder && (
             <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
               <div className="bg-white p-6 rounded-lg shadow-lg w-3/5 h-6/10">
                 <div className="text-xl font-bold mb-4">Thêm mới đặt bàn</div>
@@ -377,18 +859,34 @@ const ReceptionPage = () => {
                           d="M21 21l-4.35-4.35M17 11A6 6 0 1011 17a6 6 0 006-6z"
                         />
                       </svg>
-                      <input
-                        className="p-2 bg-transparent"
-                        type="text"
-                        placeholder="Tìm khách hàng"
+                      <div className="flex flex-col">
+                        <input
+                          className="p-2 bg-transparent"
+                          type="text"
+                          placeholder="Tìm khách hàng"
+                          value={searchCustomer}
+                          onChange={(e) => setSearchCustomer(e.target.value)}
                         // Can them mot ham de khi dien, neu tim thay thi mot menu hien xuong, khong nhap gi thi khong hien gi
                         //neu co nhap, khong tim thay thi hien khong thay
                         //con lai thi hien het cac ket qua
-                      />
+                        />
+                        {
+                          filterCustomer.length > 0 &&
+                          <ul>
+                            {filterCustomer.map((customer) => (
+                              <li
+                                onClick={(e) => setNewOrder({ ...newOrder, customerId: customer.id })}
+                                key={customer.id}>
+                                {customer.name}
+                              </li>
+                            ))}
+                          </ul>
+                        }
+                      </div>
                       <button
                         data-tooltip-id="my-tooltip"
                         data-tooltip-content="Tạo khách hàng mới"
-                        onClick={() => setNewCustomer(!newCustomer)}
+                        onClick={() => setIsNewCustomer(!isNewCustomer)}
                       >
                         <Tooltip id="my-tooltip" />
                         <svg
@@ -401,7 +899,7 @@ const ReceptionPage = () => {
                           <path d="M440-440H200v-80h240v-240h80v240h240v80H520v240h-80v-240Z" />
                         </svg>
                       </button>
-                      {newCustomer && (
+                      {isNewCustomer && (
                         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
                           <div className="bg-white p-6 rounded-lg shadow-lg w-3/5 h-6/10">
                             <div className="text-xl font-bold mb-4">
@@ -425,6 +923,7 @@ const ReceptionPage = () => {
                                     className="p-2 bg-transparent w-full"
                                     type="text"
                                     placeholder="Ví dụ: 0912345678"
+                                    onChange={(e) => setNewCustomer({ ...newCustomer, phoneNumber: e.target.value })}
                                   />
                                 </div>
                               </div>
@@ -436,6 +935,7 @@ const ReceptionPage = () => {
                                   <input
                                     className="p-2 bg-transparent w-full"
                                     type="text"
+                                    onChange={(e) => setNewCustomer({ ...newCustomer, name: e.target.value })}
                                   />
                                 </div>
                               </div>
@@ -446,6 +946,7 @@ const ReceptionPage = () => {
                                     className="p-2 bg-transparent w-full"
                                     type="text"
                                     placeholder="qwe@gmail.com"
+                                    onChange={(e) => setNewCustomer({ ...newCustomer, email: e.target.value })}
                                   />
                                 </div>
                               </div>
@@ -458,6 +959,7 @@ const ReceptionPage = () => {
                                     className="p-2 bg-transparent w-full"
                                     type="text"
                                     placeholder="dd/mm/yyyy"
+                                    onChange={(e) => setNewCustomer({ ...newCustomer, dob: e.target.value })}
                                   />
                                 </div>
                               </div>
@@ -509,7 +1011,7 @@ const ReceptionPage = () => {
                           id="staff"
                           className="bg-[#f7fafc] border text-sm rounded-md  p-2 shadow-sm w-60"
                         >
-                          <option defaultValue>Chọn nhân viên</option>
+                          <option defaultChecked>Chọn nhân viên</option>
                           <option value="Hoàng - Kinh doanh">
                             Hoàng - Kinh doanh
                           </option>
@@ -540,15 +1042,24 @@ const ReceptionPage = () => {
                     <div> Phòng/bàn</div>
                     <div>
                       <form className="max-w-sm mx-auto">
-                        <select
+                        <div
                           id="rooms/tables"
                           className="bg-[#f7fafc] border text-sm rounded-md  p-2 shadow-sm w-60"
                         >
-                          <option defaultValue>Chờ xếp bàn</option>
+                          {/* <option defaultChecked>Chờ xếp bàn</option>
                           <option value="Phòng 1">Phòng 1</option>
                           <option value="Phòng 3">Phòng 3</option>
-                          <option value="Phòng 5">Phòng 5</option>
-                        </select>
+                          <option value="Phòng 5">Phòng 5</option> */}
+                          {
+                            tables.map((table) => (
+                              <div className="p-0.5 flex gap-4" key={table.id}>
+                                <input className="ml-2" type="checkbox" value={table.id}
+                                  onChange={handleSelectTableToNewOrderOrderChange} />
+                                <span>{table.name}</span>
+                              </div>
+                            ))
+                          }
+                        </div>
                       </form>{" "}
                     </div>
                   </div>
@@ -561,6 +1072,8 @@ const ReceptionPage = () => {
                         className="p-2 bg-transparent w-full"
                         type="text"
                         placeholder="dd/mm/yyyy hh:mm"
+                        value={newOrder.checkInTime}
+                        onChange={(e) => setNewOrder({ ...newOrder, checkInTime: e.target.value })}
                       />
                     </div>
                   </div>
@@ -568,6 +1081,8 @@ const ReceptionPage = () => {
                     <input
                       className="bg-[#f7fafc] border text-sm rounded-md  p-2 shadow-sm w-[329.95px]"
                       placeholder="Ghi chú"
+                      value={newOrder.note}
+                      onChange={(e) => setNewOrder({ ...newOrder, note: e.target.value })}
                     ></input>
                   </div>
                 </div>
@@ -575,8 +1090,9 @@ const ReceptionPage = () => {
                   <div className="w-28"> Thời lượng (h)</div>
                   <div className="flex items-center border text-sm rounded-md bg-[#f7fafc] px-2 shadow-sm w-[243.5px]">
                     <input
-                      className="p-2 bg-transparent w-full text-right"
+                      className="p-2 bg-transparent w-full text-left"
                       type="text"
+                      onChange={(e) => setNewOrder({ ...newOrder, checkOutTime: null })}
                     />
                   </div>
                 </div>
@@ -635,9 +1151,9 @@ const ReceptionPage = () => {
           </tr>
         </thead>
         <tbody>
-          {reservations.map((reservation, index) => (
+          {initOrders.map((order, index) => (
             <tr
-              key={index}
+              key={order.id}
               className="hover:bg-gray-50"
               onMouseEnter={() => setHoveredRow(index)}
               onMouseLeave={() => setHoveredRow(null)}
@@ -650,41 +1166,43 @@ const ReceptionPage = () => {
                 />
               </td>
               <td className="px-4 py-2 border-b text-blue-600">
-                <button>{reservation.id}</button>
+                <button>{order.id}</button>
               </td>
-              <td className="px-4 py-2 border-b">{reservation.time}</td>
-              <td className="px-4 py-2 border-b">{reservation.customer}</td>
-              <td className="px-4 py-2 border-b">{reservation.phone}</td>
-              <td className="px-4 py-2 border-b">{reservation.guests}</td>
-              <td className="px-4 py-2 border-b">{reservation.table}</td>
+              <td className="px-4 py-2 border-b">{formatDateTime(order.checkInTime)}</td>
+              <td className="px-4 py-2 border-b">{customers.find(c => c.id === order.customerId).name}</td>
+              <td className="px-4 py-2 border-b">{customers.find(c => c.id === order.customerId).phoneNumber}</td>
+              <td className="px-4 py-2 border-b">{order.numberOfPeople}</td>
+              <td className="px-4 py-2 border-b">{tables.find(t => t.id === order.orderTables[0].id).name}</td>
               <td className="px-4 py-2 border-b">
                 <span
-                  className={`inline-flex items-center gap-1 px-2 py-1 text-sm font-semibold rounded ${
-                    reservation.status === "Đã xếp bàn"
-                      ? "bg-green-100 text-green-600"
-                      : reservation.status === "Chờ xếp bàn"
+                  className={`inline-flex items-center gap-1 px-2 py-1 text-sm font-semibold rounded ${order.orderStatus === "CONFIRMED"
+                    ? "bg-green-100 text-green-600"
+                    : order.orderStatus === "CHECKED_IN"
                       ? "bg-yellow-100 text-yellow-600"
-                      : reservation.status === "Đã nhận bàn"
-                      ? "bg-blue-100 text-blue-600"
-                      : "bg-red-100 text-red-600"
-                  }`}
+                      : order.orderStatus === "COMPLETED"
+                        ? "bg-blue-100 text-blue-600"
+                        : order.orderStatus === "CANCELLED"
+                          ? "bg-red-100 text-red-600"
+                          : "bg-gray-100 text-gray-600"
+                    }`}
                 >
                   <span
-                    className={`h-2 w-2 rounded-full ${
-                      reservation.status === "Đã xếp bàn"
-                        ? "bg-green-600"
-                        : reservation.status === "Chờ xếp bàn"
+                    className={`h-2 w-2 rounded-full ${order.orderStatus === "CONFIRMED"
+                      ? "bg-green-600"
+                      : order.orderStatus === "CHECKED_IN"
                         ? "bg-yellow-600"
-                        : reservation.status === "Đã nhận bàn"
-                        ? "bg-blue-600"
-                        : "bg-red-600"
-                    }`}
+                        : order.orderStatus === "COMPLETE"
+                          ? "bg-blue-600"
+                          : order.orderStatus === "CANCELLED"
+                            ? "bg-red-600"
+                            : "bg-gray-600"
+                      }`}
                   ></span>
-                  {reservation.status}
+                  {mapOrderStatus(order.orderStatus)}
                 </span>
               </td>
               <td className="px-4 py-2 border-b">
-                {hoveredRow === null && reservation.note}
+                {hoveredRow === null && order.note}
                 {hoveredRow === index && (
                   <div className="flex space-x-2 mt-2">
                     <button

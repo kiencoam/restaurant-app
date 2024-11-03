@@ -59,3 +59,13 @@ type MenuSectionEntity = {
     description: string;
     menuItems?: MenuItemEntity[];
 }
+
+type CreateOrderRequest = {
+    customerId: number;
+    userId: number;
+    checkInTime: string;
+    checkOutTime: string;
+    numberOfPeople: number;
+    tableIds: Set<number>;
+    note?: string;
+}
