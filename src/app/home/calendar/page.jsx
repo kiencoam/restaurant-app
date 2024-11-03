@@ -1,17 +1,18 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useCallback, useMemo } from "react";
 import { Calendar, Views, momentLocalizer } from "react-big-calendar";
 import moment from "moment";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 import "./MyCalendar.css"; // Import custom CSS
 import withDragAndDrop from "react-big-calendar/lib/addons/dragAndDrop";
 import "react-big-calendar/lib/addons/dragAndDrop/styles.css";
-import { Modal, Box, TextField, Button, Grid } from "@mui/material";
+import { Modal, Box, TextField, Button } from "@mui/material";
 import { MenuItem } from "@mui/material";
 import { LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
+import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import dayjs from "dayjs";
 
 const localizer = momentLocalizer(moment);
@@ -132,18 +133,92 @@ const MyCalendar = () => {
     setModalOpen(true);
   };
 
+  const onPrevClick = useCallback(() => {
+    setSelectedDate(moment(selectedDate).subtract(1, "d").toDate());
+  }, [selectedDate]);
+
+  const onNextClick = useCallback(() => {
+    setSelectedDate(moment(selectedDate).add(1, "d").toDate());
+  }, [selectedDate]);
+
+  const onTodayClick = useCallback(() => {
+    setSelectedDate(new Date());
+  }, [selectedDate]);
+
+  const dateText = useMemo(() => {
+    return moment(selectedDate).format("dddd, MMMM DD");
+  }, [selectedDate]);
+
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs}>
-      <Grid container spacing={2}>
-        <Grid item xs={12} md={12} style={{ overflowX: "auto" }}>
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={handleOpenManualEventCreation}
-            style={{ marginBottom: "10px" }}
-          >
-            Create New Event
-          </Button>
+      <div className="p-6 bg-[#fafbfc]">
+        <div className="">
+          <div className="toolbar flex justify-between items-center mb-6">
+            <div className="font-bold text-xl">{dateText}</div>
+            <div className="flex items-center gap-6">
+              <div className="flex items-center justify-between bg-white border-2 rounded-lg shadow-sm w-36 h-10 p-2">
+                <button onClick={onPrevClick}>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="icon icon-tabler icons-tabler-outline icon-tabler-chevron-left w-5 h-5 text-black"
+                  >
+                    <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                    <path d="M15 6l-6 6l6 6" />
+                  </svg>
+                </button>
+                <button className="font-semibold" onClick={onTodayClick}>
+                  Today
+                </button>
+                <button onClick={onNextClick}>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="icon icon-tabler icons-tabler-outline icon-tabler-chevron-right w-5 h-5 text-black"
+                  >
+                    <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                    <path d="M9 6l6 6l-6 6" />
+                  </svg>
+                </button>
+              </div>
+              <DatePicker
+                label="Chọn ngày"
+                value={dayjs(selectedDate)}
+                onChange={(newDate) => setSelectedDate(newDate.toDate())}
+                margin="normal"
+              />
+              <button
+                className="flex items-center rounded-md px-2 shadow-sm bg-[#333333] hover:bg-[hsl(0,0%,25%)] active:bg-[hsl(0,0%,30%)]"
+                onClick={handleOpenManualEventCreation}
+              >
+                <div className="p-2 text-sm text-white">Tạo mới</div>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="icon icon-tabler icons-tabler-outline icon-tabler-plus w-4 h-4 text-white"
+                >
+                  <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                  <path d="M12 5l0 14" />
+                  <path d="M5 12l14 0" />
+                </svg>
+              </button>
+            </div>
+          </div>
           <DnDCalendar
             localizer={localizer}
             date={selectedDate}
@@ -170,7 +245,7 @@ const MyCalendar = () => {
             resizable
             draggable
           />
-        </Grid>
+        </div>
         <Modal
           open={modalOpen}
           onClose={handleCloseModal}
@@ -185,68 +260,82 @@ const MyCalendar = () => {
               transform: "translate(-50%, -50%)",
               width: 400,
               bgcolor: "background.paper",
-              border: "2px solid #000",
               boxShadow: 24,
-              p: 4,
+              borderRadius: 2,
             }}
           >
-            <h2 id="modal-title">Edit Event</h2>
-            <form onSubmit={handleSaveEvent}>
-              <TextField
-                fullWidth
-                label="Event Title"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                margin="normal"
-                required
-              />
-              <DateTimePicker
-                label="Controlled picker"
-                value={start}
-                onChange={(newStart) => setStart(newStart)}
-                fullWidth
-                margin="normal"
-                required
-              />
-              <TextField
-                label="Thời lượng (h)"
-                type="number"
-                value={duration}
-                onChange={(event) => setDuration(event.target.value)}
-                variant="standard"
-                required
-                fullWidth
-                slotProps={{
-                  input: {
-                    inputProps: {
-                      min: 0,
-                      max: 24,
-                      step: "0.5",
-                    },
-                  },
-                }}
-              />
-              <TextField
-                select
-                label="Chọn bàn"
-                value={resourceId}
-                onChange={(event) => setResourceId(event.target.value)}
-                required
-                margin="normal"
-              >
-                {resources.map((option) => (
-                  <MenuItem key={option.id} value={option.id}>
-                    {option.title}
-                  </MenuItem>
-                ))}
-              </TextField>
-              <Button type="submit" variant="contained" color="primary">
-                Save
-              </Button>
-            </form>
+            <div className="p-6 flex flex-col">
+              <div>Tạo mới đặt bàn</div>
+              <form className="flex flex-col gap-6" onSubmit={handleSaveEvent}>
+                <div>
+                  <TextField
+                    fullWidth
+                    label="Tên sự kiện"
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    margin="normal"
+                    required
+                  />
+                </div>
+                <div>
+                  <DateTimePicker
+                    label="Thời điểm đến"
+                    value={start}
+                    onChange={(newStart) => setStart(newStart)}
+                    fullWidth
+                    margin="normal"
+                    required
+                  />
+                </div>
+                <div>
+                  <TextField
+                    label="Thời lượng (h)"
+                    type="number"
+                    value={duration}
+                    onChange={(event) => setDuration(event.target.value)}
+                    required
+                    fullWidth
+                    slotProps={{
+                      input: {
+                        inputProps: {
+                          min: 0,
+                          max: 24,
+                          step: "0.5",
+                        },
+                      },
+                    }}
+                  />
+                </div>
+                <div>
+                  <TextField
+                    select
+                    label="Chọn bàn"
+                    value={resourceId}
+                    onChange={(event) => setResourceId(event.target.value)}
+                    required
+                    fullWidth
+                    margin="normal"
+                  >
+                    {resources.map((option) => (
+                      <MenuItem key={option.id} value={option.id}>
+                        {option.title}
+                      </MenuItem>
+                    ))}
+                  </TextField>
+                </div>
+                <div className="flex justify-end">
+                  <button
+                    type="submit"
+                    className="rounded-md shadow-sm h-10 w-20 text-white bg-[#333333] hover:bg-[hsl(0,0%,25%)] active:bg-[hsl(0,0%,30%)]"
+                  >
+                    Lưu
+                  </button>
+                </div>
+              </form>
+            </div>
           </Box>
         </Modal>
-      </Grid>
+      </div>
     </LocalizationProvider>
   );
 };

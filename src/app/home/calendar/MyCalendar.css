@@ -12,7 +12,6 @@ html {
   overflow-y: auto;
 }
 
-.rbc-time-header,
 .rbc-time-content {
   display: flex;
 }
@@ -21,18 +20,24 @@ html {
   min-width: 150px; /* Adjust this value to set the fixed width for resource columns */
 }
 
-.rbc-time-content > * + * {
-  flex: 1;
-}
-
-.rbc-time-content {
-  min-width: 1200px; /* Adjust based on the total number of hours visible */
-}
-
 .rbc-time-column {
   min-width: 100px; /* Fixed width for each time slot */
 }
 
-.rbc-timeslot-group {
-  min-height: 40px; /* Adjust the height of each time slot as needed */
+.rbc-header {
+  color: white;
+  font-size: 14px !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 36px !important;
+  background: #17405d;
+}
+
+.rbc-allday-cell {
+  display: none;
+}
+
+.rbc-time-header-cell .rbc-today {
+  background-color: #04aa6d !important;
 }
