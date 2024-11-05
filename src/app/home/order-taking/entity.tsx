@@ -69,3 +69,16 @@ type CreateOrderRequest = {
     tableIds: Set<number>;
     note?: string;
 }
+
+type GetOrderRequest = {
+    page?: number;
+    pageSize?: number;
+    orderStatus?: Set<string>;
+    startTime: string;
+    endTime: string;
+    paymentMethod?: string;
+    tableIds?: Set<number>;
+    userName?: string;
+    customerName?: string;
+    note?: string;
+  };
