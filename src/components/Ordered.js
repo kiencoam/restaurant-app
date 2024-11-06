@@ -73,7 +73,7 @@ const byDish = [
   },
 ];
 
-const byTable = Object.groupBy(byPrior, (item) => item.table);
+// const byTable = Object.groupBy(byPrior, (item) => item.table);
 
 export function Ordered() {
   const [mode, setMode] = useState(0);

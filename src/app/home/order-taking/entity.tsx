@@ -1,4 +1,4 @@
-type OrderEntity = {
+export type OrderEntity = {
     id?: number;
     customerId?: number;
     userId?: number;
@@ -14,7 +14,7 @@ type OrderEntity = {
     orderTables: OrderTableEntity[];
 }
 
-type OrderTableEntity = {
+export type OrderTableEntity = {
     id: number,
     orderId: number,
     tableId: number,
@@ -22,7 +22,7 @@ type OrderTableEntity = {
     table?: TableEntity;
 }
 
-type TableEntity = {
+export type TableEntity = {
     id: number;
     name: string;
     capacity: number;
@@ -31,7 +31,7 @@ type TableEntity = {
     isActive: boolean;
 }
 
-type OrderItemEntity = {
+export type OrderItemEntity = {
     id?: number;
     orderId: number;
     menuItemId: number;
@@ -43,7 +43,7 @@ type OrderItemEntity = {
     menuItem?: MenuItemEntity;
 }
 
-type MenuItemEntity = {
+export type MenuItemEntity = {
     id: number;
     title: string;
     description: string;
@@ -53,14 +53,14 @@ type MenuItemEntity = {
     menuSectionId: number;
 }
 
-type MenuSectionEntity = {
+export type MenuSectionEntity = {
     id: number;
     title: string;
     description: string;
     menuItems?: MenuItemEntity[];
 }
 
-type CreateOrderRequest = {
+export type CreateOrderRequest = {
     customerId: number;
     userId: number;
     checkInTime: string;
@@ -70,7 +70,7 @@ type CreateOrderRequest = {
     note?: string;
 }
 
-type GetOrderRequest = {
+export type GetOrderRequest = {
     page?: number;
     pageSize?: number;
     orderStatus?: Set<string>;

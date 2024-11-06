@@ -1,6 +1,6 @@
 import { default as ReactSelect, components } from "react-select";
 import { Tooltip } from "react-tooltip";
-import CreateCustomerForm from "./create-customer-form";
+import CreateCustomerForm from "./CreateCustomerForm";
 
 export default function CreateOrderForm({ searchCustomer, setSearchCustomer, filterCustomer, setNewOrder, newOrder, tableOptions, handleSecondSelectChange, secondSelectValue, customStyles, noOptionsMessage, toggleNewReservation, isNewCustomer, setIsNewCustomer, newCustomer, setNewCustomer, toggleNewCustomer }) {
     const DropdownIndicator = null;

@@ -5,7 +5,8 @@ import { CustomerEntity } from "./data";
 import { formatDateToString } from "@/utils/timeUtils";
 import { default as ReactSelect, components } from "react-select";
 import OrderList from "./order-list";
-import CreateOrderForm from "./create-order-form";
+import CreateOrderForm from "./CreateOrderForm";
+import { CreateOrderRequest, GetOrderRequest, OrderEntity, TableEntity } from "../order-taking/entity";
 
 const tables: TableEntity[] = [
   {
