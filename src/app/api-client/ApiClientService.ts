@@ -4,7 +4,8 @@ const apiClientService = {
     get: (endpoint: string) => getData(endpoint),
     post: (endpoint: string, data: any) => postData(endpoint, data),
     put: (endpoint: string, data: any) => putData(endpoint, data),
-    delete: (endpoint: string) => deleteData(endpoint)
+    delete: (endpoint: string) => deleteData(endpoint),
+    patch: (endpoint: string, data: any) => patchData(endpoint, data)
 };
 
 export async function getData(endpoint: string) {
@@ -73,5 +74,21 @@ export async function deleteData(endpoint: string) {
     return await response.json();
 }
 
+export async function patchData(endpoint: string, data: any) {
+    const response = await fetch(endpoint, {
+        method: 'PATCH',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + token
+        },
+        body: JSON.stringify(data)
+    });
+
+    if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+
+    return await response.json();
+}
 
 export default apiClientService;
