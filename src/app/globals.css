@@ -18,9 +18,10 @@
 ::-webkit-scrollbar {
   width: 3px;
   height: 5px;
-  background-color: #aaa; /* or add it to the track */
+  background-color: transparent; /* or add it to the track */
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #000;
+  background: #808080;
+  border-radius: 100px;
 }

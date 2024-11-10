@@ -49,6 +49,14 @@ const MyCalendar = () => {
     { id: "table1", title: "Phòng VIP 1" },
     { id: "table2", title: "Phòng VIP 2" },
     { id: "table3", title: "Phòng VIP 3" },
+    { id: "table4", title: "Phòng VIP 4" },
+    { id: "table5", title: "Phòng VIP 5" },
+    { id: "table6", title: "Phòng VIP 6" },
+    { id: "table7", title: "Phòng VIP 7" },
+    { id: "table8", title: "Phòng VIP 8" },
+    { id: "table9", title: "Phòng VIP 9" },
+    { id: "table10", title: "Phòng VIP 10" },
+    { id: "table11", title: "Phòng VIP 11" },
     // Add more tables as needed
   ];
 
@@ -151,7 +159,7 @@ const MyCalendar = () => {
 
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs}>
-      <div className="p-6 bg-[#fafbfc]">
+      <div className="p-6 bg-[#fafbfc] h-screen">
         <div className="">
           <div className="toolbar flex justify-between items-center mb-6">
             <div className="font-bold text-xl">{dateText}</div>
@@ -192,7 +200,7 @@ const MyCalendar = () => {
                 </button>
               </div>
               <DatePicker
-                label="Chọn ngày"
+                label=""
                 value={dayjs(selectedDate)}
                 onChange={(newDate) => setSelectedDate(newDate.toDate())}
                 margin="normal"
@@ -236,7 +244,7 @@ const MyCalendar = () => {
             resources={resources}
             resourceIdAccessor="id"
             resourceTitleAccessor="title"
-            style={{ height: 600 }}
+            style={{ height: 650 }}
             onEventDrop={handleEventDrop}
             onEventResize={handleEventResize}
             onSelectEvent={handleSelectEvent}
