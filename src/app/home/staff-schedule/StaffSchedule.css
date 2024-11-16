@@ -1,0 +1,100 @@
+.table {
+  width: 100%;
+  border-width: 0.5px;
+  font-weight: 650;
+  background-color: white;
+  border-radius: 20px;
+  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+}
+
+.table .header {
+  display: flex;
+  height: 75px;
+  width: 100%;
+}
+
+/* .table .header .employee-cell {
+  flex-basis: 12.5%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+} */
+
+.table .header .cell {
+  flex-basis: 12.5%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: #8c8c8c;
+}
+
+.table .row {
+  display: flex;
+  height: 100px;
+  width: 100%;
+}
+
+.table .employee-cell {
+  flex-basis: 12.5%;
+  height: 100%;
+  padding-left: 30px;
+  padding-right: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: start;
+}
+
+.table .row .cell {
+  flex-basis: 12.5%;
+  height: 100%;
+  padding: 10px;
+  border-width: 1px;
+  border-radius: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: end;
+  gap: 6px;
+  flex-wrap: wrap;
+  overflow: auto;
+}
+
+/* .table .row .cell .inner-cell {
+  height: 100%;
+  width: 100%;
+  padding: 6px;
+  border-radius: 20px;
+  background-color: #e8e8e8;
+  display: flex;
+  flex-direction: column;
+  justify-content: end;
+  align-items: center;
+  gap: 6px;
+} */
+
+.table .row .cell .new-btn {
+  display: none;
+  width: 100%;
+  height: 28px;
+  background-color: #f2f2f2;
+  border-radius: 40px;
+  padding: 4px;
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.table .row .cell:hover .new-btn {
+  display: block;
+}
+
+.table .row .cell .btn {
+  width: 100%;
+  height: 28px;
+  background-color: #f2f2f2;
+  border-radius: 40px;
+  padding: 4px;
+  font-size: 14px;
+  line-height: 20px;
+}
