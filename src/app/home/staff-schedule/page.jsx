@@ -457,7 +457,7 @@ export default function StaffSchedulePage() {
               <div className="relative">
                 <button
                   onClick={() => setIsOpenDatePicker(!isOpenDatePicker)}
-                  className={`w-[240px] h-8 rounded-2xl ${
+                  className={`w-[200px] h-8 rounded-2xl text-sm ${
                     isOpenDatePicker ? "bg-[#fefefe] shadow-md" : ""
                   }`}
                 >
