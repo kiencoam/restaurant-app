@@ -21,7 +21,11 @@ const sampleWorkSchedules = [
     userId: 1,
     shiftId: 101,
     date: "2024-11-17",
-    user: "John Doe",
+    user: {
+      id: 1,
+      name: "Johny Đặng",
+      role: "Chef",
+    },
     shift: { id: 101, name: "Day", startTime: "08:00", endTime: "16:00" },
   },
   {
@@ -29,7 +33,11 @@ const sampleWorkSchedules = [
     userId: 2,
     shiftId: 102,
     date: "2024-11-18",
-    user: "Jane Smith",
+    user: {
+      id: 2,
+      name: "Mary Janes",
+      role: "Waiter",
+    },
     shift: { id: 102, name: "Night", startTime: "16:00", endTime: "00:00" },
   },
   {
@@ -37,40 +45,44 @@ const sampleWorkSchedules = [
     userId: 1,
     shiftId: 101,
     date: "2024-11-19",
-    user: "John Doe",
+    user: {
+      id: 1,
+      name: "Johny Đặng",
+      role: "Chef",
+    },
     shift: { id: 101, name: "Day", startTime: "08:00", endTime: "16:00" },
   },
 ];
 
 const users = [
   {
-    userId: 1,
-    user: "Johny Đặng",
+    id: 1,
+    name: "Johny Đặng",
     role: "Chef",
   },
   {
-    userId: 2,
-    user: "Mary Jane",
+    id: 2,
+    name: "Mary Janes",
     role: "Waiter",
   },
   {
-    userId: 3,
-    user: "Cristiano Ronaldo",
+    id: 3,
+    name: "Cristiano Ronaldo",
     role: "Receptionist",
   },
   {
-    userId: 4,
-    user: "Alexander Kiên Phạm",
+    id: 4,
+    name: "Alexander Kiên Phạm",
     role: "Bartender",
   },
   {
-    userId: 5,
-    user: "Cong Phuong Nguyen",
+    id: 5,
+    name: "Cong Phuong Nguyen",
     role: "Chef",
   },
   {
-    userId: 6,
-    user: "Antony Nguyễn",
+    id: 6,
+    name: "Antony Nguyễn",
     role: "Waiter",
   },
 ];
@@ -138,7 +150,7 @@ export default function StaffSchedulePage() {
 
   const [isEditShift, setIsEditShift] = useState(false); // Mở modal chỉnh sửa thông tin ca làm
 
-  const [isDetailShift, setIsDetailShift] = useState(false); // Mở modal chi tiết ca làm
+  const [isDetailSchedule, setIsDetailSchedule] = useState(false); // Mở modal chi tiết ca làm
 
   const [displayDate, setDisplayDate] = useState(getFirstDayOfWeek(new Date()));
 
@@ -148,8 +160,6 @@ export default function StaffSchedulePage() {
 
   const [chosenShifts, setChosenShifts] = useState(new Set()); // State lưu các ca làm đang được chọn ở mục Thêm ca
 
-  const [workScheduleId, setWorkScheduleId] = useState(0); // State lưu ID của lịch làm việc đang được chọn
-
   const [shiftId, setShiftId] = useState(0); // State lưu ID của ca làm đang được chọn
 
   const [shiftName, setShiftName] = useState(""); // State lưu tên ca làm đang được chọn
@@ -157,6 +167,8 @@ export default function StaffSchedulePage() {
   const [startTime, setStartTime] = useState(""); // State lưu giờ bắt đầu của ca làm đang được chọn
 
   const [endTime, setEndTime] = useState(""); // State lưu giờ kết thúc của ca làm đang được chọn
+
+  const [selectedSchedule, setSelectedSchedule] = useState(null); // State lưu thông tin ca làm đang được chọn
 
   const handleDateChange = useCallback((date) => {
     setDisplayDate(getFirstDayOfWeek(date));
@@ -201,14 +213,16 @@ export default function StaffSchedulePage() {
 
   const saveAddShifts = useCallback(() => {
     /* Gọi API */
-    const chosenShiftsList = [...chosenShifts];
+    const chosenShiftsList = [...chosenShifts].map((shift) =>
+      parseInt(shift, 10)
+    );
     const newWorkSchedules = chosenShiftsList.map((shiftId) => {
       return {
         id: workSchedules.length + shiftId,
-        userId: user.userId,
+        userId: user.id,
         shiftId: shiftId,
         date: chosenDate,
-        user: user.user,
+        user: user,
         shift: shifts.find((shift) => shift.id == shiftId),
       };
     });
@@ -235,16 +249,13 @@ export default function StaffSchedulePage() {
     setEndTime("");
   }, []);
 
-  const openEditShift = useCallback(
-    (shiftId, shiftName, startTime, endTime) => {
-      setShiftId(shiftId);
-      setShiftName(shiftName);
-      setStartTime(startTime);
-      setEndTime(endTime);
-      setIsEditShift(true);
-    },
-    []
-  );
+  const openEditShift = useCallback((shift) => {
+    setShiftId(shift.id);
+    setShiftName(shift.name);
+    setStartTime(shift.startTime);
+    setEndTime(shift.endTime);
+    setIsEditShift(true);
+  }, []);
 
   const saveEditShift = useCallback(() => {
     /* Gọi API */
@@ -299,37 +310,24 @@ export default function StaffSchedulePage() {
     [shifts, workSchedules]
   );
 
-  const openDetailShift = useCallback(
-    (id, employee, day, shiftName, startTime, endTime) => {
-      setWorkScheduleId(id);
-      setUser(employee);
-      setChosenDate(formatDayToYYYYMMDD(day));
-      setShiftName(shiftName);
-      setStartTime(startTime);
-      setEndTime(endTime);
-      setIsDetailShift(true);
-    },
-    []
-  );
-
-  const closeDetailShift = useCallback(() => {
-    setIsDetailShift(false);
-    setWorkScheduleId(0);
-    setUser(null);
-    setChosenDate("");
-    setShiftName("");
-    setStartTime("");
-    setEndTime("");
+  const openDetailSchedule = useCallback((schedule) => {
+    setSelectedSchedule(schedule);
+    setIsDetailSchedule(true);
   }, []);
 
-  const deleteWorkSchedule = useCallback(() => {
+  const closeDetailShift = useCallback(() => {
+    setIsDetailSchedule(false);
+    setSelectedSchedule(null);
+  }, []);
+
+  const deleteSchedule = useCallback(() => {
     /* Gọi API */
     const newWorkSchedules = workSchedules.filter(
-      (schedule) => schedule.id !== workScheduleId
+      (schedule) => schedule.id !== selectedSchedule.id
     );
     setWorkSchedules(newWorkSchedules);
     closeDetailShift();
-  }, [workScheduleId, workSchedules]);
+  }, [selectedSchedule, workSchedules]);
 
   const displayWeek = useMemo(() => {
     const startDate = formatDateToReactComponent(displayDate);
@@ -356,7 +354,7 @@ export default function StaffSchedulePage() {
     [displayDate]
   );
 
-  const searchByUserIdAndDay = useCallback(
+  const searchByUserIdAndDate = useCallback(
     (userId, date) => {
       return workSchedules
         .filter(
@@ -516,9 +514,9 @@ export default function StaffSchedulePage() {
         </div>
         <div className="max-h-[540px] overflow-auto">
           {users.map((employee) => (
-            <div key={employee.userId} className="row">
+            <div key={employee.id} className="row">
               <div className="employee-cell">
-                <div>{employee.user}</div>
+                <div>{employee.name}</div>
                 <div className="text-[#8c8c8c] text-sm font-light">
                   {employee.role}
                 </div>
@@ -533,22 +531,13 @@ export default function StaffSchedulePage() {
                   >
                     + Thêm ca
                   </button>
-                  {searchByUserIdAndDay(
-                    employee.userId,
+                  {searchByUserIdAndDate(
+                    employee.id,
                     formatDayToYYYYMMDD(day.id)
                   )?.map((schedule) => (
                     <button
                       key={schedule.id}
-                      onClick={() =>
-                        openDetailShift(
-                          schedule.id,
-                          employee,
-                          day.id,
-                          schedule.shift.name,
-                          schedule.shift.startTime,
-                          schedule.shift.endTime
-                        )
-                      }
+                      onClick={() => openDetailSchedule(schedule)}
                       className="btn"
                     >
                       {schedule.shift.startTime} - {schedule.shift.endTime}
@@ -564,39 +553,41 @@ export default function StaffSchedulePage() {
       {/** Modal xếp thêm ca cho nhân viên */}
       {isAddShifts && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-          <div className="bg-white p-6 rounded-lg shadow-lg w-[320px]">
-            <div>
+          <div className="bg-white p-6 rounded-lg shadow-lg w-[450px]">
+            <div className="mb-4">
               <div className="font-bold text-xl">
-                {user.user}{" "}
+                {user.name}{" "}
                 <span className="font-semibold text-base text-[#8c8c8c]">
-                  ID: 000{user.userId}{" "}
+                  ID: 000{user.id}{" "}
                 </span>
               </div>
               <div className="font-light text-sm text-[#8c8c8c]">
                 {user.role}
               </div>
-              <div className="font-bold text-lg mt-2">{chosenDate}</div>
             </div>
-            <div className="pt-6 pb-6">
-              <div className="font-bold text-xl">Chọn ca làm việc</div>
-              <div className="flex flex-col gap-2 mt-2">
-                {shifts.map((shift) => (
-                  <label key={shift.id} className="space-x-2">
-                    <input
-                      type="checkbox"
-                      className="form-checkbox"
-                      value={shift.id}
-                      onChange={handleChosenShifts}
-                    />
-                    <span className="font-semibold">{shift.name}</span>
-                    <span className="text-[#8c8c8c]">
-                      {shift.startTime} - {shift.endTime}
-                    </span>
-                  </label>
-                ))}
-              </div>
+            <div className="flex items-center mb-4">
+              <div className="w-32">Ngày làm việc</div>
+              <div className="font-bold">{chosenDate}</div>
             </div>
-            <div className="flex justify-end gap-3 items-center mt-4">
+            <div className="font-bold text-xl mb-4">Chọn ca làm việc</div>
+            <div className="flex flex-wrap mb-4 gap-y-3">
+              {shifts.map((shift) => (
+                <label key={shift.id} className="basis-1/2 space-x-2">
+                  <input
+                    type="checkbox"
+                    className="form-checkbox"
+                    value={shift.id}
+                    onChange={handleChosenShifts}
+                  />
+                  <span className="font-semibold">{shift.name}</span>
+                  <span className="text-[#8c8c8c] text-sm">
+                    {shift.startTime} - {shift.endTime}
+                  </span>
+                </label>
+              ))}
+            </div>
+
+            <div className="flex justify-end gap-3 items-center mt-10">
               <button
                 className="flex items-center justify-center gap-1 h-10 w-20 rounded-md px-2 shadow-sm bg-[#333333] text-[#f7f7f7]"
                 onClick={saveAddShifts}
@@ -678,14 +669,7 @@ export default function StaffSchedulePage() {
                   {shift.startTime} - {shift.endTime}
                 </div>
                 <button
-                  onClick={() =>
-                    openEditShift(
-                      shift.id,
-                      shift.name,
-                      shift.startTime,
-                      shift.endTime
-                    )
-                  }
+                  onClick={() => openEditShift(shift)}
                   title="Sửa"
                   className="basis-[10%] flex justify-center items-center"
                 >
@@ -894,36 +878,42 @@ export default function StaffSchedulePage() {
       )}
 
       {/** Modal thông tin chi tiết ca làm */}
-      {isDetailShift && (
+      {isDetailSchedule && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-          <div className="bg-white p-6 rounded-lg shadow-lg w-[480px]">
+          <div className="bg-white p-6 rounded-lg shadow-lg w-[450px]">
             <div className="font-bold text-xl mb-6">Thông tin ca làm việc</div>
             <div className="flex items-center mb-4">
               <div className="w-32">Tên nhân viên</div>
-              <div className="font-bold w-72">{user.user}</div>
+              <div className="font-bold">{selectedSchedule.user.name}</div>
             </div>
             <div className="flex items-center mb-4">
               <div className="w-32">ID</div>
-              <div className="font-bold w-72">{user.userId}</div>
+              <div className="font-bold">{selectedSchedule.user.id}</div>
             </div>
             <div className="flex items-center mb-4">
               <div className="w-32">Vị trí</div>
-              <div className="font-bold w-72">{user.role}</div>
+              <div className="font-bold">{selectedSchedule.user.role}</div>
             </div>
             <div className="flex items-center mb-4">
               <div className="w-32">Tên ca làm</div>
-              <div className="font-bold w-72">{shiftName}</div>
+              <div className="font-bold">{selectedSchedule.shift.name}</div>
             </div>
-            <div className="flex items-center">
+            <div className="flex items-center mb-4">
               <div className="w-32">Giờ làm việc</div>
-              <div className="font-bold w-20">{startTime}</div>
+              <div className="font-bold w-20">
+                {selectedSchedule.shift.startTime}
+              </div>
               <div className="w-16">Đến</div>
-              <div className="font-bold w-28">{endTime}</div>
+              <div className="font-bold">{selectedSchedule.shift.endTime}</div>
+            </div>
+            <div className="flex items-center mb-4">
+              <div className="w-32">Ngày làm việc</div>
+              <div className="font-bold">{selectedSchedule.date}</div>
             </div>
             <div className="flex justify-end gap-3 items-center mt-10">
               <button
                 className="flex items-center justify-center gap-1 h-10 w-20 rounded-md px-2 shadow-sm bg-red-700 text-[#f7f7f7]"
-                onClick={deleteWorkSchedule}
+                onClick={deleteSchedule}
               >
                 <div className="font-semibold">Xóa</div>
               </button>

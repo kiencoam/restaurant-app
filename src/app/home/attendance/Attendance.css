@@ -45,10 +45,6 @@
   padding: 6px;
   border-width: 1px;
   border-radius: 20px;
-  display: flex;
-  justify-content: center;
-  align-items: start;
-  flex-wrap: wrap;
   overflow: auto;
 }
 
@@ -56,6 +52,7 @@
   width: 100%;
   min-height: 50px;
   max-height: 85px;
+  margin-bottom: 6px;
   background-color: #f2f2f2;
   border-width: 1px;
   border-color: #f2f2f2;
