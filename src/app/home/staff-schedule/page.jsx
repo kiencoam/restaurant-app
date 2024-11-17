@@ -20,7 +20,7 @@ const sampleWorkSchedules = [
     id: 1,
     userId: 1,
     shiftId: 101,
-    date: "2024-11-15",
+    date: "2024-11-17",
     user: "John Doe",
     shift: { id: 101, name: "Day", startTime: "08:00", endTime: "16:00" },
   },
@@ -28,7 +28,7 @@ const sampleWorkSchedules = [
     id: 2,
     userId: 2,
     shiftId: 102,
-    date: "2024-11-15",
+    date: "2024-11-18",
     user: "Jane Smith",
     shift: { id: 102, name: "Night", startTime: "16:00", endTime: "00:00" },
   },
@@ -36,7 +36,7 @@ const sampleWorkSchedules = [
     id: 3,
     userId: 1,
     shiftId: 101,
-    date: "2024-11-16",
+    date: "2024-11-19",
     user: "John Doe",
     shift: { id: 101, name: "Day", startTime: "08:00", endTime: "16:00" },
   },
@@ -209,7 +209,7 @@ export default function StaffSchedulePage() {
         shiftId: shiftId,
         date: chosenDate,
         user: user.user,
-        shift: shifts.filter((shift) => shift.id == shiftId)[0],
+        shift: shifts.find((shift) => shift.id == shiftId),
       };
     });
     setWorkSchedules([...workSchedules, ...newWorkSchedules]);
@@ -618,7 +618,7 @@ export default function StaffSchedulePage() {
                   <path d="M12 14m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0" />
                   <path d="M14 4l0 4l-6 0l0 -4" />
                 </svg>
-                <div className="font-semibold">Lưu</div>
+                <div>Lưu</div>
               </button>
               <button
                 className="h-10 w-20 font-bold rounded"
@@ -804,7 +804,7 @@ export default function StaffSchedulePage() {
                   <path d="M12 14m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0" />
                   <path d="M14 4l0 4l-6 0l0 -4" />
                 </svg>
-                <div className="font-semibold">Lưu</div>
+                <div>Lưu</div>
               </button>
               <button
                 className="h-10 w-20 font-bold rounded"
@@ -880,7 +880,7 @@ export default function StaffSchedulePage() {
                   <path d="M12 14m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0" />
                   <path d="M14 4l0 4l-6 0l0 -4" />
                 </svg>
-                <div className="font-semibold">Lưu</div>
+                <div>Lưu</div>
               </button>
               <button
                 className="h-10 w-20 font-bold rounded"
