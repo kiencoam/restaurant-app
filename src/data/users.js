@@ -6,6 +6,7 @@ const users = [
     role: "MANAGER",
     username: "manager",
     id: 4214213,
+    abc: "abc",
   },
   {
     name: "Chef",

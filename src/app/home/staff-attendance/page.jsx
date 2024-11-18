@@ -198,21 +198,21 @@ const mapStatus = (status) => {
 const mapStatusToClassName = (status) => {
   switch (status) {
     case "NOT_YET_CLOCKED_OUT":
-      return "btn progress-btn";
+      return "atte-btn progress-btn";
     case "NOT_YET_CLOCKED_IN":
-      return "btn progress-btn";
+      return "atte-btn progress-btn";
     case "ON_TIME":
-      return "btn on-time-btn";
+      return "atte-btn on-time-btn";
     case "LATE_OR_LEAVE_EARLY":
-      return "btn violated-btn";
+      return "atte-btn violated-btn";
     case "ABSENT":
-      return "btn absent-btn";
+      return "atte-btn absent-btn";
     default:
-      return "btn";
+      return "atte-btn";
   }
 };
 
-export default function StaffSchedulePage() {
+export default function AttendancePage() {
   const [workAttendances, setWorkAttendances] = useState(sampleWorkAttendances);
 
   const [isOpenDatePicker, setIsOpenDatePicker] = useState(false); // Mở lịch chọn ngày
@@ -326,7 +326,7 @@ export default function StaffSchedulePage() {
       <div className="flex justify-between items-center mb-2">
         <div className="text-2xl font-extrabold ml-6">Bảng chấm công</div>
       </div>
-      <div className="table">
+      <div className="atte-table">
         <div className="h-[75px] flex items-center justify-between border-b">
           <div className="w-[280px] flex items-center border text-sm rounded-md bg-[#f7fafc] px-2 ml-6 shadow-sm">
             <svg
@@ -423,19 +423,19 @@ export default function StaffSchedulePage() {
           </div>
         </div>
 
-        <div className="header">
+        <div className="atte-header">
           <div className="shift-cell">Ca làm việc</div>
-          <div className="cell">SUN</div>
-          <div className="cell">MON</div>
-          <div className="cell">TUE</div>
-          <div className="cell">WED</div>
-          <div className="cell">THU</div>
-          <div className="cell">FRI</div>
-          <div className="cell">SAT</div>
+          <div className="atte-cell">SUN</div>
+          <div className="atte-cell">MON</div>
+          <div className="atte-cell">TUE</div>
+          <div className="atte-cell">WED</div>
+          <div className="atte-cell">THU</div>
+          <div className="atte-cell">FRI</div>
+          <div className="atte-cell">SAT</div>
         </div>
         <div className="max-h-[540px] overflow-auto">
           {shifts.map((shift) => (
-            <div key={shift.id} className="row">
+            <div key={shift.id} className="atte-row">
               <div className="shift-cell">
                 <div>{shift.name}</div>
                 <div className="text-[#8c8c8c] text-sm font-light">
@@ -443,7 +443,7 @@ export default function StaffSchedulePage() {
                 </div>
               </div>
               {daysOfWeek.map((day) => (
-                <div key={day.id} className="cell">
+                <div key={day.id} className="atte-cell">
                   {searchByShiftIdAndDate(
                     shift.id,
                     formatDayToYYYYMMDD(day.id)

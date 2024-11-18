@@ -406,7 +406,7 @@ export default function StaffSchedulePage() {
           <div className="p-2 text-sm text-white">Danh sách ca làm</div>
         </button>
       </div>
-      <div className="table">
+      <div className="sche-table">
         <div className="h-[75px] flex items-center justify-between border-b">
           <div className="w-[280px] flex items-center border text-sm rounded-md bg-[#f7fafc] px-2 ml-6 shadow-sm">
             <svg
@@ -502,19 +502,19 @@ export default function StaffSchedulePage() {
             </button>
           </div>
         </div>
-        <div className="header">
+        <div className="sche-header">
           <div className="employee-cell">Nhân viên</div>
-          <div className="cell">SUN</div>
-          <div className="cell">MON</div>
-          <div className="cell">TUE</div>
-          <div className="cell">WED</div>
-          <div className="cell">THU</div>
-          <div className="cell">FRI</div>
-          <div className="cell">SAT</div>
+          <div className="sche-cell">SUN</div>
+          <div className="sche-cell">MON</div>
+          <div className="sche-cell">TUE</div>
+          <div className="sche-cell">WED</div>
+          <div className="sche-cell">THU</div>
+          <div className="sche-cell">FRI</div>
+          <div className="sche-cell">SAT</div>
         </div>
         <div className="max-h-[540px] overflow-auto">
           {users.map((employee) => (
-            <div key={employee.id} className="row">
+            <div key={employee.id} className="sche-row">
               <div className="employee-cell">
                 <div>{employee.name}</div>
                 <div className="text-[#8c8c8c] text-sm font-light">
@@ -522,12 +522,12 @@ export default function StaffSchedulePage() {
                 </div>
               </div>
               {daysOfWeek.map((day) => (
-                <div key={day.id} className="cell">
+                <div key={day.id} className="sche-cell">
                   <button
                     onClick={() =>
                       openAddShifts(employee, formatDayToYYYYMMDD(day.id))
                     }
-                    className="new-btn"
+                    className="sche-new-btn"
                   >
                     + Thêm ca
                   </button>
@@ -538,7 +538,7 @@ export default function StaffSchedulePage() {
                     <button
                       key={schedule.id}
                       onClick={() => openDetailSchedule(schedule)}
-                      className="btn"
+                      className="sche-btn"
                     >
                       {schedule.shift.startTime} - {schedule.shift.endTime}
                     </button>
