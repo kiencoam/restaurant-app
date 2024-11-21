@@ -5,8 +5,7 @@ import { CustomerEntity } from "./data";
 import { formatDateToString } from "@/utils/timeUtils";
 import { default as ReactSelect, components } from "react-select";
 import OrderList from "./order-list";
-import CreateOrderForm from "./CreateOrderForm";
-import { CreateOrderRequest, GetOrderRequest, OrderEntity, TableEntity } from "../order-taking/entity";
+import CreateOrderForm from "./create-order-form";
 
 const tables: TableEntity[] = [
   {
@@ -452,13 +451,13 @@ const OrderBookingPage = () => {
     searchCustomer.trim() === ""
       ? []
       : customers.filter((customer) =>
-        customer.name.toLowerCase().includes(searchCustomer.toLowerCase())
-      );
+          customer.name.toLowerCase().includes(searchCustomer.toLowerCase())
+        );
 
-  console.log("filterCustomer", filterCustomer);
-  console.log("filterOrder", filterOrder);
-  console.log("newOrder", newOrder);
-  console.log("newCustomer", newCustomer);
+  //console.log("filterCustomer", filterCustomer);
+  //console.log("filterOrder", filterOrder);
+  //console.log("newOrder", newOrder);
+  //console.log("newCustomer", newCustomer);
 
   const handleFilterOrderStatusChange = (
     e: React.ChangeEvent<HTMLInputElement>
@@ -483,7 +482,6 @@ const OrderBookingPage = () => {
   const [secondSelectValue, setSecondSelectValue] = useState([]); //choose tables and rooms in the adding new
   console.log("first", firstSelectValue);
 
-
   const handleFirstSelectTableChange = (selectedOptions) => {
     setFirstSelectValue(selectedOptions);
 
@@ -499,8 +497,8 @@ const OrderBookingPage = () => {
     setSecondSelectValue(selectedOptions);
 
     const newTableIds: Set<number> = new Set();
-    selectedOptions.forEach(element => {
-      newTableIds.add(element.value)
+    selectedOptions.forEach((element) => {
+      newTableIds.add(element.value);
     });
 
     setNewOrder({ ...newOrder, tableIds: newTableIds });
@@ -510,48 +508,55 @@ const OrderBookingPage = () => {
   const customStyles = {
     control: (styles) => ({
       ...styles,
-      backgroundColor: "#f7fafc", // Background color of the main input field
-      borderColor: "none", // Border color
-      boxShadow: "0 1px 2px 0 rgb(0 0 0 / 0.05)", // Shadow
+      backgroundColor: "transparent",
+      borderColor: "white",
+      padding: "0rem", // equivalent to Tailwind's p-2
+      width: "15rem", // equivalent to Tailwind's w-60
+      outline: "none",
+      fontSize: "0.875rem", // equivalent to Tailwind's text-sm
+      boxShadow: "none",
       "&:hover": {
-        borderColor: "none", // Border color on hover
+        borderColor: "transparent", // Keeps the border color on hover as none
       },
     }),
     option: (styles, { isFocused, isSelected }) => ({
       ...styles,
-      backgroundColor: isSelected ? "#3182ce" : isFocused ? "#ebf8ff" : "white", // Hover and selection colors
-      color: isSelected ? "white" : "#2d3748", // Text color
+      backgroundColor: isSelected ? "#7ab5e6" : isFocused ? "#ebf8ff" : "white",
+      color: isSelected ? "white" : "#2d3748",
       cursor: "pointer",
       "&:hover": {
-        backgroundColor: "#ebf8ff", // Background color when hovering over an option
+        backgroundColor: "#ebf8ff",
         color: "#2d3748",
       },
     }),
     multiValue: (styles) => ({
       ...styles,
-      backgroundColor: "#ffffff", // Background color for each selected item
+      backgroundColor: "#f7f7f7",
       borderRadius: "12px",
+      padding: "0.25rem", // Adds padding for multi-value items
     }),
     multiValueLabel: (styles) => ({
       ...styles,
-      color: "#2d3748", // Text color for each selected item
+      color: "#2d3748",
+      fontSize: "0.875rem", // Tailwind text-sm equivalent
     }),
     multiValueRemove: (styles) => ({
       ...styles,
-      color: "#2d3748", // Remove icon color
+      color: "#2d3748",
       ":hover": {
-        backgroundColor: "#e53e3e", // Background color on hover for the remove icon
+        backgroundColor: "#e53e3e",
         color: "white",
       },
     }),
     menu: (styles) => ({
       ...styles,
-      boxShadow: "0 4px 8px rgba(0, 0, 0, 0.15)", // Shadow for the dropdown menu
+      boxShadow: "0 4px 8px rgba(0, 0, 0, 0.15)",
     }),
     input: (styles) => ({
       ...styles,
-      width: "100px", // Set a fixed width for the input
+      width: "15rem", // Tailwind w-60 equivalent
       margin: "0px",
+      fontSize: "0.875rem", // Tailwind text-sm equivalent
     }),
   };
 
@@ -592,7 +597,7 @@ const OrderBookingPage = () => {
     setMasterChecked(newMasterChecked);
 
     const updatedCheckedRows = {};
-    reservations.forEach((_, index) => {
+    customers.forEach((_, index) => {
       updatedCheckedRows[index] = newMasterChecked;
     });
     setCheckedRows(updatedCheckedRows);
@@ -606,54 +611,11 @@ const OrderBookingPage = () => {
     setCheckedRows(updatedCheckedRows);
 
     // Update the master checkbox state based on individual checkboxes
-    const allChecked = reservations.every((_, i) => updatedCheckedRows[i]);
+    const allChecked = customers.every((_, i) => updatedCheckedRows[i]);
     setMasterChecked(allChecked);
   };
 
   const isAnyRowChecked = Object.values(checkedRows).some(Boolean);
-
-  const reservations = [
-    {
-      id: "DB000003",
-      time: "16:15 29/10/2024",
-      customer: "xcvz",
-      phone: "1234asd",
-      guests: 1,
-      table: "Bàn 19",
-      status: "Đã xếp bàn",
-      note: "ghi cc",
-    },
-    {
-      id: "DB000004",
-      time: "16:42 29/10/2024",
-      customer: "asdxcvt",
-      phone: "1234315",
-      guests: 1,
-      table: "Phòng VIP 4",
-      status: "Đã nhận bàn",
-      note: "",
-    },
-    {
-      id: "DB000005",
-      time: "16:55 29/10/2024",
-      customer: "ádxcz",
-      phone: "123345425",
-      guests: 1,
-      table: "Bàn 20",
-      status: "Đã xếp bàn",
-      note: "",
-    },
-    {
-      id: "DB000006",
-      time: "18:00 29/10/2024",
-      customer: "ádasfzxcv",
-      phone: "124235254",
-      guests: 1,
-      table: "Bàn 17",
-      status: "Đã xếp bàn",
-      note: "",
-    },
-  ];
 
   return (
     <div className="w-full h-screen font-nunito bg-[#f7f7f7] p-6">
@@ -703,7 +665,7 @@ const OrderBookingPage = () => {
                 <form onSubmit={handleSearch}>
                   <input
                     placeholder="Tìm theo khách đặt"
-                    className="p-2 mb-2 outline-none"
+                    className="p-2 mb-2 outline-none border-b-2 focus:border-b-black"
                     onChange={(e) =>
                       setFilterOrder({
                         ...filterOrder,
@@ -713,7 +675,7 @@ const OrderBookingPage = () => {
                   ></input>
                   <input
                     placeholder="Theo người nhận đặt"
-                    className="p-2 mb-2 outline-none"
+                    className="p-2 mb-2 outline-none border-b-2 focus:border-b-black"
                     onChange={(e) =>
                       setFilterOrder({
                         ...filterOrder,
@@ -724,11 +686,13 @@ const OrderBookingPage = () => {
                   <div className="flex justify-between">
                     <input
                       placeholder="Theo ghi chú"
-                      className="p-2 mb-2 "
+                      className="p-2 mb-2 border-b-2 focus:border-b-black outline-none"
                       onChange={(e) =>
                         setFilterOrder({ ...filterOrder, note: e.target.value })
                       }
                     ></input>
+                  </div>
+                  <div className="flex justify-end">
                     <div className="flex gap-2">
                       <button
                         type="submit"
@@ -764,11 +728,11 @@ const OrderBookingPage = () => {
               value={firstSelectValue}
               styles={customStyles}
               noOptionsMessage={noOptionsMessage}
-            // Hide dropdown list  when select any item
-            // closeMenuOnSelect={true}
+              // Hide dropdown list  when select any item
+              // closeMenuOnSelect={true}
 
-            //Selected Item Remove in dropdown list
-            // hideSelectedOptions={true}
+              //Selected Item Remove in dropdown list
+              // hideSelectedOptions={true}
             />
           </div>
         </div>
@@ -916,14 +880,14 @@ const OrderBookingPage = () => {
                 <label className="flex items-center space-x-2 mt-2">
                   <input
                     type="text"
-                    className="form-input border w-full p-2 outline-none"
+                    className="form-input border-b-2 w-full p-2 outline-none focus:border-b-black"
                     placeholder="Từ ngày dd/mm//yyyy"
                   />
                 </label>
                 <label className="flex items-center space-x-2 mt-2">
                   <input
                     type="text"
-                    className="form-input border w-full p-2 outline-none"
+                    className="form-input border-b-2 w-full p-2 outline-none focus:border-b-black"
                     placeholder="Đến ngày dd/mm//yyyy"
                   />
                 </label>

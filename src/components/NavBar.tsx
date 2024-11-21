@@ -6,7 +6,7 @@ import Link from "next/link";
 import { hasPermission } from "@/data/auth";
 import Image from "next/image";
 
-const role = "Tester";
+const role = "TESTER";
 
 const NavBar = () => {
   const pathname = usePathname();

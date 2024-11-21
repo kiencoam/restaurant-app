@@ -1,6 +1,7 @@
 import { default as ReactSelect, components } from "react-select";
 import { Tooltip } from "react-tooltip";
-import CreateCustomerForm from "./CreateCustomerForm";
+import CreateCustomerForm from "./create-customer-form";
+import Select from "react-select";
 
 export default function CreateOrderForm({
   searchCustomer,
@@ -55,7 +56,7 @@ export default function CreateOrderForm({
         <div className="flex justify-between">
           <div className="flex items-center gap-3">
             <div className="w-28">Khách hàng</div>
-            <div className="flex items-center border text-sm rounded-md bg-[#f7fafc] px-2 shadow-sm">
+            <div className="flex items-center border-b-2 text-sm  bg-none px-2">
               <svg
                 className="w-5 h-5"
                 xmlns="http://www.w3.org/2000/svg"
@@ -75,11 +76,9 @@ export default function CreateOrderForm({
                   options={customerOptions}
                   onChange={handleCustomerChange}
                   onInputChange={(inputValue) => setSearchCustomer(inputValue)}
-                  value={
-                    customerOptions.find(
-                      (option) => option.value === newOrder.customerId
-                    ) || null
-                  }
+                  value={customerOptions.find(
+                    (option) => option.value === newOrder.customerId
+                  )}
                   isMulti={false}
                   placeholder="Tìm khách hàng"
                   noOptionsMessage={() =>
@@ -143,7 +142,7 @@ export default function CreateOrderForm({
               <form className=" mx-auto">
                 <select
                   id="staff"
-                  className="bg-[#f7fafc] border text-sm rounded-md  p-2 shadow-sm w-60 outline-none"
+                  className="bg-none border-b-2 text-sm  p-2 w-60 outline-none"
                 >
                   <option defaultChecked>Chọn nhân viên</option>
                   <option value="Hoàng - Kinh doanh">Hoàng - Kinh doanh</option>
@@ -158,9 +157,9 @@ export default function CreateOrderForm({
         <div className="flex justify-between mt-4">
           <div className="flex items-center gap-3">
             <div className="w-28">Mã đặt bàn</div>
-            <div className="flex items-center border text-sm rounded-md bg-[#f7fafc] px-2 shadow-sm w-[243.5px]">
+            <div className="flex items-center  text-sm  bg-none   w-[243.5px] ">
               <input
-                className="p-2 bg-transparent w-full outline-none"
+                className="p-2 bg-transparent w-full outline-none border-b-2 focus:border-b-black"
                 type="text"
                 placeholder="Mã tự động"
               />
@@ -168,7 +167,7 @@ export default function CreateOrderForm({
           </div>
           <div className="flex gap-3 items-center">
             <div> Phòng/bàn</div>
-            <div className="w-60">
+            <div className="w-60 border-b-2">
               <ReactSelect
                 options={tableOptions}
                 isMulti
@@ -195,9 +194,9 @@ export default function CreateOrderForm({
         <div className="flex justify-between mt-4">
           <div className="flex items-center gap-3">
             <div className="w-28">Giờ đến</div>
-            <div className="flex items-center border text-sm rounded-md bg-[#f7fafc] px-2 shadow-sm w-[243.5px]">
+            <div className="flex items-center text-sm  bg-none  w-[243.5px]">
               <input
-                className="p-2 bg-transparent w-full outline-none"
+                className="p-2 bg-transparent w-full outline-none border-b-2 focus:border-b-black"
                 type="text"
                 placeholder="dd/mm/yyyy hh:mm"
                 value={newOrder.checkInTime}
@@ -212,7 +211,7 @@ export default function CreateOrderForm({
           </div>
           <div>
             <input
-              className="bg-[#f7fafc] border text-sm rounded-md  p-2 shadow-sm w-[329.95px] outline-none"
+              className="bg-none border-b-2 focus:border-b-black text-sm   p-2  w-[329.95px] outline-none"
               placeholder="Ghi chú"
               value={newOrder.note}
               onChange={(e) =>
@@ -223,9 +222,9 @@ export default function CreateOrderForm({
         </div>
         <div className="flex mt-4 gap-3 items-center">
           <div className="w-28"> Thời lượng (h)</div>
-          <div className="flex items-center border text-sm rounded-md bg-[#f7fafc] px-2 shadow-sm w-[243.5px]">
+          <div className="flex items-center text-sm  bg-none w-[243.5px]">
             <input
-              className="p-2 bg-transparent w-full text-left outline-none"
+              className="p-2 bg-transparent w-full text-left outline-none border-b-2 focus:border-b-black"
               type="text"
               onChange={(e) => setNewOrder({ ...newOrder, checkOutTime: null })}
             />
@@ -233,9 +232,9 @@ export default function CreateOrderForm({
         </div>
         <div className="flex mt-4 gap-3 items-center">
           <div className="w-28"> Số khách</div>
-          <div className="flex items-center border text-sm rounded-md bg-[#f7fafc] px-2 shadow-sm w-[243.5px]">
+          <div className="flex items-center text-sm  bg-none w-[243.5px]">
             <input
-              className="p-2 bg-transparent w-full outline-none"
+              className="p-2 bg-transparent w-full outline-none border-b-2 focus:border-b-black"
               type="text"
               onChange={(e) =>
                 setNewOrder({

@@ -85,7 +85,7 @@
   line-height: 20px;
 }
 
-.sche-table .sche-row .sche-cell:hover .new-btn {
+.sche-table .sche-row .sche-cell:hover .sche-new-btn {
   display: block;
 }
 

@@ -9,9 +9,9 @@ export default function CreateCustomerForm({ setNewCustomer, newCustomer, toggle
                 <div className="flex justify-between">
                     <div className="flex items-center gap-3">
                         <div className="w-28">Mã khách hàng</div>
-                        <div className="flex items-center border text-sm rounded-md bg-[#f7fafc] px-2 shadow-sm w-[243.5px]">
+                        <div className="flex items-center  text-sm bg-none w-[243.5px]">
                             <input
-                                className="p-2 bg-transparent w-full outline-none"
+                                className="p-2 bg-transparent w-full outline-none border-b-2 focus:border-b-black"
                                 type="text"
                                 placeholder="Mã mặc định"
                             />
@@ -19,9 +19,9 @@ export default function CreateCustomerForm({ setNewCustomer, newCustomer, toggle
                     </div>
                     <div className="flex items-center gap-3">
                         <div>Điện thoại</div>
-                        <div className="flex items-center border text-sm rounded-md bg-[#f7fafc] px-2 shadow-sm w-[243.5px]">
+                        <div className="flex items-center text-sm  bg-none w-[243.5px]">
                             <input
-                                className="p-2 bg-transparent w-full outline-none"
+                                className="p-2 bg-transparent w-full outline-none border-b-2 focus:border-b-black"
                                 type="text"
                                 placeholder="Ví dụ: 0912345678"
                                 onChange={(e) =>
@@ -37,9 +37,9 @@ export default function CreateCustomerForm({ setNewCustomer, newCustomer, toggle
                 <div className="flex justify-between mt-4">
                     <div className="flex items-center gap-3">
                         <div className="w-28">Tên khách hàng</div>
-                        <div className="flex items-center border text-sm rounded-md bg-[#f7fafc] px-2 shadow-sm w-[243.5px]">
+                        <div className="flex items-center  text-sm  bg-none  w-[243.5px]">
                             <input
-                                className="p-2 bg-transparent w-full outline-none"
+                                className="p-2 bg-transparent w-full outline-none border-b-2 focus:border-b-black"
                                 type="text"
                                 onChange={(e) =>
                                     setNewCustomer({
@@ -52,9 +52,9 @@ export default function CreateCustomerForm({ setNewCustomer, newCustomer, toggle
                     </div>
                     <div className="flex items-center gap-3">
                         <div>Email</div>
-                        <div className="flex items-center border text-sm rounded-md bg-[#f7fafc] px-2 shadow-sm w-[243.5px]">
+                        <div className="flex items-center text-sm bg-none w-[243.5px]">
                             <input
-                                className="p-2 bg-transparent w-full outline-none"
+                                className="p-2 bg-transparent w-full outline-none border-b-2 focus:border-b-black"
                                 type="text"
                                 placeholder="qwe@gmail.com"
                                 onChange={(e) =>
@@ -70,9 +70,9 @@ export default function CreateCustomerForm({ setNewCustomer, newCustomer, toggle
                 <div className="flex justify-between mt-4">
                     <div className="flex items-center gap-3">
                         <div className="w-28">Ngày sinh</div>
-                        <div className="flex items-center border text-sm rounded-md bg-[#f7fafc] px-2 shadow-sm w-[243.5px]">
+                        <div className="flex items-center text-sm bg-none w-[243.5px]">
                             <input
-                                className="p-2 bg-transparent w-full outline-none"
+                                className="p-2 bg-transparent w-full outline-none border-b-2 focus:border-b-black"
                                 type="text"
                                 placeholder="dd/mm/yyyy"
                                 onChange={(e) =>
@@ -86,9 +86,9 @@ export default function CreateCustomerForm({ setNewCustomer, newCustomer, toggle
                     </div>
                     <div className="flex items-center gap-3">
                         <div>Ghi chú</div>
-                        <div className="flex items-center border text-sm rounded-md bg-[#f7fafc] px-2 shadow-sm w-[243.5px]">
+                        <div className="flex items-center text-sm bg-none w-[243.5px]">
                             <input
-                                className="p-2 bg-transparent w-full outline-none"
+                                className="p-2 bg-transparent w-full outline-none border-b-2 focus:border-b-black"
                                 type="text"
                             />
                         </div>
@@ -96,7 +96,7 @@ export default function CreateCustomerForm({ setNewCustomer, newCustomer, toggle
                 </div>
                 <div className="flex justify-end gap-3 items-center mt-4">
                     <button
-                        className="flex pl-2 items-center border rounded-md bg-black "
+                        className="flex pl-2 items-center border-b-2 focus:border-b-black bg-black "
                         onClick={toggleNewCustomer}
                     >
                         <svg

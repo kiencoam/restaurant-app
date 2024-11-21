@@ -40,7 +40,17 @@ const ProductsPage = () => {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [isAddingNewOpen, setIsAddingNewOpen] = useState(false);
 
+  console.log("expandedRow");
+
   const filterRef = useRef(null);
+
+  // Toggle row expansion
+  const toggleRowExpansion = (id) => {
+    setExpandedRows((prev) => ({
+      ...prev,
+      [id]: !prev[id],
+    }));
+  };
 
   const toggleFilterDropdown = () => {
     setIsFilterOpen((prev) => !prev);
@@ -134,49 +144,47 @@ const ProductsPage = () => {
         <div className="flex items-center gap-2">
           {isAnyRowChecked && (
             <li
-            className="p-4 lg:px-8 relative flex items-center space-x-1"
-            onMouseEnter={() => setFlyOutActions(true)}
-            onMouseLeave={() => setFlyOutActions(false)}
-          >
-            <a
-              className="text-slate-800 hover:text-slate-900"
-              aria-expanded={flyOutActions}
+              className="p-4 lg:px-8 relative flex items-center space-x-1"
+              onMouseEnter={() => setFlyOutActions(true)}
+              onMouseLeave={() => setFlyOutActions(false)}
             >
-              Thao tác
-            </a>
-            <button
-              className="shrink-0 p-1"
-              aria-expanded={flyOutActions}
-              onClick={(e) => {
-                e.preventDefault();
-                setFlyOutActions(!flyOutActions);
-              }}
-            >
-              <span className="sr-only">Show submenu for "Flyout Menu"</span>
-              <svg
-                className="w-3 h-3 fill-slate-500"
-                xmlns="http://www.w3.org/2000/svg"
-                width="12"
-                height="12"
+              <a
+                className="text-slate-800 hover:text-slate-900"
+                aria-expanded={flyOutActions}
               >
-                <path d="M10 2.586 11.414 4 6 9.414.586 4 2 2.586l4 4z" />
-              </svg>
-            </button>
-            
-            {/* 2nd level menu */}
-            {flyOutActions && (
-              <ul
-                className="origin-top-right absolute top-full left-1/2 -translate-x-1/2 w-[120px] bg-white border border-slate-200 p-2 rounded-lg shadow-xl"
+                Thao tác
+              </a>
+              <button
+                className="shrink-0 p-1"
+                aria-expanded={flyOutActions}
+                onClick={(e) => {
+                  e.preventDefault();
+                  setFlyOutActions(!flyOutActions);
+                }}
               >
-                <li>
-                  <button className="text-slate-800 text-center w-[100px] hover:bg-slate-50 p-2">
-                    Xóa hàng
-                  </button>
-                </li>
-              </ul>
-              /* Thêm action ở đây */
-            )}
-          </li>
+                <span className="sr-only">Show submenu for "Flyout Menu"</span>
+                <svg
+                  className="w-3 h-3 fill-slate-500"
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="12"
+                  height="12"
+                >
+                  <path d="M10 2.586 11.414 4 6 9.414.586 4 2 2.586l4 4z" />
+                </svg>
+              </button>
+
+              {/* 2nd level menu */}
+              {flyOutActions && (
+                <ul className="origin-top-right absolute top-full left-1/2 -translate-x-1/2 w-[120px] bg-white border border-slate-200 p-2 rounded-lg shadow-xl">
+                  <li>
+                    <button className="text-slate-800 text-center w-[100px] hover:bg-slate-50 p-2">
+                      Xóa hàng
+                    </button>
+                  </li>
+                </ul>
+                /* Thêm action ở đây */
+              )}
+            </li>
           )}
           <div className="flex items-center border text-sm rounded-md bg-[#f7fafc] px-2 shadow-sm">
             <svg
@@ -194,7 +202,7 @@ const ProductsPage = () => {
               />
             </svg>
             <input
-              className="p-2 bg-transparent"
+              className="p-2 bg-transparent outline-none"
               type="text"
               placeholder="Tìm kiếm"
             />
@@ -262,14 +270,14 @@ const ProductsPage = () => {
                   <label className="flex items-center space-x-2 mt-2">
                     <input
                       type="text"
-                      className="form-input border w-full"
+                      className="form-input border-b-2 focus:border-b-black outline-none w-full"
                       placeholder="0"
                     />
                   </label>
                   <label className="flex items-center space-x-2 mt-2">
                     <input
                       type="text"
-                      className="form-input border w-full"
+                      className="form-input border-b-2 focus:border-b-black outline-none w-full"
                       placeholder="9999999999"
                     />
                   </label>
@@ -277,10 +285,18 @@ const ProductsPage = () => {
                 <div className="p-2">
                   <p className="font-bold ml-2 px-2">Giá bán</p>
                   <label className="flex items-center space-x-2 mt-2">
-                    <input type="text" className="form-input border w-full" />
+                    <input
+                      type="text"
+                      placeholder="0"
+                      className="form-input border-b-2 focus:border-b-black outline-none w-full"
+                    />
                   </label>
                   <label className="flex items-center space-x-2 mt-2">
-                    <input type="text" className="form-input border w-full" />
+                    <input
+                      type="text"
+                      placeholder="9999999999"
+                      className="form-input border-b-2 focus:border-b-black outline-none w-full"
+                    />
                   </label>
                 </div>
               </div>
@@ -305,53 +321,60 @@ const ProductsPage = () => {
             <div className="p-2 text-sm font-bold text-white">Tạo mới</div>
           </button>
           {isAddingNewOpen && (
-            <div className="absolute mt-2 w-4/5 top-4  left-[272px] bg-white border border-gray-300 rounded-md shadow-lg">
-              <div className="border-b-2 bg-[#f0efeb] px-4 py-6 font-bold">
-                Thêm hàng hóa
-              </div>
-              <div className="flex pt-3">
+            <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+              <div className="bg-white p-6 rounded-lg shadow-lg w-3/5 h-6/10">
+                <div className="text-xl font-bold mb-4">Thêm hàng hóa</div>
+                <div className="flex pt-3">
+                  <div className="flex items-center gap-3">
+                    <div className="px-2 py-4 w-28">Mã hàng hóa</div>
+                    <input
+                      className="border-b-2 focus:border-b-black w-64 h-fit outline-none"
+                      placeholder="Mã tự động sinh"
+                    ></input>
+                  </div>
+                  <div className="flex items-center gap-3 pl-3">
+                    <div className="px-2 py-4">Giá vốn</div>
+                    <input className="border-b-2 focus:border-b-black outline-none w-40 h-fit"></input>
+                  </div>
+                </div>
+                <div className="flex">
+                  <div className="flex items-center gap-3">
+                    <div className="px-2 py-4 w-28">Tên hàng</div>
+                    <input className="border-b-2 focus:border-b-black outline-none w-64 h-fit"></input>
+                  </div>
+                  <div className="flex items-center gap-3 pl-3">
+                    <div className="px-2 py-4">Giá bán</div>
+                    <input className="border-b-2 focus:border-b-black outline-none w-40 h-fit"></input>
+                  </div>
+                </div>
                 <div className="flex items-center gap-3">
-                  <div className="px-2 py-4 w-28">Mã hàng hóa</div>
-                  <input
-                    className="border-b-2 w-64 h-fit"
-                    placeholder="Mã tự động sinh"
-                  ></input>
+                  <div className="px-2 py-4 w-28">Loại hàng</div>
+                  <select className="w-64 h-fit border-b-2 focus:border-b-black outline-none">
+                    <option defaultValue>Chọn loại hàng</option>
+                    <option value="Type1">Type1</option>
+                    <option value="Type2">Type2</option>
+                    <option value="Type3">Type3</option>
+                    <option value="Type4">Type4</option>
+                  </select>
                 </div>
-                <div className="flex items-center gap-3 pl-3">
-                  <div className="px-2 py-4">Giá vốn</div>
-                  <input className="border-b-2 w-40 h-fit"></input>
-                </div>
-              </div>
-              <div className="flex">
-                <div className="flex items-center gap-3">
-                  <div className="px-2 py-4 w-28">Tên hàng</div>
-                  <input className="border-b-2 w-64 h-fit"></input>
-                </div>
-                <div className="flex items-center gap-3 pl-3">
-                  <div className="px-2 py-4">Giá bán</div>
-                  <input className="border-b-2 w-40 h-fit"></input>
-                </div>
-              </div>
-              <div className="flex items-center">
-                <div className="px-2 py-4 w-28">Loại hàng</div>
-                <select class="w- h-fit bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
-                  <option selected>Chọn loại hàng</option>
-                  <option value="Type1">Type1</option>
-                  <option value="Type2">Type2</option>
-                  <option value="Type3">Type3</option>
-                  <option value="Type4">Type4</option>
-                </select>
-              </div>
-              <div className="flex right-0 justify-end pb-8 pr-8">
-                <div className="flex gap-4">
+                <div className="flex justify-end gap-3 items-center mt-4">
                   <button
-                    className="p-2 bg-black rounded-xl font-semibold text-white"
+                    className="flex pl-2 items-center border rounded-md bg-black "
                     onClick={toggleAddingNewOpen}
                   >
-                    Lưu
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      height="24px"
+                      viewBox="0 -960 960 960"
+                      width="24px"
+                      fill="#FFFFFF"
+                    >
+                      <path d="M840-680v480q0 33-23.5 56.5T760-120H200q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h480l160 160Zm-80 34L646-760H200v560h560v-446ZM480-240q50 0 85-35t35-85q0-50-35-85t-85-35q-50 0-85 35t-35 85q0 50 35 85t85 35ZM240-560h360v-160H240v160Zm-40-86v446-560 114Z" />
+                    </svg>
+                    <div className="p-2 text-white  rounded right-0">Lưu</div>
                   </button>
                   <button
-                    className="p-2 border rounded-xl"
+                    className="p-2 rounded right-0"
                     onClick={toggleAddingNewOpen}
                   >
                     Hủy
@@ -488,7 +511,7 @@ const ProductsPage = () => {
                 {/* Detail row */}
                 {expandedRow === row.id && (
                   <tr>
-                    <td colSpan={7} className="bg-gray-50 p-4">
+                    <td colSpan={8} className="bg-gray-50 p-4">
                       {/* Detailed information and editable fields */}
                       <div className="space-y-2">
                         <div className="flex space-x-4">
@@ -504,7 +527,7 @@ const ProductsPage = () => {
                               onChange={(e) =>
                                 handleEditInputChange(e, "name", row.id)
                               }
-                              className="w-full border p-1 rounded-xl"
+                              className="w-full border-b-2 focus:border-b-black outline-none bg-[#f7f9fa] p-1 "
                             />
                           </label>
                           <label
@@ -519,7 +542,7 @@ const ProductsPage = () => {
                               onChange={(e) =>
                                 handleEditInputChange(e, "type", row.id)
                               }
-                              className="w-full border p-1 rounded-xl"
+                              className="w-full border-b-2 focus:border-b-black outline-none bg-[#f7f9fa] p-1 "
                             />
                           </label>
                         </div>
@@ -537,7 +560,7 @@ const ProductsPage = () => {
                                 onChange={(e) =>
                                   handleEditInputChange(e, "price", row.id)
                                 }
-                                className="w-full border p-1 rounded-xl"
+                                className="w-full border-b-2 focus:border-b-black outline-none bg-[#f7f9fa] p-1"
                               />
                             </label>
                             <label
@@ -552,7 +575,7 @@ const ProductsPage = () => {
                                 onChange={(e) =>
                                   handleEditInputChange(e, "cost", row.id)
                                 }
-                                className="w-full border p-1 rounded-xl"
+                                className="w-full border-b-2 focus:border-b-black outline-none bg-[#f7f9fa] p-1 "
                               />
                             </label>
                             <label
@@ -567,7 +590,7 @@ const ProductsPage = () => {
                                 onChange={(e) =>
                                   handleEditInputChange(e, "stock", row.id)
                                 }
-                                className="w-full border p-1 rounded-xl"
+                                className="w-full border-b-2 focus:border-b-black outline-none bg-[#f7f9fa] p-1 "
                               />
                             </label>
                           </div>
@@ -598,7 +621,7 @@ const ProductsPage = () => {
                               onChange={(e) =>
                                 handleEditInputChange(e, "state", row.id)
                               }
-                              className="w-full border p-1 rounded-xl"
+                              className="w-full border-b-2 focus:border-b-black outline-none bg-[#f7f9fa] p-1"
                             >
                               <option value="Available">
                                 {" "}

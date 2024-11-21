@@ -1,9 +1,9 @@
-const ADMIN: string = "Admin";
-const MANAGER: string = "Manager";
-const CHEF: string = "Chef";
-const WAITER: string = "Waiter";
-const RECEPTIONIST: string = "Receptionist";
-const TESTER: string = "Tester";
+const ADMIN: string = "ADMIN";
+const MANAGER: string = "MANAGER";
+const CHEF: string = "CHEF";
+const WAITER: string = "WAITER";
+const RECEPTIONIST: string = "RECEPTIONIST";
+const TESTER: string = "TESTER";
 
 const ROLES = {
   [ADMIN]: [
@@ -44,6 +44,7 @@ const ROLES = {
     "/home/staff-schedule",
     "/home/staff-attendance",
     "/home/staff-payroll",
+    "/home/customer-management",
     "/home/products",
     "/home/purchase-order",
     "/home/purchase-order/new",
