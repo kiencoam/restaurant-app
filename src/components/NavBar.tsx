@@ -3,12 +3,10 @@
 import { usePathname } from "next/navigation";
 import Logout from "./Logout";
 import Link from "next/link";
-import { hasPermission } from "@/data/auth";
+import { hasPermission } from "@/auth";
 import Image from "next/image";
 
-const role = "TESTER";
-
-const NavBar = () => {
+const NavBar = ({ role }) => {
   const pathname = usePathname();
 
   return (
