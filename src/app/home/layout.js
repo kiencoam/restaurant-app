@@ -1,9 +1,12 @@
 import NavBar from "@/components/NavBar";
+import { getRole } from "@/utils/cookiesHandler";
 
-export default function HomeLayout({ children }) {
+export default async function HomeLayout({ children }) {
+  const role = await getRole();
+
   return (
     <div className="pl-[256px]">
-      <NavBar />
+      <NavBar role={role} />
       {children}
     </div>
   );

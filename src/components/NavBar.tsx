@@ -3,12 +3,10 @@
 import { usePathname } from "next/navigation";
 import Logout from "./Logout";
 import Link from "next/link";
-import { hasPermission } from "@/data/auth";
+import { hasPermission } from "@/auth";
 import Image from "next/image";
 
-const role = "TESTER";
-
-const NavBar = () => {
+const NavBar = ({ role }) => {
   const pathname = usePathname();
 
   return (
@@ -324,6 +322,42 @@ const NavBar = () => {
           </div>
         )}
 
+        {/* Khách hàng */}
+        {hasPermission(role, "/home/customer-management") && (
+          <div
+            className={`rounded-md w-full h-16 hover:bg-[#454545] ${
+              pathname.startsWith("/home/customer-management")
+                ? "bg-[#383838] text-[#dcf70f]"
+                : ""
+            }`}
+          >
+            <Link
+              className="flex items-center gap-3 w-full h-full"
+              href="/home/customer-management"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="icon icon-tabler icons-tabler-outline icon-tabler-friends w-7 h-7 ml-3"
+              >
+                <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                <path d="M7 5m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0" />
+                <path d="M5 22v-5l-1 -1v-4a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v4l-1 1v5" />
+                <path d="M17 5m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0" />
+                <path d="M15 22v-4h-2l2 -6a1 1 0 0 1 1 -1h2a1 1 0 0 1 1 1l2 6h-2v4" />
+              </svg>
+              <p className="text-[1.4rem]">Khách hàng</p>
+            </Link>
+          </div>
+        )}
+
         {/* Nhà bếp */}
         {hasPermission(role, "/home/kitchen") && (
           <div
@@ -336,7 +370,6 @@ const NavBar = () => {
               href="/home/kitchen"
             >
               <svg
-                className="w-7 h-7 ml-3 icon icon-tabler icons-tabler-outline icon-tabler-chef-hat"
                 xmlns="http://www.w3.org/2000/svg"
                 width="24"
                 height="24"
@@ -346,10 +379,14 @@ const NavBar = () => {
                 strokeWidth="2"
                 strokeLinecap="round"
                 strokeLinejoin="round"
+                className="icon icon-tabler icons-tabler-outline icon-tabler-tools-kitchen w-7 h-7 ml-3"
               >
                 <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-                <path d="M12 3c1.918 0 3.52 1.35 3.91 3.151a4 4 0 0 1 2.09 7.723l0 7.126h-12v-7.126a4 4 0 1 1 2.092 -7.723a4 4 0 0 1 3.908 -3.151z" />
-                <path d="M6.161 17.009l11.839 -.009" />
+                <path d="M4 3h8l-1 9h-6z" />
+                <path d="M7 18h2v3h-2z" />
+                <path d="M20 3v12h-5c-.023 -3.681 .184 -7.406 5 -12z" />
+                <path d="M20 15v6h-1v-3" />
+                <path d="M8 12l0 6" />
               </svg>
               <p className="text-[1.4rem]">Nhà bếp</p>
             </Link>
