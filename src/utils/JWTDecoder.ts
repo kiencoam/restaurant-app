@@ -1,5 +1,5 @@
 // Helper function to decode base64url
-const base64UrlDecode = (str) => {
+const base64UrlDecode = (str: string) => {
   // Replace base64url characters with base64 characters
   let base64 = str.replace(/-/g, "+").replace(/_/g, "/");
   // Pad with '=' characters to make the string length a multiple of 4
@@ -11,7 +11,7 @@ const base64UrlDecode = (str) => {
 };
 
 // Helper function to decode JWT
-export const decodeJWT = (token) => {
+export const decodeJWT = (token: string) => {
   const parts = token.split(".");
   if (parts.length !== 3) {
     throw new Error("Invalid JWT");

@@ -1,33 +1,21 @@
 "use client";
 
-import { doLogin } from "@/app/actions";
+import { doLogin } from "@/utils/actions";
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 export const LoginForm = () => {
   const router = useRouter();
-  const [error, setError] = useState("");
 
   async function handleSubmit(event) {
     event.preventDefault();
-    try {
-      const formData = new FormData(event.currentTarget);
 
-      const response = await doLogin(formData);
+    const formData = new FormData(event.currentTarget);
 
-      console.log(`handleSubmit: respose: ${response}`);
+    const response = await doLogin(formData);
 
-      if (!!response.error) {
-        console.error(response.error);
-        setError(response.error.message);
-      } else {
-        router.push("/home");
-      }
-    } catch (error) {
-      console.error(error);
-      setError("Check your login form again!");
-    }
+    if (response) router.push("/home");
   }
 
   return (
@@ -55,16 +43,16 @@ export const LoginForm = () => {
           <div className="relative w-2/3 h-[50px] border-b-2 border-b-black my-[30px]">
             <input
               className="peer w-full h-full pr-[40px] font-flux font-semibold text-2xl bg-transparent border-none outline-none"
-              type="email"
-              name="email"
-              id="email"
+              type="text"
+              name="username"
+              id="username"
               required
             />
             <label
               className="font-flux text-2xl transition-all duration-500 absolute top-1/2 left-[5px] -translate-y-1/2 pointer-events-none peer-focus:-top-2 peer-focus:scale-75 peer-valid:-top-2 peer-valid:scale-75"
-              htmlFor="email"
+              htmlFor="username"
             >
-              Email
+              Username
             </label>
             <svg
               className="w-7 h-7 absolute top-1/4 right-[8px]"
