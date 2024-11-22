@@ -13,9 +13,7 @@ export const LoginForm = () => {
 
     const formData = new FormData(event.currentTarget);
 
-    const response = await doLogin(formData);
-
-    if (response) router.push("/home");
+    const response = doLogin(formData);
   }
 
   return (
