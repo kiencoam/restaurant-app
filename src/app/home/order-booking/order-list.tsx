@@ -1,3 +1,4 @@
+import { Tooltip } from "react-tooltip";
 import { formatDateTime } from "@/utils/timeUtils";
 
 const mapOrderStatus = (status: string) => {
@@ -32,7 +33,7 @@ export default function OrderList({
     return (
         <table className="min-w-full bg-white border border-gray-200 mt-6">
             <thead>
-                <tr className="bg-blue-100">
+                <tr className="bg-[#f7fafc]">
                     <th className="px-4 py-2 border-b text-left">
                         <input
                             type="checkbox"
@@ -137,6 +138,7 @@ export default function OrderList({
                                         data-tooltip-id="my-tooltip"
                                         data-tooltip-content="Nhận gọi món"
                                     >
+                                        <Tooltip id="my-tooltip" />
                                         <svg
                                             xmlns="http://www.w3.org/2000/svg"
                                             height="24px"
