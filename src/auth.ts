@@ -55,6 +55,8 @@ const ROLES = {
     "/home/kitchen",
     "/home/order-booking",
     "/home/order-taking",
+    "/home/purchase-return",
+    "/home/purchase-return/return",
   ],
 };
 

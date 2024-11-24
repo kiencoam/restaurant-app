@@ -2,10 +2,10 @@
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 
-const PurchaseOrderPage = () => {
+const ReturnOrderPage = () => {
   const data = [
     {
-      id: "PN000052",
+      id: "TH000052",
       time: "06/11/2024 16:46",
       supplier: "Cửa hàng Đại Việt",
       amount: "100,500",
@@ -16,8 +16,9 @@ const PurchaseOrderPage = () => {
           code: "SP000006",
           name: "CBánh mỳ bò lò đậm bổng & phomai",
           quantity: 1,
-          unitPrice: "100,500",
-          totalPrice: "100,500",
+          unitPurchasePrice: "100,500",
+          unitReturnPrice:"100,000",
+          totalPrice: "100,000",
         },
       ],
       summary: {
@@ -30,11 +31,11 @@ const PurchaseOrderPage = () => {
       note: "",
     },
     {
-      id: "PN000051",
+      id: "TH000051",
       time: "06/11/2024 15:18",
       supplier: "Công ty Hoàng Gia",
       amount: "76,500",
-      status: "Đã nhập hàng",
+      status: "Đã trả hàng",
       receiver: "nvabc",
       items: [
         {
@@ -55,7 +56,7 @@ const PurchaseOrderPage = () => {
       note: "Ghi chú đặc biệt",
     },
     {
-      id: "PN000050",
+      id: "TH000050",
       time: "05/11/2024 12:00",
       supplier: "Công ty A",
       amount: "50,000",
@@ -122,7 +123,7 @@ const PurchaseOrderPage = () => {
   return (
     <div className="w-full h-screen font-nunito bg-[#f7f7f7]">
       <div className="flex p-6 justify-between items-center">
-        <div className="text-2xl font-extrabold">Phiếu nhập hàng</div>
+        <div className="text-2xl font-extrabold">Phiếu trả hàng</div>
         <div className="flex items-center gap-2">
           <div className="flex items-center border text-sm rounded-md bg-[#f7fafc] px-2 shadow-sm">
             <svg
@@ -227,7 +228,7 @@ const PurchaseOrderPage = () => {
             {isFilterOpen && (
               <div
                 ref={filterRef}
-                className="absolute mt-2 w-48 bg-white border border-gray-300 rounded-md shadow-lg divide-y-2"
+                className="absolute mt-2 w-48 right-[24px] bg-white border border-gray-300 rounded-md shadow-lg divide-y-2"
               >
                 <div className="p-2">
                   <p className="font-bold m-2 px-2">Trạng thái</p>
@@ -237,7 +238,7 @@ const PurchaseOrderPage = () => {
                   </label>
                   <label className="flex items-center space-x-2 mt-2">
                     <input type="checkbox" className="form-checkbox" />
-                    <span>Đã nhập hàng</span>
+                    <span>Đã trả hàng</span>
                   </label>
                   <label className="flex items-center space-x-2 mt-2">
                     <input type="checkbox" className="form-checkbox" />
@@ -269,23 +270,6 @@ const PurchaseOrderPage = () => {
               </div>
             )}
           </div>
-          <Link href="/home/purchase-order/new">
-            <button className="flex items-center border rounded-md px-2 shadow-sm bg-black">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 16 16"
-                fill="white"
-                className="h-6 w-6"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M8 15A7 7 0 1 0 8 1a7 7 0 0 0 0 14Zm.75-10.25v2.5h2.5a.75.75 0 0 1 0 1.5h-2.5v2.5a.75.75 0 0 1-1.5 0v-2.5h-2.5a.75.75 0 0 1 0-1.5h2.5v-2.5a.75.75 0 0 1 1.5 0Z"
-                  clipRule="evenodd"
-                />
-              </svg>
-              <div className="p-2 text-sm font-bold text-white">Nhập hàng</div>
-            </button>
-          </Link>
         </div>
       </div>
       <div className="m-[24px] border border-gray-300 rounded-lg overflow-hidden">
@@ -295,7 +279,7 @@ const PurchaseOrderPage = () => {
               <th className="p-3 border w-[140px]">Mã nhập hàng</th>
               <th className="p-3 border w-[145px]">Thời gian</th>
               <th className="p-3 border w-[401px]">Nhà cung cấp</th>
-              <th className="p-3 border w-[130px]">Cần trả NCC</th>
+              <th className="p-3 border w-[130px]">NCC cần trả</th>
               <th className="p-3 border w-[160px]">Trạng thái</th>
             </tr>
           </thead>
@@ -321,7 +305,7 @@ const PurchaseOrderPage = () => {
                         <div className="grid grid-cols-2 gap-4 mb-4">
                           <div>
                             <p>
-                              <strong>Mã phiếu nhập:</strong> {item.id}
+                              <strong>Mã phiếu trả:</strong> {item.id}
                             </p>
                             <p>
                               <strong>Thời gian:</strong> {item.time}
@@ -388,11 +372,11 @@ const PurchaseOrderPage = () => {
                             {item.summary.totalAmount}
                           </p>
                           <p>
-                            <strong>Tổng cộng:</strong>{" "}
+                            <strong>NCC cần trả:</strong>{" "}
                             {item.summary.grandTotal}
                           </p>
                           <p>
-                            <strong>Tiền đã trả NCC:</strong>{" "}
+                            <strong>NCC đã trả:</strong>{" "}
                             {item.summary.paidAmount}
                           </p>
                         </div>
@@ -406,16 +390,9 @@ const PurchaseOrderPage = () => {
                                 Lưu
                               </button>
                               {item.status === "Phiếu tạm" && (
-                                <Link href = "/home/purchase-order/open">
+                                <Link href = "/home/purchase-return/return">
                                 <button className="border rounded-md px-2 shadow-sm bg-blue-500 text-white">
                                   Mở phiếu
-                                </button>
-                                </Link>
-                              )}
-                              {item.status === "Đã nhập hàng" && (
-                                <Link href = "/home/purchase-return/return">
-                                <button className="border rounded-md px-2 shadow-sm bg-red-500 text-white">
-                                  Trả hàng
                                 </button>
                                 </Link>
                               )}
@@ -441,4 +418,4 @@ const PurchaseOrderPage = () => {
   );
 };
 
-export default PurchaseOrderPage;
+export default ReturnOrderPage;
