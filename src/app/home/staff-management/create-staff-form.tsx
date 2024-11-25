@@ -1,12 +1,13 @@
-import { Tooltip } from "react-tooltip";
-import CreateAccountForm from "./create-account-form";
+import { useState } from "react";
 
 export default function CreateStaffForm({
   toggleNewStaff,
-  toggleNewAccount,
-  isNewAccount,
-  setIsNewAccount,
 }) {
+  const [isCharsVisible, changeCharsVisibility] = useState(false);
+
+  const toggleCharsVisibility = () => {
+    changeCharsVisibility(!isCharsVisible);
+  };
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
       <div className="bg-[#f7fafc] p-6 rounded-lg shadow-lg w-3/5 h-6/10">
@@ -104,35 +105,24 @@ export default function CreateStaffForm({
           <div className="flex justify-between items-center">
             <div className="flex space-x-12">
               <label className="w-64 focus:border-b-black">
-                Tài khoản đăng nhập
-                <div className="flex items-center">
-                  <input
-                    type="text"
-                    className="w-[232px] border-b-2 bg-gray-50 mt-2 outline-none"
-                    
-                  />
-                  <Tooltip id="my-tooltip" />
-                  <button
-                    data-tooltip-id="my-tooltip"
-                    data-tooltip-content="Tạo tài khoản mới"
-                    type="button"
-                    onClick={() => setIsNewAccount(!isNewAccount)}
+                Mật khẩu
+                <div className="flex">
+                <input
+                  type={isCharsVisible ? "text" : "password"}
+                  className="w-full border-b-2 bg-[#f7fafc] mt-2 outline-none"
+                />
+                <button type="button" className="border-b-2" onClick={toggleCharsVisibility}>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    height="24px"
+                    viewBox="0 -960 960 960"
+                    width="24px"
+                    fill="#000000"
                   >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      height="34px"
-                      viewBox="0 -960 960 960"
-                      width="24px"
-                      fill="#000000"
-                      className="border-b-2"
-                    >
-                      <path d="M440-440H200v-80h240v-240h80v240h240v80H520v240h-80v-240Z" />
-                    </svg>
-                  </button>
-                  {isNewAccount && (
-                    <CreateAccountForm toggleNewAccount={toggleNewAccount} />
-                  )}
-                </div>
+                    <path d="M480-320q75 0 127.5-52.5T660-500q0-75-52.5-127.5T480-680q-75 0-127.5 52.5T300-500q0 75 52.5 127.5T480-320Zm0-72q-45 0-76.5-31.5T372-500q0-45 31.5-76.5T480-608q45 0 76.5 31.5T588-500q0 45-31.5 76.5T480-392Zm0 192q-146 0-266-81.5T40-500q54-137 174-218.5T480-800q146 0 266 81.5T920-500q-54 137-174 218.5T480-200Zm0-300Zm0 220q113 0 207.5-59.5T832-500q-50-101-144.5-160.5T480-720q-113 0-207.5 59.5T128-500q50 101 144.5 160.5T480-280Z" />
+                  </svg>
+                </button>
+              </div>
               </label>
 
               <label className="w-64">

@@ -57,6 +57,7 @@ const ROLES = {
     "/home/order-taking",
     "/home/purchase-return",
     "/home/purchase-return/return",
+    "/home/supplier-management",
   ],
 };
 
