@@ -58,6 +58,8 @@ const ROLES = {
     "/home/purchase-return",
     "/home/purchase-return/return",
     "/home/supplier-management",
+    "/home/paysheet",
+    "/home/calendar",
   ],
 };
 
