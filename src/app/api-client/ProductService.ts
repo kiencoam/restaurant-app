@@ -63,6 +63,7 @@ export const getDetailProduct = async (id: number): Promise<ProductEntity> => {
 };
 
 export const getAllProducts = async (query: string) => {
+  console.log(`${baseUrl}?${query}`);
   return await apiClientService
     .get(`${baseUrl}?${query}`)
     .then((res) => res.data);

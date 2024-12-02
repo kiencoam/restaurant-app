@@ -41,14 +41,15 @@ export default function ProductList({ masterChecked,
                                 className={` border-b-2 cursor-pointer ${checkedRows[product.id] ? "bg-gray-100" : ""
                                     }`}
                                 onClick={(e) => {
+                                    const target = e.target as HTMLElement; // Cast to HTMLElement
                                     // Ignore click on checkboxes and action buttons
-                                    // if (
-                                    //   e.target.type === "checkbox" ||
-                                    //   e.target.tagName.toLowerCase() === "button" ||
-                                    //   e.target.closest("button")
-                                    // ) {
-                                    //   return;
-                                    // }
+                                    if (
+                                      (target instanceof HTMLInputElement && target.type === "checkbox") ||
+                                      target.tagName.toLowerCase() === "button" ||
+                                      target.closest("button")
+                                    ) {
+                                      return;
+                                    }
                                     handleRowClick(product.id); // Expand or collapse row
                                 }}
                             >

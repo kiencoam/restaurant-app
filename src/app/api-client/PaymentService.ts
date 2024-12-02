@@ -23,3 +23,11 @@ export const createPayment = async (
 ): Promise<PaymentEntity> => {
   return await apiClientService.post(baseUrl, payload).then((res) => res.data);
 };
+
+export const getPaymentsByIds = async (
+  ids: number[]
+): Promise<PaymentEntity[]> => {
+  return await apiClientService
+    .get(`${baseUrl}?ids=${ids.join(",")}`)
+    .then((res) => res.data);
+}
