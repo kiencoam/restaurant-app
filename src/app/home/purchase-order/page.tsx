@@ -1,6 +1,8 @@
 "use client";
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 
 const PurchaseOrderPage = () => {
   const data = [
@@ -85,13 +87,41 @@ const PurchaseOrderPage = () => {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [searchOptionsOpen, setSearchOptionsOpen] = useState(false);
   const filterRef = useRef(null);
+  const [startDate, setStartDate] = useState(new Date("2014/01/01"));
+  const [endDate, setEndDate] = useState(new Date("2025/12/31"));
 
-  // Toggle row expansion
-  const toggleRowExpansion = (id) => {
-    setExpandedRows((prev) => ({
-      ...prev,
-      [id]: !prev[id],
-    }));
+  const handleStartDateChange = (date) => {
+    setStartDate(date);
+  };
+
+  const handleEndDateChange = (date) => {
+    setEndDate(date);
+  };
+
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [rowsPerPage, setRowsPerPage] = useState(5);
+
+  // Calculate total pages
+  const totalPages = Math.ceil(data.length / rowsPerPage);
+
+  // Get current page rows
+  const startIndex = (currentPage - 1) * rowsPerPage;
+  const currentRowsData = data.slice(
+    startIndex,
+    startIndex + rowsPerPage
+  );
+
+  // Handle page change
+  const changePage = (newPage) => {
+    if (newPage >= 1 && newPage <= totalPages) {
+      setCurrentPage(newPage);
+    }
+  };
+
+  //Handle rowsPerPage change
+  const changeRowsPerPage = (rows) => {
+    setRowsPerPage(rows);
   };
 
   const handleRowClick = (id) => {
@@ -246,23 +276,30 @@ const PurchaseOrderPage = () => {
                 </div>
 
                 <div className="p-2">
-                  <p className="font-bold ml-2 px-2">Thời gian</p>
-                  <label className="flex items-center space-x-2 mt-2">
-                    <input type="checkbox" className="form-checkbox" />
-                    <span>Toàn thời gian</span>
-                  </label>
-                  <label className="flex items-center space-x-2 mt-2">
-                    <input
-                      type="text"
-                      className="form-input border w-full p-2 outline-none"
-                      placeholder="Từ ngày dd/mm//yyyy"
+                  <p className="font-bold m-2 px-2">Thời gian</p>
+                  <label className="flex items-center space-x-4 mt-2">
+                    <div className="min-w-[30px]">Từ</div>
+                    <DatePicker
+                      dateFormat="dd/MM/yyyy"
+                      className="border-b-2 focus:border-b-black w-full outline-none"
+                      selected={startDate}
+                      onChange={handleStartDateChange}
+                      selectsStart
+                      startDate={startDate}
+                      endDate={endDate}
                     />
                   </label>
-                  <label className="flex items-center space-x-2 mt-2">
-                    <input
-                      type="text"
-                      className="form-input border w-full p-2 outline-none"
-                      placeholder="Đến ngày dd/mm//yyyy"
+                  <label className="flex items-center space-x-4 mt-2">
+                    <div className="min-w-[30px]">Đến</div>
+                    <DatePicker
+                      dateFormat="dd/MM/yyyy"
+                      className="border-b-2 focus:border-b-black w-full outline-none"
+                      selected={endDate}
+                      onChange={handleEndDateChange}
+                      selectsEnd
+                      startDate={startDate}
+                      endDate={endDate}
+                      minDate={startDate}
                     />
                   </label>
                 </div>
@@ -291,7 +328,7 @@ const PurchaseOrderPage = () => {
       <div className="m-[24px] border border-gray-300 rounded-lg overflow-hidden">
         <table className="w-full border-collapse">
           <thead>
-            <tr className="bg-blue-100 text-left">
+            <tr className="bg-[#f7fafc] text-left">
               <th className="p-3 border w-[140px]">Mã nhập hàng</th>
               <th className="p-3 border w-[145px]">Thời gian</th>
               <th className="p-3 border w-[401px]">Nhà cung cấp</th>
@@ -300,13 +337,13 @@ const PurchaseOrderPage = () => {
             </tr>
           </thead>
           <tbody>
-            {data.map((item) => (
+            {currentRowsData.map((item) => (
               <React.Fragment key={item.id}>
                 <tr
                   onClick={() => {
                     handleRowClick(item.id); // Expand or collapse row
                   }}
-                  className="hover:bg-gray-100 cursor-pointer"
+                  className="hover:bg-gray-100 bg-white cursor-pointer"
                 >
                   <td className="p-3 border ">{item.id}</td>
                   <td className="p-3 border ">{item.time}</td>
@@ -345,7 +382,7 @@ const PurchaseOrderPage = () => {
                         </div>
                         <table className="w-full mt-2 border-collapse">
                           <thead>
-                            <tr className="bg-blue-100 text-left">
+                            <tr className="bg-[#f7fafc] text-left">
                               <th className="p-2 border w-[140px]">
                                 Mã hàng hóa
                               </th>
@@ -357,7 +394,7 @@ const PurchaseOrderPage = () => {
                           </thead>
                           <tbody>
                             {item.items.map((product, index) => (
-                              <tr key={index}>
+                              <tr key={index} className="bg-white">
                                 <td className="p-2 border">{product.code}</td>
                                 <td className="p-2 border">{product.name}</td>
                                 <td className="p-2 border ">
@@ -421,12 +458,13 @@ const PurchaseOrderPage = () => {
                               )}
                             </>
                           )}
+                          {item.status !== "Đã hủy" && (
                           <button
                             onClick={() => handleRowClick(item.id)}
                             className="border rounded-md px-2 shadow-sm"
                           >
-                            Hủy
-                          </button>
+                            Hủy bỏ
+                          </button>)}
                         </div>
                       </div>
                     </td>
@@ -436,6 +474,55 @@ const PurchaseOrderPage = () => {
             ))}
           </tbody>
         </table>
+      </div>
+      <div className="flex items-center space-x-8 mt-4 ml-[24px]">
+        <div className="flex">
+          <div>Số bản ghi: </div>
+          <select
+            className="bg-[#f7f7f7] outline-none"
+            value={rowsPerPage}
+            onChange={(e) => changeRowsPerPage(Number(e.target.value))}
+          >
+            <option defaultValue={rowsPerPage}>{rowsPerPage}</option>
+            <option value={5}>5</option>
+            <option value={10}>10</option>
+            <option value={15}>15</option>
+            <option value={20}>20</option>
+          </select>
+        </div>
+        <div className="flex space-x-2">
+          <button
+            onClick={() => changePage(currentPage - 1)}
+            disabled={currentPage === 1}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              height="24px"
+              viewBox="0 -960 960 960"
+              width="24px"
+              fill="#000000"
+            >
+              <path d="m313-440 224 224-57 56-320-320 320-320 57 56-224 224h487v80H313Z" />
+            </svg>
+          </button>
+          <span>
+            Page {currentPage} of {totalPages}
+          </span>
+          <button
+            onClick={() => changePage(currentPage + 1)}
+            disabled={currentPage === totalPages}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              height="24px"
+              viewBox="0 -960 960 960"
+              width="24px"
+              fill="#000000"
+            >
+              <path d="M647-440H160v-80h487L423-744l57-56 320 320-320 320-57-56 224-224Z" />
+            </svg>
+          </button>
+        </div>
       </div>
     </div>
   );

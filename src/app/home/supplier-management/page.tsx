@@ -99,7 +99,7 @@ const SupplierPage = () => {
         <div className="flex items-center gap-2">
           {isAnyRowChecked && (
             <li
-              className="p-4 lg:px-8 relative flex items-center space-x-1"
+              className="lg:px-8 relative flex items-center space-x-1"
               onMouseEnter={() => setFlyOutActions(true)}
               onMouseLeave={() => setFlyOutActions(false)}
             >

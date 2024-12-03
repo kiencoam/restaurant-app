@@ -53,6 +53,7 @@ export default function CreateStaffForm({
               <label className="w-64">
                 Ngày sinh
                 <input
+                  placeholder="dd/mm/yyyy"
                   type="text"
                   className="w-full border-b-2 bg-gray-50 mt-2 outline-none focus:border-b-black"
                 />

@@ -60,6 +60,7 @@ const ROLES = {
     "/home/supplier-management",
     "/home/paysheet",
     "/home/calendar",
+    "/home/bill",
   ],
 };
 

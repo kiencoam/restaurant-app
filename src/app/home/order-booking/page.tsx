@@ -6,6 +6,14 @@ import { formatDateToString } from "@/utils/timeUtils";
 import { default as ReactSelect, components } from "react-select";
 import OrderList from "./order-list";
 import CreateOrderForm from "./create-order-form";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+import {
+  CreateOrderRequest,
+  GetOrderRequest,
+  OrderEntity,
+  TableEntity,
+} from "../order-taking/entity";
 
 const tables: TableEntity[] = [
   {
@@ -459,6 +467,17 @@ const OrderBookingPage = () => {
   //console.log("newOrder", newOrder);
   //console.log("newCustomer", newCustomer);
 
+  const [startDate, setStartDate] = useState(new Date("2014/01/01"));
+  const [endDate, setEndDate] = useState(new Date("2025/12/31"));
+
+  const handleStartDateChange = (date) => {
+    setStartDate(date);
+  };
+
+  const handleEndDateChange = (date) => {
+    setEndDate(date);
+  };
+
   const handleFilterOrderStatusChange = (
     e: React.ChangeEvent<HTMLInputElement>
   ) => {
@@ -509,9 +528,9 @@ const OrderBookingPage = () => {
     control: (styles) => ({
       ...styles,
       backgroundColor: "transparent",
-      borderColor: "white",
+      borderColor: "#f7f7f7",
       padding: "0rem", // equivalent to Tailwind's p-2
-      width: "15rem", // equivalent to Tailwind's w-60
+      width: "30rem", // equivalent to Tailwind's w-60
       outline: "none",
       fontSize: "0.875rem", // equivalent to Tailwind's text-sm
       boxShadow: "none",
@@ -531,7 +550,7 @@ const OrderBookingPage = () => {
     }),
     multiValue: (styles) => ({
       ...styles,
-      backgroundColor: "#f7f7f7",
+      backgroundColor: "#b7b7b7",
       borderRadius: "12px",
       padding: "0.25rem", // Adds padding for multi-value items
     }),
@@ -713,7 +732,7 @@ const OrderBookingPage = () => {
               </div>
             </div>
           )}
-          <div className="ml-2">
+          <div className="ml-2 ">
             <ReactSelect
               options={tableOptions}
               isMulti
@@ -739,7 +758,7 @@ const OrderBookingPage = () => {
         <div className="flex gap-4 justify-end">
           {isAnyRowChecked && (
             <li
-              className="p-2  relative flex items-center space-x-1 border rounded-md"
+              className="relative flex items-center space-x-1"
               onMouseEnter={() => setFlyOutActions(true)}
               onMouseLeave={() => setFlyOutActions(false)}
             >
@@ -810,7 +829,7 @@ const OrderBookingPage = () => {
           {isFilterOpen && (
             <div
               ref={filterRef}
-              className="absolute mt-2 w-48 top-32 bg-white border border-gray-300 rounded-md shadow-lg divide-y-2"
+              className="absolute mt-2 w-48 top-32 right-[51.23px] bg-white border border-gray-300 rounded-md shadow-lg divide-y-2"
             >
               <div className="p-2">
                 <p className="font-bold ml-2 px-2">Tình trạng</p>
@@ -863,32 +882,47 @@ const OrderBookingPage = () => {
               <div className="p-2">
                 <p className="font-bold ml-2 px-2">Hiển thị</p>
                 <label className="flex items-center space-x-2 mt-2">
-                  <input type="checkbox" className="form-checkbox" />
+                  <input
+                    type="radio"
+                    className="form-radio"
+                    name="customer_type"
+                  />
                   <span>Lượt khách quá giờ</span>
                 </label>
                 <label className="flex items-center space-x-2 mt-2">
-                  <input type="checkbox" className="form-checkbox" />
+                  <input
+                    type="radio"
+                    className="form-radio"
+                    name="customer_type"
+                  />
                   <span>Lượt khách sắp đến</span>
                 </label>
               </div>
               <div className="p-2">
-                <p className="font-bold ml-2 px-2">Thời gian đặt</p>
-                <label className="flex items-center space-x-2 mt-2">
-                  <input type="checkbox" className="form-checkbox" />
-                  <span>Toàn thời gian</span>
-                </label>
-                <label className="flex items-center space-x-2 mt-2">
-                  <input
-                    type="text"
-                    className="form-input border-b-2 w-full p-2 outline-none focus:border-b-black"
-                    placeholder="Từ ngày dd/mm//yyyy"
+                <p className="font-bold m-2 px-2">Thời gian</p>
+                <label className="flex items-center space-x-4 mt-2">
+                  <div className="min-w-[30px]">Từ</div>
+                  <DatePicker
+                    dateFormat="dd/MM/yyyy"
+                    className="border-b-2 focus:border-b-black w-full outline-none"
+                    selected={startDate}
+                    onChange={handleStartDateChange}
+                    selectsStart
+                    startDate={startDate}
+                    endDate={endDate}
                   />
                 </label>
-                <label className="flex items-center space-x-2 mt-2">
-                  <input
-                    type="text"
-                    className="form-input border-b-2 w-full p-2 outline-none focus:border-b-black"
-                    placeholder="Đến ngày dd/mm//yyyy"
+                <label className="flex items-center space-x-4 mt-2">
+                  <div className="min-w-[30px]">Đến</div>
+                  <DatePicker
+                    dateFormat="dd/MM/yyyy"
+                    className="border-b-2 focus:border-b-black w-full outline-none"
+                    selected={endDate}
+                    onChange={handleEndDateChange}
+                    selectsEnd
+                    startDate={startDate}
+                    endDate={endDate}
+                    minDate={startDate}
                   />
                 </label>
               </div>
@@ -922,7 +956,6 @@ const OrderBookingPage = () => {
               tableOptions={tableOptions}
               handleSecondSelectChange={handleSecondSelectChange}
               secondSelectValue={secondSelectValue}
-              customStyles={customStyles}
               noOptionsMessage={noOptionsMessage}
               toggleNewReservation={toggleNewReservation}
               toggleNewCustomer={toggleNewCustomer}

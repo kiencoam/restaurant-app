@@ -1,9 +1,11 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
-import { UserEntity} from "./data";
+import { UserEntity } from "./data";
 import CreateStaffForm from "./create-staff-form";
 import StaffList from "./staff-list";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 
 const staffs: UserEntity[] = [
   {
@@ -13,7 +15,7 @@ const staffs: UserEntity[] = [
     email: "nguyenvana@gmail.com",
     password: "123",
     address: "Hà Nội",
-    dob: "1990-01-01",
+    dob: "01/01/1990",
     gender: "male",
     roleId: 1,
     position: "ADMIN",
@@ -21,7 +23,7 @@ const staffs: UserEntity[] = [
     salaryPerHour: 15000,
     salaryPerMonth: 0,
     status: "IN",
-    note:"Newbie",
+    note: "Newbie",
   },
   {
     id: 2,
@@ -30,7 +32,7 @@ const staffs: UserEntity[] = [
     email: "nguyenvanb@gmail.com",
     password: "123",
     address: "Hà Nội",
-    dob: "1990-01-01",
+    dob: "01/02/1989",
     gender: "female",
     roleId: 1,
     position: "CHEF",
@@ -38,10 +40,9 @@ const staffs: UserEntity[] = [
     salaryPerHour: 0,
     salaryPerMonth: 15000000,
     status: "OUT",
-    note:"Con giam doc",
+    note: "Con giam doc",
   },
 ];
-
 
 const StaffManagementPage = () => {
   const [masterChecked, setMasterChecked] = useState(false);
@@ -52,10 +53,18 @@ const StaffManagementPage = () => {
   const filterRef = useRef(null);
   const [expandedRow, setExpandedRow] = useState(null);
 
+  const [startDate, setStartDate] = useState(new Date("2014/01/01"));
+  const [endDate, setEndDate] = useState(new Date("2025/12/31"));
+
+  const handleStartDateChange = (date) => {
+    setStartDate(date);
+  };
+
+  const handleEndDateChange = (date) => {
+    setEndDate(date);
+  };
 
   const isAnyRowChecked = Object.values(checkedRows).some(Boolean);
-
-
 
   const handleRowClick = (id) => {
     if (expandedRow === id) {
@@ -115,7 +124,7 @@ const StaffManagementPage = () => {
         <div className="flex items-center gap-2">
           {isAnyRowChecked && (
             <li
-              className="p-4 lg:px-8 relative flex items-center space-x-1"
+              className="lg:px-8 relative flex items-center space-x-1"
               onMouseEnter={() => setFlyOutActions(true)}
               onMouseLeave={() => setFlyOutActions(false)}
             >
@@ -208,18 +217,29 @@ const StaffManagementPage = () => {
               >
                 <div className="p-2">
                   <p className="font-bold m-2 px-2">Sinh nhật</p>
-                  <label className="flex items-center space-x-2 mt-2">
-                    <input
-                      type="text"
-                      className="form-input border-b-2 focus:border-b-black w-full outline-none"
-                      placeholder="Từ dd/mm/yyyy"
+                  <label className="flex items-center space-x-4 mt-2">
+                    <div className="min-w-[30px]">Từ</div>
+                    <DatePicker
+                      dateFormat="dd/MM/yyyy"
+                      className="border-b-2 focus:border-b-black w-full outline-none"
+                      selected={startDate}
+                      onChange={handleStartDateChange}
+                      selectsStart
+                      startDate={startDate}
+                      endDate={endDate}
                     />
                   </label>
-                  <label className="flex items-center space-x-2 mt-2">
-                    <input
-                      type="text"
-                      className="form-input border-b-2 focus:border-b-black w-full outline-none"
-                      placeholder="Đến dd/mm/yyyy"
+                  <label className="flex items-center space-x-4 mt-2">
+                    <div className="min-w-[30px]">Đến</div>
+                    <DatePicker
+                      dateFormat="dd/MM/yyyy"
+                      className="border-b-2 focus:border-b-black w-full outline-none"
+                      selected={endDate}
+                      onChange={handleEndDateChange}
+                      selectsEnd
+                      startDate={startDate}
+                      endDate={endDate}
+                      minDate={startDate}
                     />
                   </label>
                 </div>
@@ -255,11 +275,7 @@ const StaffManagementPage = () => {
             </svg>
             <div className="p-2 text-sm font-bold text-white">Tạo mới</div>
           </button>
-          {isNewStaff && (
-            <CreateStaffForm
-              toggleNewStaff={toggleNewStaff}
-            />
-          )}
+          {isNewStaff && <CreateStaffForm toggleNewStaff={toggleNewStaff} />}
         </div>
       </div>
       <div className="px-6">
