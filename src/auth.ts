@@ -61,6 +61,7 @@ const ROLES = {
     "/home/paysheet",
     "/home/calendar",
     "/home/bill",
+    "/home/tableandroom",
   ],
 };
 
