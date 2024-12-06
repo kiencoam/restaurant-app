@@ -1,5 +1,4 @@
 import apiClientService from "./ApiClientService";
-
 import { MenuItemEntity } from "../home/order-taking/entity";
 
 const baseUrl: string = "http://localhost:8080/api/v1/menu_items";

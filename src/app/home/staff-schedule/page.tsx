@@ -1,9 +1,31 @@
+/*
+  Gọi API lấy dữ liệu User, Shift ở dòng 339
+  Gọi API lấy dữ liệu WorkSchedule ở dòng 350
+  Gọi API tạo thêm WorkSchedule ở dòng 431
+  Gọi API tạo thêm Shift ở dòng 459
+  Gọi API chỉnh sửa Shift ở dòng 496
+  Gọi API xóa Shift ở dòng 547
+  Gọi API xóa WorkSchedule ở dòng 572
+  (Số dòng có thể không đúng vì đã thêm code mới)
+ */
+
 "use client";
-import { useState, useCallback, useMemo } from "react";
+import { useState, useMemo, ChangeEventHandler, use, useEffect } from "react";
 import DatePicker from "react-datepicker";
+
+import {
+  getFirstDayOfWeek,
+  formatDateToReactComponent,
+  formatDateToYYYYMMDD,
+} from "@/utils/timeUtils";
 
 import "./StaffSchedule.css";
 import "react-datepicker/dist/react-datepicker.css";
+
+import { WorkScheduleEntity } from "@/app/api-client/WorkScheduleService";
+import { UserEntity } from "@/app/api-client/UserService";
+import { ShiftEntity } from "@/app/api-client/ShiftService";
+import { CreateWorkScheduleRequest } from "@/app/api-client/WorkScheduleService";
 
 const daysOfWeek = [
   { id: 0, name: "SUN" },
@@ -15,7 +37,7 @@ const daysOfWeek = [
   { id: 6, name: "SAT" },
 ];
 
-const sampleWorkSchedules = [
+const sampleWorkSchedules: WorkScheduleEntity[] = [
   {
     id: 1,
     userId: 1,
@@ -24,9 +46,30 @@ const sampleWorkSchedules = [
     user: {
       id: 1,
       name: "Johny Đặng",
-      role: "Chef",
+      email: "johny.dang@example.com",
+      phoneNumber: "123456789",
+      gender: "Male",
+      dateOfBirth: new Date("1990-01-01"),
+      roleId: 1,
+      cccd: "123456789",
+      cvImg: "path/to/cvImg.jpg",
+      position: "Chef",
+      salaryType: "Hourly",
+      salaryPerHour: 15,
+      salaryPerMonth: 0,
+      role: {
+        id: 3,
+        name: "Chef",
+        description: "Đầu bếp",
+      },
     },
-    shift: { id: 101, name: "Day", startTime: "08:00", endTime: "16:00" },
+    shift: {
+      id: 101,
+      name: "Day",
+      startTime: "08:00",
+      endTime: "16:00",
+      status: "active",
+    },
   },
   {
     id: 2,
@@ -36,9 +79,30 @@ const sampleWorkSchedules = [
     user: {
       id: 2,
       name: "Mary Janes",
-      role: "Waiter",
+      email: "mary.janes@example.com",
+      phoneNumber: "987654321",
+      gender: "Female",
+      dateOfBirth: new Date("1992-02-02"),
+      roleId: 1,
+      cccd: "123456789",
+      cvImg: "path/to/cvImg.jpg",
+      position: "Chef",
+      salaryType: "Hourly",
+      salaryPerHour: 15,
+      salaryPerMonth: 0,
+      role: {
+        id: 4,
+        name: "Waiter",
+        description: "Phục vụ",
+      },
     },
-    shift: { id: 102, name: "Night", startTime: "16:00", endTime: "00:00" },
+    shift: {
+      id: 102,
+      name: "Night",
+      startTime: "16:00",
+      endTime: "00:00",
+      status: "active",
+    },
   },
   {
     id: 3,
@@ -48,217 +112,379 @@ const sampleWorkSchedules = [
     user: {
       id: 1,
       name: "Johny Đặng",
-      role: "Chef",
+      email: "johny.dang@example.com",
+      phoneNumber: "123456789",
+      gender: "Male",
+      dateOfBirth: new Date("1990-01-01"),
+      roleId: 1,
+      cccd: "123456789",
+      cvImg: "path/to/cvImg.jpg",
+      position: "Chef",
+      salaryType: "Hourly",
+      salaryPerHour: 15,
+      salaryPerMonth: 0,
+      role: {
+        id: 3,
+        name: "Chef",
+        description: "Đầu bếp",
+      },
     },
-    shift: { id: 101, name: "Day", startTime: "08:00", endTime: "16:00" },
+    shift: {
+      id: 101,
+      name: "Day",
+      startTime: "08:00",
+      endTime: "16:00",
+      status: "active",
+    },
   },
 ];
 
-const users = [
+const users: UserEntity[] = [
   {
     id: 1,
     name: "Johny Đặng",
-    role: "Chef",
+    email: "johny.dang@example.com",
+    phoneNumber: "123456789",
+    gender: "Male",
+    dateOfBirth: new Date("1990-01-01"),
+    roleId: 1,
+    cccd: "123456789",
+    cvImg: "path/to/cvImg.jpg",
+    position: "Chef",
+    salaryType: "Hourly",
+    salaryPerHour: 15,
+    salaryPerMonth: 0,
+    role: {
+      id: 3,
+      name: "Chef",
+      description: "Đầu bếp",
+    },
   },
   {
     id: 2,
     name: "Mary Janes",
-    role: "Waiter",
+    email: "mary.janes@example.com",
+    phoneNumber: "987654321",
+    gender: "Female",
+    dateOfBirth: new Date("1992-02-02"),
+    roleId: 2,
+    cccd: "987654321",
+    cvImg: "path/to/cvImg.jpg",
+    position: "Waiter",
+    salaryType: "Hourly",
+    salaryPerHour: 12,
+    salaryPerMonth: 0,
+    role: {
+      id: 4,
+      name: "Waiter",
+      description: "Phục vụ",
+    },
   },
   {
     id: 3,
     name: "Cristiano Ronaldo",
-    role: "Receptionist",
+    email: "cristiano.ronaldo@example.com",
+    phoneNumber: "123123123",
+    gender: "Male",
+    dateOfBirth: new Date("1985-02-05"),
+    roleId: 3,
+    cccd: "123123123",
+    cvImg: "path/to/cvImg.jpg",
+    position: "Receptionist",
+    salaryType: "Hourly",
+    salaryPerHour: 20,
+    salaryPerMonth: 0,
+    role: {
+      id: 5,
+      name: "Receptionist",
+      description: "Tiếp tân",
+    },
   },
   {
     id: 4,
     name: "Alexander Kiên Phạm",
-    role: "Bartender",
+    email: "alexander.kien.pham@example.com",
+    phoneNumber: "321321321",
+    gender: "Male",
+    dateOfBirth: new Date("1993-03-03"),
+    roleId: 4,
+    cccd: "321321321",
+    cvImg: "path/to/cvImg.jpg",
+    position: "Bartender",
+    salaryType: "Hourly",
+    salaryPerHour: 18,
+    salaryPerMonth: 0,
+    role: {
+      id: 6,
+      name: "Bartender",
+      description: "Pha chế",
+    },
   },
   {
     id: 5,
     name: "Cong Phuong Nguyen",
-    role: "Chef",
+    email: "cong.phuong.nguyen@example.com",
+    phoneNumber: "456456456",
+    gender: "Male",
+    dateOfBirth: new Date("1995-05-05"),
+    roleId: 1,
+    cccd: "456456456",
+    cvImg: "path/to/cvImg.jpg",
+    position: "Chef",
+    salaryType: "Hourly",
+    salaryPerHour: 15,
+    salaryPerMonth: 0,
+    role: {
+      id: 3,
+      name: "Chef",
+      description: "Đầu bếp",
+    },
   },
   {
     id: 6,
     name: "Antony Nguyễn",
-    role: "Waiter",
+    email: "antony.nguyen@example.com",
+    phoneNumber: "789789789",
+    gender: "Male",
+    dateOfBirth: new Date("1996-06-06"),
+    roleId: 2,
+    cccd: "789789789",
+    cvImg: "path/to/cvImg.jpg",
+    position: "Waiter",
+    salaryType: "Hourly",
+    salaryPerHour: 12,
+    salaryPerMonth: 0,
+    role: {
+      id: 4,
+      name: "Waiter",
+      description: "Phục vụ",
+    },
   },
 ];
 
-const sampleShifts = [
-  { id: 101, name: "Day", startTime: "08:00", endTime: "16:00" },
-  { id: 102, name: "Night", startTime: "16:00", endTime: "00:00" },
-  { id: 103, name: "Morning", startTime: "08:00", endTime: "12:00" },
-  { id: 104, name: "Afternoon", startTime: "12:00", endTime: "16:00" },
+const sampleShifts: ShiftEntity[] = [
+  {
+    id: 101,
+    name: "Day",
+    startTime: "08:00",
+    endTime: "16:00",
+    status: "active",
+  },
+  {
+    id: 102,
+    name: "Night",
+    startTime: "16:00",
+    endTime: "00:00",
+    status: "active",
+  },
+  {
+    id: 103,
+    name: "Morning",
+    startTime: "08:00",
+    endTime: "12:00",
+    status: "active",
+  },
+  {
+    id: 104,
+    name: "Afternoon",
+    startTime: "12:00",
+    endTime: "16:00",
+    status: "active",
+  },
 ];
 
-function getFirstDayOfWeek(date) {
-  const firstDayOffset = date.getDay(); // Get the day of the week (0 = Sunday, 1 = Monday, ..., 6 = Saturday)
-  const firstDay = new Date(date); // Clone the date object
-  firstDay.setDate(date.getDate() - firstDayOffset); // Set the date to the previous Sunday
-  return firstDay;
-}
-
-function formatDateToReactComponent(dateString) {
-  // Parse the date string into a Date object
-  const date = new Date(dateString);
-
-  // Define month names
-  const monthNames = [
-    "Jan",
-    "Feb",
-    "Mar",
-    "Apr",
-    "May",
-    "Jun",
-    "Jul",
-    "Aug",
-    "Sep",
-    "Oct",
-    "Nov",
-    "Dec",
-  ];
-
-  // Extract day, month, and year
-  const day = String(date.getDate()).padStart(2, "0"); // Pad single digit days with a leading zero
-  const month = monthNames[date.getMonth()]; // Get month name from monthNames array
-  const year = date.getFullYear();
-
-  // Format the date as "DD Month YYYY"
-  return (
-    <span>
-      <span className="text-[#8c8c8c]">{day}</span> {month}{" "}
-      <span className="text-[#8c8c8c]">{year}</span>
-    </span>
-  );
-}
-
 export default function StaffSchedulePage() {
-  const [workSchedules, setWorkSchedules] = useState(sampleWorkSchedules);
+  const [workSchedules, setWorkSchedules] =
+    useState<WorkScheduleEntity[]>(sampleWorkSchedules);
 
-  const [shifts, setShifts] = useState(sampleShifts);
+  const [shifts, setShifts] = useState<ShiftEntity[]>(sampleShifts);
 
-  const [isOpenDatePicker, setIsOpenDatePicker] = useState(false); // Mở lịch chọn ngày
+  const [isOpenDatePicker, setIsOpenDatePicker] = useState<boolean>(false); // Mở lịch chọn ngày
 
-  const [isAddShifts, setIsAddShifts] = useState(false); // Mở modal thêm ca làm cho nhân viên
+  const [isAddShifts, setIsAddShifts] = useState<boolean>(false); // Mở modal thêm ca làm cho nhân viên
 
-  const [isShiftsList, setIsShiftsList] = useState(false); // Mở modal danh sách ca làm
+  const [isShiftsList, setIsShiftsList] = useState<boolean>(false); // Mở modal danh sách ca làm
 
-  const [isCreateShift, setIsCreateShift] = useState(false); // Mở modal tạo ca làm mới
+  const [isCreateShift, setIsCreateShift] = useState<boolean>(false); // Mở modal tạo ca làm mới
 
-  const [isEditShift, setIsEditShift] = useState(false); // Mở modal chỉnh sửa thông tin ca làm
+  const [isEditShift, setIsEditShift] = useState<boolean>(false); // Mở modal chỉnh sửa thông tin ca làm
 
-  const [isDetailSchedule, setIsDetailSchedule] = useState(false); // Mở modal chi tiết ca làm
+  const [isDetailSchedule, setIsDetailSchedule] = useState<boolean>(false); // Mở modal chi tiết ca làm
 
-  const [displayDate, setDisplayDate] = useState(getFirstDayOfWeek(new Date()));
+  const [displayDate, setDisplayDate] = useState<Date>(
+    getFirstDayOfWeek(new Date())
+  );
 
-  const [user, setUser] = useState(null); // State lưu nhân viên đang được chọn
+  const [user, setUser] = useState<UserEntity>(null); // State lưu nhân viên đang được chọn
 
-  const [chosenDate, setChosenDate] = useState(""); // State lưu ngày đang được chọn
+  const [chosenDate, setChosenDate] = useState<string>(""); // State lưu ngày đang được chọn
 
-  const [chosenShifts, setChosenShifts] = useState(new Set()); // State lưu các ca làm đang được chọn ở mục Thêm ca
+  const [chosenShiftIds, setChosenShiftIds] = useState<Set<string>>(new Set()); // State lưu các ca làm đang được chọn ở mục Thêm ca
 
-  const [shiftId, setShiftId] = useState(0); // State lưu ID của ca làm đang được chọn
+  const [shiftId, setShiftId] = useState<number>(0); // State lưu ID của ca làm đang được chọn
 
-  const [shiftName, setShiftName] = useState(""); // State lưu tên ca làm đang được chọn
+  const [shiftName, setShiftName] = useState<string>(""); // State lưu tên ca làm đang được chọn
 
-  const [startTime, setStartTime] = useState(""); // State lưu giờ bắt đầu của ca làm đang được chọn
+  const [startTime, setStartTime] = useState<string>(""); // State lưu giờ bắt đầu của ca làm đang được chọn
 
-  const [endTime, setEndTime] = useState(""); // State lưu giờ kết thúc của ca làm đang được chọn
+  const [endTime, setEndTime] = useState<string>(""); // State lưu giờ kết thúc của ca làm đang được chọn
 
-  const [selectedSchedule, setSelectedSchedule] = useState(null); // State lưu thông tin ca làm đang được chọn
+  const [selectedSchedule, setSelectedSchedule] =
+    useState<WorkScheduleEntity>(null); // State lưu thông tin ca làm đang được chọn
 
-  const handleDateChange = useCallback((date) => {
+  const [searchInput, setSearchInput] = useState<string>("");
+
+  const [displayUsers, setDisplayUsers] = useState<UserEntity[]>(users);
+
+  useEffect(() => {
+    /* Gọi API lấy nhân viên và shifts */
+    // getAllUsers
+    // setUsers( response.data )
+    // setDisplayUsers( users )
+    //
+    // getAllShifts
+    // setShifts( response.data )
+  }, []);
+
+  useEffect(() => {
+    /* Gọi API lấy work schedules*/
+    const startDate = formatDateToYYYYMMDD(displayDate);
+    const endDate = formatDateToYYYYMMDD(
+      new Date(new Date(displayDate).setDate(displayDate.getDate() + 6))
+    );
+    const query = `start_date=${startDate}&end_date=${endDate}`;
+    // const response = getWorkSchedules ( query )
+    // if (response.ok) {
+    //   setWorkSchedules( response.data )
+    // }
+  }, [displayDate]);
+
+  const handleDateChange = (date: Date) => {
     setDisplayDate(getFirstDayOfWeek(date));
     setIsOpenDatePicker(false);
-  }, []);
+  };
 
-  const onNextClick = useCallback(() => {
+  const onNextClick = () => {
     setDisplayDate(new Date(displayDate.setDate(displayDate.getDate() + 7)));
-  }, [displayDate]);
+  };
 
-  const onPrevClick = useCallback(() => {
+  const onPrevClick = () => {
     setDisplayDate(new Date(displayDate.setDate(displayDate.getDate() - 7)));
-  }, [displayDate]);
+  };
 
-  const onThisWeekClick = useCallback(() => {
+  const onThisWeekClick = () => {
     setDisplayDate(getFirstDayOfWeek(new Date()));
-  }, []);
+  };
 
-  const openAddShifts = useCallback((user, date) => {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      if (searchInput) {
+        const regex = new RegExp(searchInput, "i");
+        const newDisplayUsers = users.filter((user) => regex.test(user.name));
+        setDisplayUsers(newDisplayUsers);
+      } else {
+        setDisplayUsers(users);
+      }
+    }
+  };
+
+  const openAddShifts = (user: UserEntity, date: string) => {
     setUser(user);
     setChosenDate(date);
     setIsAddShifts(true);
-  }, []);
+  };
 
-  const handleChosenShifts = useCallback(
-    (e) => {
-      const newChosenShifts = new Set(chosenShifts);
-      if (e.target.checked) {
-        newChosenShifts.add(e.target.value);
-      } else {
-        newChosenShifts.delete(e.target.value);
-      }
-      setChosenShifts(newChosenShifts);
-    },
-    [chosenShifts]
-  );
+  const handleChosenShifts: ChangeEventHandler<HTMLInputElement> = (e) => {
+    const newChosenShifts = new Set(chosenShiftIds);
+    if (e.target.checked) {
+      newChosenShifts.add(e.target.value);
+    } else {
+      newChosenShifts.delete(e.target.value);
+    }
+    setChosenShiftIds(newChosenShifts);
+  };
 
-  const closeAddShifts = useCallback(() => {
+  const closeAddShifts = () => {
     setIsAddShifts(false);
-    setChosenShifts(new Set());
-  }, []);
+    setChosenShiftIds(new Set());
+  };
 
-  const saveAddShifts = useCallback(() => {
-    /* Gọi API */
-    const chosenShiftsList = [...chosenShifts].map((shift) =>
-      parseInt(shift, 10)
-    );
-    const newWorkSchedules = chosenShiftsList.map((shiftId) => {
-      return {
-        id: workSchedules.length + shiftId,
+  const saveAddShifts = () => {
+    const chosenShiftIdsList: number[] = Array.from(chosenShiftIds).map(Number);
+
+    /* Gọi API tạo work schedules mới*/
+    const payload: CreateWorkScheduleRequest[] = chosenShiftIdsList.map(
+      (shiftId) => ({
         userId: user.id,
         shiftId: shiftId,
         date: chosenDate,
-        user: user,
-        shift: shifts.find((shift) => shift.id == shiftId),
-      };
-    });
-    setWorkSchedules([...workSchedules, ...newWorkSchedules]);
-    closeAddShifts();
-  }, [chosenShifts, chosenDate, shifts, user, workSchedules]);
+      })
+    );
+    // const response = createWorkSchedules ( payload )
+    // if (response.ok) {
 
-  const saveCreateShift = useCallback(() => {
-    /* Gọi API */
+    const newWorkSchedules = chosenShiftIdsList.map((shiftId) => ({
+      id: workSchedules.length + shiftId,
+      userId: user.id,
+      shiftId: shiftId,
+      date: chosenDate,
+      user: user,
+      shift: shifts.find((shift) => shift.id === shiftId),
+    }));
+    setWorkSchedules((prevWorkSchedules) => [
+      ...prevWorkSchedules,
+      ...newWorkSchedules,
+    ]);
+    closeAddShifts();
+  };
+
+  const saveCreateShift = () => {
+    /* Gọi API tạo shift mới*/
+    const payload = {
+      name: shiftName,
+      startTime: startTime,
+      endTime: endTime,
+    };
+    // const response = createShift ( payload )
+    // if (response.ok) {
+
     const newShift = {
       id: shifts.length + 1,
       name: shiftName,
       startTime: startTime,
       endTime: endTime,
+      status: "active",
     };
     setShifts([...shifts, newShift]);
     closeCreateShift();
-  }, [shiftName, startTime, endTime, shifts]);
+  };
 
-  const closeCreateShift = useCallback(() => {
+  const closeCreateShift = () => {
     setIsCreateShift(false);
     setShiftName("");
     setStartTime("");
     setEndTime("");
-  }, []);
+  };
 
-  const openEditShift = useCallback((shift) => {
+  const openEditShift = (shift: ShiftEntity) => {
     setShiftId(shift.id);
     setShiftName(shift.name);
     setStartTime(shift.startTime);
     setEndTime(shift.endTime);
     setIsEditShift(true);
-  }, []);
+  };
 
-  const saveEditShift = useCallback(() => {
-    /* Gọi API */
+  const saveEditShift = () => {
+    /* Gọi API chỉnh sửa shift*/
+    // const payload = {
+    //   id: shiftId,
+    //   name: shiftName,
+    //   startTime: startTime,
+    //   endTime: endTime,
+    // };
+    // const response = editShift ( payload )
+    // if (response.ok) {
+
     const newShifts = shifts.map((shift) =>
       shift.id === shiftId
         ? {
@@ -266,6 +492,7 @@ export default function StaffSchedulePage() {
             name: shiftName,
             startTime: startTime,
             endTime: endTime,
+            status: "active",
           }
         : shift
     );
@@ -280,59 +507,63 @@ export default function StaffSchedulePage() {
               name: shiftName,
               startTime: startTime,
               endTime: endTime,
+              status: "active",
             },
           }
         : schedule
     );
     setWorkSchedules(newWorkSchedules);
     closeEditShift();
-  }, [shiftId, shiftName, startTime, endTime, shifts, workSchedules]);
+  };
 
-  const closeEditShift = useCallback(() => {
+  const closeEditShift = () => {
     setIsEditShift(false);
     setShiftId(0);
     setShiftName("");
     setStartTime("");
     setEndTime("");
-  }, []);
+  };
 
-  const deleteShift = useCallback(
-    (shiftId) => {
-      /* Gọi API */
-      const newShifts = shifts.filter((shift) => shift.id !== shiftId);
-      setShifts(newShifts);
+  const deleteShift = (shiftId: number) => {
+    /* Gọi API xóa shift*/
+    // const response = await deleteShift (shiftId)
+    // if (response.ok) {
 
-      const newWorkSchedules = workSchedules.filter(
-        (schedule) => schedule.shiftId !== shiftId
-      );
-      setWorkSchedules(newWorkSchedules);
-    },
-    [shifts, workSchedules]
-  );
+    const newShifts = shifts.filter((shift) => shift.id !== shiftId);
+    setShifts(newShifts);
 
-  const openDetailSchedule = useCallback((schedule) => {
+    const newWorkSchedules = workSchedules.filter(
+      (schedule) => schedule.shiftId !== shiftId
+    );
+    setWorkSchedules(newWorkSchedules);
+  };
+
+  const openDetailSchedule = (schedule: WorkScheduleEntity) => {
     setSelectedSchedule(schedule);
     setIsDetailSchedule(true);
-  }, []);
+  };
 
-  const closeDetailShift = useCallback(() => {
+  const closeDetailShift = () => {
     setIsDetailSchedule(false);
     setSelectedSchedule(null);
-  }, []);
+  };
 
-  const deleteSchedule = useCallback(() => {
-    /* Gọi API */
+  const deleteSchedule = () => {
+    /* Gọi API xóa work schedule*/
+    // const response = await deleteWorkSchedule(selectedSchedule.id)
+    // if (response.ok) {
+
     const newWorkSchedules = workSchedules.filter(
       (schedule) => schedule.id !== selectedSchedule.id
     );
     setWorkSchedules(newWorkSchedules);
     closeDetailShift();
-  }, [selectedSchedule, workSchedules]);
+  };
 
   const displayWeek = useMemo(() => {
     const startDate = formatDateToReactComponent(displayDate);
     const endDate = formatDateToReactComponent(
-      new Date(displayDate).setDate(displayDate.getDate() + 6)
+      new Date(new Date(displayDate).setDate(displayDate.getDate() + 6))
     );
     return (
       <span>
@@ -341,39 +572,33 @@ export default function StaffSchedulePage() {
     );
   }, [displayDate]);
 
-  const formatDayToYYYYMMDD = useCallback(
-    (days) => {
-      const newDate = new Date(displayDate);
-      newDate.setDate(newDate.getDate() + days);
+  const formatDayToYYYYMMDD = (days: number) => {
+    const newDate = new Date(displayDate);
+    newDate.setDate(newDate.getDate() + days);
 
-      const year = newDate.getFullYear();
-      const month = String(newDate.getMonth() + 1).padStart(2, "0");
-      const day = String(newDate.getDate()).padStart(2, "0");
-      return `${year}-${month}-${day}`;
-    },
-    [displayDate]
-  );
+    const year = newDate.getFullYear();
+    const month = String(newDate.getMonth() + 1).padStart(2, "0");
+    const day = String(newDate.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  };
 
-  const searchByUserIdAndDate = useCallback(
-    (userId, date) => {
-      return workSchedules
-        .filter(
-          (schedule) => schedule.userId === userId && schedule.date === date
-        )
-        .sort((a, b) => {
-          {
-            const [aHours, aMinutes] = a.shift.startTime.split(":").map(Number);
-            const [bHours, bMinutes] = b.shift.startTime.split(":").map(Number);
+  const searchByUserIdAndDate = (userId: number, date: string) => {
+    return workSchedules
+      .filter(
+        (schedule) => schedule.userId === userId && schedule.date === date
+      )
+      .sort((a, b) => {
+        {
+          const [aHours, aMinutes] = a.shift.startTime.split(":").map(Number);
+          const [bHours, bMinutes] = b.shift.startTime.split(":").map(Number);
 
-            const aTotalMinutes = aHours * 60 + aMinutes;
-            const bTotalMinutes = bHours * 60 + bMinutes;
+          const aTotalMinutes = aHours * 60 + aMinutes;
+          const bTotalMinutes = bHours * 60 + bMinutes;
 
-            return aTotalMinutes - bTotalMinutes;
-          }
-        });
-    },
-    [workSchedules]
-  );
+          return aTotalMinutes - bTotalMinutes;
+        }
+      });
+  };
 
   return (
     <section className="h-screen w-full p-6 bg-[#f5f5f5]">
@@ -427,6 +652,9 @@ export default function StaffSchedulePage() {
               className="p-2 bg-transparent outline-none grow"
               type="text"
               placeholder="Tìm kiếm nhân viên"
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              onKeyDown={handleKeyDown}
             />
           </div>
           <div className="flex items-center gap-6 mr-6">
@@ -513,12 +741,12 @@ export default function StaffSchedulePage() {
           <div className="sche-cell">SAT</div>
         </div>
         <div className="max-h-[540px] overflow-auto">
-          {users.map((employee) => (
+          {displayUsers.map((employee) => (
             <div key={employee.id} className="sche-row">
               <div className="employee-cell">
                 <div>{employee.name}</div>
                 <div className="text-[#8c8c8c] text-sm font-light">
-                  {employee.role}
+                  {employee.role.name}
                 </div>
               </div>
               {daysOfWeek.map((day) => (
@@ -562,7 +790,7 @@ export default function StaffSchedulePage() {
                 </span>
               </div>
               <div className="font-light text-sm text-[#8c8c8c]">
-                {user.role}
+                {user.role.name}
               </div>
             </div>
             <div className="flex items-center mb-4">
@@ -732,71 +960,76 @@ export default function StaffSchedulePage() {
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
           <div className="bg-white p-6 rounded-lg shadow-lg w-[480px]">
             <div className="font-bold text-xl mb-6">Tạo ca làm việc</div>
-            <div className="flex items-center mb-4">
-              <div className="w-28">Tên</div>
-              <div className="border text-sm rounded-md bg-[#f7fafc] px-2 shadow-sm w-72">
-                <input
-                  className="p-2 bg-transparent w-full outline-none"
-                  type="text"
-                  placeholder="Tên ca"
-                  value={shiftName}
-                  onChange={(e) => setShiftName(e.target.value)}
-                />
+            <form onSubmit={saveCreateShift}>
+              <div className="flex items-center mb-4">
+                <div className="w-28">Tên</div>
+                <div className="border text-sm rounded-md bg-[#f7fafc] px-2 shadow-sm w-72">
+                  <input
+                    className="p-2 bg-transparent w-full outline-none"
+                    type="text"
+                    placeholder="Tên ca"
+                    value={shiftName}
+                    onChange={(e) => setShiftName(e.target.value)}
+                    required
+                  />
+                </div>
               </div>
-            </div>
-            <div className="flex items-center">
-              <div className="w-28">Giờ làm việc</div>
-              <div className="border text-sm rounded-md bg-[#f7fafc] px-2 shadow-sm w-28">
-                <input
-                  className="p-2 bg-transparent w-full outline-none"
-                  type="text"
-                  placeholder="hh:mm"
-                  value={startTime}
-                  onChange={(e) => setStartTime(e.target.value)}
-                />
+              <div className="flex items-center">
+                <div className="w-28">Giờ làm việc</div>
+                <div className="border text-sm rounded-md bg-[#f7fafc] px-2 shadow-sm w-28">
+                  <input
+                    className="p-2 bg-transparent w-full outline-none"
+                    type="text"
+                    placeholder="hh:mm"
+                    value={startTime}
+                    pattern="([01][0-9]|2[0-3]):[0-5][0-9]"
+                    onChange={(e) => setStartTime(e.target.value)}
+                  />
+                </div>
+                <div className="w-16 text-center">Đến</div>
+                <div className="border text-sm rounded-md bg-[#f7fafc] px-2 shadow-sm w-28">
+                  <input
+                    className="p-2 bg-transparent w-full outline-none"
+                    type="text"
+                    placeholder="hh:mm"
+                    value={endTime}
+                    pattern="([01][0-9]|2[0-3]):[0-5][0-9]"
+                    onChange={(e) => setEndTime(e.target.value)}
+                  />
+                </div>
               </div>
-              <div className="w-16 text-center">Đến</div>
-              <div className="border text-sm rounded-md bg-[#f7fafc] px-2 shadow-sm w-28">
-                <input
-                  className="p-2 bg-transparent w-full outline-none"
-                  type="text"
-                  placeholder="hh:mm"
-                  value={endTime}
-                  onChange={(e) => setEndTime(e.target.value)}
-                />
-              </div>
-            </div>
-            <div className="flex justify-end gap-3 items-center mt-10">
-              <button
-                className="flex items-center justify-center gap-1 h-10 w-20 rounded-md px-2 shadow-sm bg-[#333333] text-[#f7f7f7]"
-                onClick={saveCreateShift}
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="icon icon-tabler icons-tabler-outline icon-tabler-device-floppy"
+              <div className="flex justify-end gap-3 items-center mt-10">
+                <button
+                  type="submit"
+                  className="flex items-center justify-center gap-1 h-10 w-20 rounded-md px-2 shadow-sm bg-[#333333] text-[#f7f7f7]"
                 >
-                  <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-                  <path d="M6 4h10l4 4v10a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2v-12a2 2 0 0 1 2 -2" />
-                  <path d="M12 14m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0" />
-                  <path d="M14 4l0 4l-6 0l0 -4" />
-                </svg>
-                <div>Lưu</div>
-              </button>
-              <button
-                className="h-10 w-20 font-bold rounded"
-                onClick={closeCreateShift}
-              >
-                Hủy
-              </button>
-            </div>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="icon icon-tabler icons-tabler-outline icon-tabler-device-floppy"
+                  >
+                    <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                    <path d="M6 4h10l4 4v10a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2v-12a2 2 0 0 1 2 -2" />
+                    <path d="M12 14m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0" />
+                    <path d="M14 4l0 4l-6 0l0 -4" />
+                  </svg>
+                  <div>Lưu</div>
+                </button>
+                <button
+                  className="h-10 w-20 font-bold rounded"
+                  onClick={closeCreateShift}
+                >
+                  Hủy
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
@@ -808,71 +1041,76 @@ export default function StaffSchedulePage() {
             <div className="font-bold text-xl mb-6">
               Sửa thông tin ca làm việc
             </div>
-            <div className="flex items-center mb-4">
-              <div className="w-28">Tên</div>
-              <div className="border text-sm rounded-md bg-[#f7fafc] px-2 shadow-sm w-72">
-                <input
-                  className="p-2 bg-transparent w-full outline-none"
-                  type="text"
-                  placeholder="Tên ca"
-                  value={shiftName}
-                  onChange={(e) => setShiftName(e.target.value)}
-                />
+            <form onSubmit={saveEditShift}>
+              <div className="flex items-center mb-4">
+                <div className="w-28">Tên</div>
+                <div className="border text-sm rounded-md bg-[#f7fafc] px-2 shadow-sm w-72">
+                  <input
+                    className="p-2 bg-transparent w-full outline-none"
+                    type="text"
+                    placeholder="Tên ca"
+                    value={shiftName}
+                    onChange={(e) => setShiftName(e.target.value)}
+                    required
+                  />
+                </div>
               </div>
-            </div>
-            <div className="flex items-center">
-              <div className="w-28">Giờ làm việc</div>
-              <div className="border text-sm rounded-md bg-[#f7fafc] px-2 shadow-sm w-28">
-                <input
-                  className="p-2 bg-transparent w-full outline-none"
-                  type="text"
-                  placeholder="hh:mm"
-                  value={startTime}
-                  onChange={(e) => setStartTime(e.target.value)}
-                />
+              <div className="flex items-center">
+                <div className="w-28">Giờ làm việc</div>
+                <div className="border text-sm rounded-md bg-[#f7fafc] px-2 shadow-sm w-28">
+                  <input
+                    className="p-2 bg-transparent w-full outline-none"
+                    type="text"
+                    placeholder="hh:mm"
+                    value={startTime}
+                    pattern="([01][0-9]|2[0-3]):[0-5][0-9]"
+                    onChange={(e) => setStartTime(e.target.value)}
+                  />
+                </div>
+                <div className="w-16 text-center">Đến</div>
+                <div className="border text-sm rounded-md bg-[#f7fafc] px-2 shadow-sm w-28">
+                  <input
+                    className="p-2 bg-transparent w-full outline-none"
+                    type="text"
+                    placeholder="hh:mm"
+                    value={endTime}
+                    pattern="([01][0-9]|2[0-3]):[0-5][0-9]"
+                    onChange={(e) => setEndTime(e.target.value)}
+                  />
+                </div>
               </div>
-              <div className="w-16 text-center">Đến</div>
-              <div className="border text-sm rounded-md bg-[#f7fafc] px-2 shadow-sm w-28">
-                <input
-                  className="p-2 bg-transparent w-full outline-none"
-                  type="text"
-                  placeholder="hh:mm"
-                  value={endTime}
-                  onChange={(e) => setEndTime(e.target.value)}
-                />
-              </div>
-            </div>
-            <div className="flex justify-end gap-3 items-center mt-10">
-              <button
-                className="flex items-center justify-center gap-1 h-10 w-20 rounded-md px-2 shadow-sm bg-[#333333] text-[#f7f7f7]"
-                onClick={saveEditShift}
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="icon icon-tabler icons-tabler-outline icon-tabler-device-floppy"
+              <div className="flex justify-end gap-3 items-center mt-10">
+                <button
+                  type="submit"
+                  className="flex items-center justify-center gap-1 h-10 w-20 rounded-md px-2 shadow-sm bg-[#333333] text-[#f7f7f7]"
                 >
-                  <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-                  <path d="M6 4h10l4 4v10a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2v-12a2 2 0 0 1 2 -2" />
-                  <path d="M12 14m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0" />
-                  <path d="M14 4l0 4l-6 0l0 -4" />
-                </svg>
-                <div>Lưu</div>
-              </button>
-              <button
-                className="h-10 w-20 font-bold rounded"
-                onClick={closeEditShift}
-              >
-                Hủy
-              </button>
-            </div>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="icon icon-tabler icons-tabler-outline icon-tabler-device-floppy"
+                  >
+                    <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                    <path d="M6 4h10l4 4v10a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2v-12a2 2 0 0 1 2 -2" />
+                    <path d="M12 14m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0" />
+                    <path d="M14 4l0 4l-6 0l0 -4" />
+                  </svg>
+                  <div>Lưu</div>
+                </button>
+                <button
+                  className="h-10 w-20 font-bold rounded"
+                  onClick={closeEditShift}
+                >
+                  Hủy
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
@@ -892,7 +1130,7 @@ export default function StaffSchedulePage() {
             </div>
             <div className="flex items-center mb-4">
               <div className="w-32">Vị trí</div>
-              <div className="font-bold">{selectedSchedule.user.role}</div>
+              <div className="font-bold">{selectedSchedule.user.role.name}</div>
             </div>
             <div className="flex items-center mb-4">
               <div className="w-32">Tên ca làm</div>

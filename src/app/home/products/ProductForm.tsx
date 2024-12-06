@@ -1,10 +1,12 @@
 "use client";
 
+
 import { getDetailMenuItem } from "@/app/api-client/MenuItemService";
 import { createProduct, CreateProductRequest, ProductEntity } from "@/app/api-client/ProductService";
 import { useState } from "react";
 
 export default function ProductForm({toggleAddingNewOpen}) {
+
     const [product, setProduct] = useState<CreateProductRequest>({
         name: "",
         description: "",
@@ -21,6 +23,7 @@ export default function ProductForm({toggleAddingNewOpen}) {
 
         createProduct(product).then((res: ProductEntity) => {
             console.log(res);
+
         })
 
         toggleAddingNewOpen();

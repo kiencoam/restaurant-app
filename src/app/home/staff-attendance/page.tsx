@@ -1,9 +1,25 @@
+/*
+  Gọi API lấy tất cả shift ở dòng 339
+  Gọi API lấy tất cả work attendance ở dòng 349
+  Gọi API update work attendance ở dòng 413
+*/
+
 "use client";
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, use, useEffect } from "react";
 import DatePicker from "react-datepicker";
+
+import {
+  getFirstDayOfWeek,
+  formatDateToReactComponent,
+  formatDateToYYYYMMDD,
+} from "@/utils/timeUtils";
 
 import "./Attendance.css";
 import "react-datepicker/dist/react-datepicker.css";
+
+import { WorkAttendanceEntity } from "@/app/api-client/WorkAttendanceService";
+import { UpdateWorkAttendanceRequest } from "@/app/api-client/WorkAttendanceService";
+import { ShiftEntity } from "@/app/api-client/ShiftService";
 
 const daysOfWeek = [
   { id: 0, name: "SUN" },
@@ -15,14 +31,38 @@ const daysOfWeek = [
   { id: 6, name: "SAT" },
 ];
 
-const shifts = [
-  { id: 101, name: "Day", startTime: "08:00", endTime: "16:00" },
-  { id: 102, name: "Night", startTime: "16:00", endTime: "00:00" },
-  { id: 103, name: "Morning", startTime: "08:00", endTime: "12:00" },
-  { id: 104, name: "Afternoon", startTime: "12:00", endTime: "16:00" },
+const sampleShifts: ShiftEntity[] = [
+  {
+    id: 101,
+    name: "Day",
+    startTime: "08:00",
+    endTime: "16:00",
+    status: "active",
+  },
+  {
+    id: 102,
+    name: "Night",
+    startTime: "16:00",
+    endTime: "00:00",
+    status: "active",
+  },
+  {
+    id: 103,
+    name: "Morning",
+    startTime: "08:00",
+    endTime: "12:00",
+    status: "active",
+  },
+  {
+    id: 104,
+    name: "Afternoon",
+    startTime: "12:00",
+    endTime: "16:00",
+    status: "active",
+  },
 ];
 
-const sampleWorkAttendances = [
+const sampleWorkAttendances: WorkAttendanceEntity[] = [
   {
     id: 1,
     workScheduleId: 1,
@@ -34,13 +74,34 @@ const sampleWorkAttendances = [
       id: 1,
       userId: 1,
       shiftId: 101,
-      date: "2024-11-20",
+      date: "2024-12-03",
       user: {
         id: 1,
         name: "Johny Đặng",
-        role: "Chef",
+        email: "johny.dang@example.com",
+        phoneNumber: "123456789",
+        gender: "Male",
+        dateOfBirth: new Date("1990-01-01"),
+        roleId: 1,
+        cccd: "123456789",
+        cvImg: "path/to/cvImg.jpg",
+        position: "Chef",
+        salaryType: "Hourly",
+        salaryPerHour: 15,
+        salaryPerMonth: 0,
+        role: {
+          id: 3,
+          name: "Chef",
+          description: "Đầu bếp",
+        },
       },
-      shift: { id: 101, name: "Day", startTime: "08:00", endTime: "16:00" },
+      shift: {
+        id: 101,
+        name: "Day",
+        startTime: "08:00",
+        endTime: "16:00",
+        status: "active",
+      },
     },
   },
   {
@@ -54,13 +115,34 @@ const sampleWorkAttendances = [
       id: 3,
       userId: 1,
       shiftId: 101,
-      date: "2024-11-19",
+      date: "2024-12-02",
       user: {
         id: 1,
         name: "Johny Đặng",
-        role: "Chef",
+        email: "johny.dang@example.com",
+        phoneNumber: "123456789",
+        gender: "Male",
+        dateOfBirth: new Date("1990-01-01"),
+        roleId: 1,
+        cccd: "123456789",
+        cvImg: "path/to/cvImg.jpg",
+        position: "Chef",
+        salaryType: "Hourly",
+        salaryPerHour: 15,
+        salaryPerMonth: 0,
+        role: {
+          id: 3,
+          name: "Chef",
+          description: "Đầu bếp",
+        },
       },
-      shift: { id: 101, name: "Day", startTime: "08:00", endTime: "16:00" },
+      shift: {
+        id: 101,
+        name: "Day",
+        startTime: "08:00",
+        endTime: "16:00",
+        status: "active",
+      },
     },
   },
   {
@@ -72,15 +154,36 @@ const sampleWorkAttendances = [
     note: "",
     workSchedule: {
       id: 2,
-      userId: 4,
+      userId: 2,
       shiftId: 102,
-      date: "2024-11-17",
+      date: "2024-12-05",
       user: {
-        id: 5,
+        id: 2,
         name: "Cong Phuong Nguyen",
-        role: "Chef",
+        email: "cong.phuong@example.com",
+        phoneNumber: "987654321",
+        gender: "Male",
+        dateOfBirth: new Date("1992-05-15"),
+        roleId: 2,
+        cccd: "987654321",
+        cvImg: "path/to/cvImg.jpg",
+        position: "Waiter",
+        salaryType: "Hourly",
+        salaryPerHour: 12,
+        salaryPerMonth: 0,
+        role: {
+          id: 2,
+          name: "Waiter",
+          description: "Phục vụ",
+        },
       },
-      shift: { id: 102, name: "Night", startTime: "16:00", endTime: "24:00" },
+      shift: {
+        id: 102,
+        name: "Night",
+        startTime: "16:00",
+        endTime: "00:00",
+        status: "active",
+      },
     },
   },
   {
@@ -91,20 +194,36 @@ const sampleWorkAttendances = [
     status: "LATE_OR_LEAVE_EARLY",
     note: "",
     workSchedule: {
-      id: 2,
-      userId: 4,
-      shiftId: 102,
-      date: "2024-11-17",
+      id: 4,
+      userId: 3,
+      shiftId: 104,
+      date: "2024-12-04",
       user: {
-        id: 4,
+        id: 3,
         name: "Alexander Kiên Phạm",
-        role: "Bartender",
+        email: "alexander.kien@example.com",
+        phoneNumber: "456123789",
+        gender: "Male",
+        dateOfBirth: new Date("1988-07-22"),
+        roleId: 4,
+        cccd: "456123789",
+        cvImg: "path/to/cvImg.jpg",
+        position: "Bartender",
+        salaryType: "Hourly",
+        salaryPerHour: 14,
+        salaryPerMonth: 0,
+        role: {
+          id: 4,
+          name: "Bartender",
+          description: "Pha chế",
+        },
       },
       shift: {
         id: 104,
         name: "Afternoon",
         startTime: "12:00",
         endTime: "16:00",
+        status: "active",
       },
     },
   },
@@ -116,67 +235,42 @@ const sampleWorkAttendances = [
     status: "NOT_YET_CLOCKED_OUT",
     note: "",
     workSchedule: {
-      id: 2,
+      id: 5,
       userId: 4,
-      shiftId: 102,
-      date: "2024-11-18",
+      shiftId: 104,
+      date: "2024-12-05",
       user: {
         id: 4,
-        name: "Alexander Kiên Phạm",
-        role: "Bartender",
+        name: "Nguyen Van A",
+        email: "nguyen.van.a@example.com",
+        phoneNumber: "321654987",
+        gender: "Male",
+        dateOfBirth: new Date("1995-03-10"),
+        roleId: 5,
+        cccd: "321654987",
+        cvImg: "path/to/cvImg.jpg",
+        position: "Cleaner",
+        salaryType: "Hourly",
+        salaryPerHour: 10,
+        salaryPerMonth: 0,
+        role: {
+          id: 5,
+          name: "Cleaner",
+          description: "Dọn dẹp",
+        },
       },
       shift: {
         id: 104,
         name: "Afternoon",
         startTime: "12:00",
         endTime: "16:00",
+        status: "active",
       },
     },
   },
 ];
 
-function getFirstDayOfWeek(date) {
-  const firstDayOffset = date.getDay(); // Get the day of the week (0 = Sunday, 1 = Monday, ..., 6 = Saturday)
-  const firstDay = new Date(date); // Clone the date object
-  firstDay.setDate(date.getDate() - firstDayOffset); // Set the date to the previous Sunday
-  return firstDay;
-}
-
-function formatDateToReactComponent(dateString) {
-  // Parse the date string into a Date object
-  const date = new Date(dateString);
-
-  // Define month names
-  const monthNames = [
-    "Jan",
-    "Feb",
-    "Mar",
-    "Apr",
-    "May",
-    "Jun",
-    "Jul",
-    "Aug",
-    "Sep",
-    "Oct",
-    "Nov",
-    "Dec",
-  ];
-
-  // Extract day, month, and year
-  const day = String(date.getDate()).padStart(2, "0"); // Pad single digit days with a leading zero
-  const month = monthNames[date.getMonth()]; // Get month name from monthNames array
-  const year = date.getFullYear();
-
-  // Format the date as "DD Month YYYY"
-  return (
-    <span>
-      <span className="text-[#8c8c8c]">{day}</span> {month}{" "}
-      <span className="text-[#8c8c8c]">{year}</span>
-    </span>
-  );
-}
-
-const mapStatus = (status) => {
+const mapStatus = (status: string) => {
   switch (status) {
     case "ABSENT":
       return "Nghỉ làm";
@@ -195,7 +289,7 @@ const mapStatus = (status) => {
   }
 };
 
-const mapStatusToClassName = (status) => {
+const mapStatusToClassName = (status: string) => {
   switch (status) {
     case "NOT_YET_CLOCKED_OUT":
       return "atte-btn progress-btn";
@@ -213,42 +307,90 @@ const mapStatusToClassName = (status) => {
 };
 
 export default function AttendancePage() {
-  const [workAttendances, setWorkAttendances] = useState(sampleWorkAttendances);
+  const [workAttendances, setWorkAttendances] = useState<
+    WorkAttendanceEntity[]
+  >(sampleWorkAttendances);
 
-  const [isOpenDatePicker, setIsOpenDatePicker] = useState(false); // Mở lịch chọn ngày
+  const [isOpenDatePicker, setIsOpenDatePicker] = useState<boolean>(false); // Mở lịch chọn ngày
 
-  const [isOpenModal, setIsOpenModal] = useState(false); // Mở modal
+  const [isOpenModal, setIsOpenModal] = useState<boolean>(false); // Mở modal
 
-  const [displayDate, setDisplayDate] = useState(getFirstDayOfWeek(new Date()));
+  const [displayDate, setDisplayDate] = useState<Date>(
+    getFirstDayOfWeek(new Date())
+  );
 
-  const [selectedAttendance, setSelectedAttendance] = useState(null);
+  const [selectedAttendance, setSelectedAttendance] =
+    useState<WorkAttendanceEntity>(null);
 
-  const [gotoWork, setGotoWork] = useState(false);
+  const [gotoWork, setGotoWork] = useState<boolean>(false);
 
-  const [checkInTime, setCheckInTime] = useState("");
+  const [checkInTime, setCheckInTime] = useState<string>("");
 
-  const [checkOutTime, setCheckOutTime] = useState("");
+  const [checkOutTime, setCheckOutTime] = useState<string>("");
 
-  const [note, setNote] = useState("");
+  const [note, setNote] = useState<string>("");
 
-  const handleDateChange = useCallback((date) => {
+  const [shifts, setShifts] = useState<ShiftEntity[]>(sampleShifts);
+
+  const [displayShifts, setDisplayShifts] =
+    useState<ShiftEntity[]>(sampleShifts);
+
+  const [searchInput, setSearchInput] = useState<string>("");
+
+  useEffect(() => {
+    /* gọi API **/
+    // const response = getAllShifts();
+    // if (response.ok) {
+    //   setShifts(response.data);
+    //   setDisplayShifts(response.data);
+    // }
+  }, []);
+
+  useEffect(() => {
+    /* gọi API **/
+    const startDate = formatDateToYYYYMMDD(displayDate);
+    const endDate = formatDateToYYYYMMDD(
+      new Date(new Date(displayDate).setDate(displayDate.getDate() + 6))
+    );
+    const query = `start_date=${startDate}&end_date=${endDate}`;
+    // const response = getAllWorkAttendances(query);
+    // if (response.ok) {
+    //   setWorkAttendances(response.data);
+    // }
+  }, [displayDate]);
+
+  const handleDateChange = (date: Date) => {
     setDisplayDate(getFirstDayOfWeek(date));
     setIsOpenDatePicker(false);
-  }, []);
+  };
 
-  const onNextClick = useCallback(() => {
+  const onNextClick = () => {
     setDisplayDate(new Date(displayDate.setDate(displayDate.getDate() + 7)));
-  }, [displayDate]);
+  };
 
-  const onPrevClick = useCallback(() => {
+  const onPrevClick = () => {
     setDisplayDate(new Date(displayDate.setDate(displayDate.getDate() - 7)));
-  }, [displayDate]);
+  };
 
-  const onThisWeekClick = useCallback(() => {
+  const onThisWeekClick = () => {
     setDisplayDate(getFirstDayOfWeek(new Date()));
-  }, []);
+  };
 
-  const openModal = useCallback((attendance) => {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      if (searchInput) {
+        const regex = new RegExp(searchInput, "i");
+        const newDisplayShifts = shifts.filter((shift) =>
+          regex.test(shift.name)
+        );
+        setDisplayShifts(newDisplayShifts);
+      } else {
+        setDisplayShifts(shifts);
+      }
+    }
+  };
+
+  const openModal = (attendance: WorkAttendanceEntity) => {
     setSelectedAttendance(attendance);
     setGotoWork(
       attendance.checkInTime !== "" || attendance.checkOutTime !== ""
@@ -256,19 +398,28 @@ export default function AttendancePage() {
     setCheckInTime(attendance.checkInTime);
     setCheckOutTime(attendance.checkOutTime);
     setIsOpenModal(true);
-  }, []);
+  };
 
-  const closeModal = useCallback(() => {
+  const closeModal = () => {
     setIsOpenModal(false);
     setSelectedAttendance(null);
     setCheckInTime("");
     setCheckOutTime("");
     setNote("");
     setGotoWork(false);
-  }, []);
+  };
 
-  const saveModal = useCallback(() => {
+  const saveModal = () => {
     /* gọi API **/
+    const payload: UpdateWorkAttendanceRequest = {
+      checkInTime: checkInTime ? checkInTime : undefined,
+      checkOutTime: checkOutTime ? checkOutTime : undefined,
+      status: selectedAttendance.status,
+      note: note ? note : undefined,
+    };
+    // const reponse = updateWorkAttendance (selectedAttendance.id, payload);
+    // ìf (response.ok) {
+
     const newAttendance = {
       ...selectedAttendance,
       checkInTime,
@@ -281,12 +432,12 @@ export default function AttendancePage() {
     );
     setWorkAttendances(newWorkAttendances);
     closeModal();
-  }, [checkInTime, checkOutTime, note, selectedAttendance, workAttendances]);
+  };
 
   const displayWeek = useMemo(() => {
     const startDate = formatDateToReactComponent(displayDate);
     const endDate = formatDateToReactComponent(
-      new Date(displayDate).setDate(displayDate.getDate() + 6)
+      new Date(new Date(displayDate).setDate(displayDate.getDate() + 6))
     );
     return (
       <span>
@@ -295,31 +446,25 @@ export default function AttendancePage() {
     );
   }, [displayDate]);
 
-  const formatDayToYYYYMMDD = useCallback(
-    (days) => {
-      const newDate = new Date(displayDate);
-      newDate.setDate(newDate.getDate() + days);
+  const formatDayToYYYYMMDD = (days: number) => {
+    const newDate = new Date(displayDate);
+    newDate.setDate(newDate.getDate() + days);
 
-      const year = newDate.getFullYear();
-      const month = String(newDate.getMonth() + 1).padStart(2, "0");
-      const day = String(newDate.getDate()).padStart(2, "0");
-      return `${year}-${month}-${day}`;
-    },
-    [displayDate]
-  );
+    const year = newDate.getFullYear();
+    const month = String(newDate.getMonth() + 1).padStart(2, "0");
+    const day = String(newDate.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  };
 
-  const searchByShiftIdAndDate = useCallback(
-    (shiftId, date) => {
-      return workAttendances
-        .filter(
-          (attendance) =>
-            attendance.workSchedule.shiftId === shiftId &&
-            attendance.workSchedule.date === date
-        )
-        .sort((a, b) => a.workSchedule.userId - b.workSchedule.userId);
-    },
-    [workAttendances]
-  );
+  const searchByShiftIdAndDate = (shiftId: number, date: string) => {
+    return workAttendances
+      .filter(
+        (attendance) =>
+          attendance.workSchedule.shiftId === shiftId &&
+          attendance.workSchedule.date === date
+      )
+      .sort((a, b) => a.workSchedule.userId - b.workSchedule.userId);
+  };
 
   return (
     <section className="h-screen w-full p-6 bg-[#f5f5f5]">
@@ -346,7 +491,10 @@ export default function AttendancePage() {
             <input
               className="p-2 bg-transparent outline-none grow"
               type="text"
-              placeholder="Tìm kiếm nhân viên"
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder="Tìm tên ca làm..."
             />
           </div>
           <div className="flex items-center gap-6 mr-6">
@@ -434,7 +582,7 @@ export default function AttendancePage() {
           <div className="atte-cell">SAT</div>
         </div>
         <div className="max-h-[540px] overflow-auto">
-          {shifts.map((shift) => (
+          {displayShifts.map((shift) => (
             <div key={shift.id} className="atte-row">
               <div className="shift-cell">
                 <div>{shift.name}</div>
@@ -459,7 +607,7 @@ export default function AttendancePage() {
                           {attendance.workSchedule.user.name}
                         </div>
                         <div className="overflow-hidden text-nowrap text-[#8c8c8c] text-sm font-light">
-                          {attendance.workSchedule.user.role}
+                          {attendance.workSchedule.user.role.name}
                         </div>
                       </div>
                       {(attendance.checkInTime || attendance.checkOutTime) && (
@@ -569,7 +717,7 @@ export default function AttendancePage() {
                 </span>
               </div>
               <div className="font-light text-sm text-[#8c8c8c]">
-                {selectedAttendance.workSchedule.user.role}
+                {selectedAttendance.workSchedule.user.role.name}
               </div>
             </div>
             <div className="flex items-center mb-4">
@@ -594,86 +742,90 @@ export default function AttendancePage() {
                 {selectedAttendance.workSchedule.date}
               </div>
             </div>
-            <div className="border text-sm rounded-md bg-[#f7fafc] px-2 shadow-sm w-[400px] h-24 mb-4">
-              <input
-                className="p-2 bg-transparent w-full outline-none"
-                type="text"
-                placeholder="Ghi chú..."
-                value={note}
-                onChange={(e) => setNote(e.target.value)}
-              />
-            </div>
-            <div className="flex items-end mb-4">
-              <div className="font-bold text-xl w-32">Chấm công</div>
-              <label className="space-x-2">
+            <form onSubmit={saveModal}>
+              <div className="border text-sm rounded-md bg-[#f7fafc] px-2 shadow-sm w-[400px] h-24 mb-4">
                 <input
-                  type="checkbox"
-                  className="form-checkbox"
-                  onChange={() => setGotoWork(!gotoWork)}
-                  checked={gotoWork}
+                  className="p-2 bg-transparent w-full outline-none"
+                  type="text"
+                  placeholder="Ghi chú..."
+                  value={note}
+                  onChange={(e) => setNote(e.target.value)}
                 />
-                <span>Đi làm</span>
-              </label>
-            </div>
-            {gotoWork && (
-              <>
-                <div className="flex items-center mb-4">
-                  <div className="w-32">Giờ chấm vào</div>
-                  <div className="border text-sm rounded-md bg-[#f7fafc] px-2 shadow-sm w-40">
-                    <input
-                      className="p-2 bg-transparent w-full outline-none"
-                      type="text"
-                      placeholder="hh:mm"
-                      value={checkInTime}
-                      onChange={(e) => setCheckInTime(e.target.value)}
-                    />
+              </div>
+              <div className="flex items-end mb-4">
+                <div className="font-bold text-xl w-32">Chấm công</div>
+                <label className="space-x-2">
+                  <input
+                    type="checkbox"
+                    className="form-checkbox"
+                    onChange={() => setGotoWork(!gotoWork)}
+                    checked={gotoWork}
+                  />
+                  <span>Đi làm</span>
+                </label>
+              </div>
+              {gotoWork && (
+                <>
+                  <div className="flex items-center mb-4">
+                    <div className="w-32">Giờ chấm vào</div>
+                    <div className="border text-sm rounded-md bg-[#f7fafc] px-2 shadow-sm w-40">
+                      <input
+                        className="p-2 bg-transparent w-full outline-none"
+                        type="text"
+                        placeholder="hh:mm"
+                        value={checkInTime}
+                        pattern="([01][0-9]|2[0-3]):[0-5][0-9]"
+                        onChange={(e) => setCheckInTime(e.target.value)}
+                      />
+                    </div>
                   </div>
-                </div>
-                <div className="flex items-center mb-4">
-                  <div className="w-32">Giờ chấm ra</div>
-                  <div className="border text-sm rounded-md bg-[#f7fafc] px-2 shadow-sm w-40">
-                    <input
-                      className="p-2 bg-transparent w-full outline-none"
-                      type="text"
-                      placeholder="hh:mm"
-                      value={checkOutTime}
-                      onChange={(e) => setCheckOutTime(e.target.value)}
-                    />
+                  <div className="flex items-center mb-4">
+                    <div className="w-32">Giờ chấm ra</div>
+                    <div className="border text-sm rounded-md bg-[#f7fafc] px-2 shadow-sm w-40">
+                      <input
+                        className="p-2 bg-transparent w-full outline-none"
+                        type="text"
+                        placeholder="hh:mm"
+                        value={checkOutTime}
+                        pattern="([01][0-9]|2[0-3]):[0-5][0-9]"
+                        onChange={(e) => setCheckOutTime(e.target.value)}
+                      />
+                    </div>
                   </div>
-                </div>
-              </>
-            )}
-            <div className="flex justify-end gap-3 items-center mt-10">
-              <button
-                onClick={saveModal}
-                className="flex items-center justify-center gap-1 h-10 w-20 rounded-md px-2 shadow-sm bg-[#333333] text-[#f7f7f7]"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="icon icon-tabler icons-tabler-outline icon-tabler-device-floppy"
+                </>
+              )}
+              <div className="flex justify-end gap-3 items-center mt-10">
+                <button
+                  type="submit"
+                  className="flex items-center justify-center gap-1 h-10 w-20 rounded-md px-2 shadow-sm bg-[#333333] text-[#f7f7f7]"
                 >
-                  <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-                  <path d="M6 4h10l4 4v10a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2v-12a2 2 0 0 1 2 -2" />
-                  <path d="M12 14m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0" />
-                  <path d="M14 4l0 4l-6 0l0 -4" />
-                </svg>
-                <div>Lưu</div>
-              </button>
-              <button
-                className="h-10 w-20 font-bold rounded"
-                onClick={closeModal}
-              >
-                Hủy
-              </button>
-            </div>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="icon icon-tabler icons-tabler-outline icon-tabler-device-floppy"
+                  >
+                    <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                    <path d="M6 4h10l4 4v10a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2v-12a2 2 0 0 1 2 -2" />
+                    <path d="M12 14m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0" />
+                    <path d="M14 4l0 4l-6 0l0 -4" />
+                  </svg>
+                  <div>Lưu</div>
+                </button>
+                <button
+                  className="h-10 w-20 font-bold rounded"
+                  onClick={closeModal}
+                >
+                  Hủy
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

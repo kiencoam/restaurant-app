@@ -1,5 +1,7 @@
 "use client";
+
 import React, { useState, useEffect, useRef } from "react";
+
 
 import { getAllProducts, GetProductRequest, ProductEntity, updateProduct, UpdateProductRequest } from "../../api-client/ProductService";
 import ProductForm from "./ProductForm";
@@ -12,6 +14,7 @@ const ProductsPage = () => {
   const [products, setProducts] = useState<ProductEntity[]>([]);
 
   const [flyOutActions, setFlyOutActions] = useState(false);
+
   const [expandedRow, setExpandedRow] = useState(null);
   const [pageSize, setpageSize] = useState(5); // Default to showing 5 rows
   const [totalRecords, setTotalRecords] = useState(null);
@@ -24,11 +27,14 @@ const ProductsPage = () => {
   const [masterChecked, setMasterChecked] = useState(false);
   const [productType, setProductType] = useState(""); // State to manage filter for 'Loại thực đơn'
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+
   const [isAddingNewOpen, setIsAddingNewOpen] = useState(false);
 
   const [getProductRequest, setGetProductRequest] = useState<GetProductRequest>({
     page: 0,
+
     pageSize: 10,
+
     name: "",
     status: "",
     priceFrom: null,
@@ -44,6 +50,7 @@ const ProductsPage = () => {
     })
     console.log(getProductRequest)
   }
+
 
 
 
@@ -96,6 +103,7 @@ const ProductsPage = () => {
   console.log("products", products);
 
   console.log("expandedRow");
+
 
   const filterRef = useRef(null);
 
@@ -211,12 +219,16 @@ const ProductsPage = () => {
         <div className="flex items-center gap-2">
           {isAnyRowChecked && (
             <li
+
               className="lg:px-8 relative flex items-center space-x-1"
+
               onMouseEnter={() => setFlyOutActions(true)}
               onMouseLeave={() => setFlyOutActions(false)}
             >
               <a
+
                 className="p-2 text-center hover:text-slate-900 h-[38px]"
+
                 aria-expanded={flyOutActions}
               >
                 Thao tác
@@ -324,11 +336,13 @@ const ProductsPage = () => {
             </svg>
             <div className="p-2 text-sm font-bold text-white">Tạo mới</div>
           </button>
+
           {isAddingNewOpen && <ProductForm toggleAddingNewOpen={toggleAddingNewOpen} />}
         </div>
       </div>
 
       <ProductList 
+
         masterChecked={masterChecked}
         products={products}
         handleMasterCheckboxChange={handleMasterCheckboxChange}

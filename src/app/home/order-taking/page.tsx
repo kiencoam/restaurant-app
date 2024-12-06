@@ -4,6 +4,12 @@ import { Menu } from "@/components/Menu";
 import { Receipt } from "@/components/Receipt";
 import { Table } from "@/components/Table";
 import { useState } from "react";
+import {
+  MenuItemEntity,
+  OrderEntity,
+  OrderItemEntity,
+  OrderTableEntity,
+} from "./entity";
 
 const initOrders: OrderEntity[] = [
   {
@@ -111,25 +117,25 @@ const orderTables: OrderTableEntity[] = [
     id: 1,
     orderId: 1,
     tableId: 1,
-    status: "PROCESSING"
+    status: "PROCESSING",
   },
   {
     id: 2,
     orderId: 1,
     tableId: 2,
-    status: "PROCESSING"
+    status: "PROCESSING",
   },
   {
     id: 3,
     orderId: 2,
     tableId: 3,
-    status: "PROCESSING"
+    status: "PROCESSING",
   },
   {
     id: 4,
     orderId: 2,
     tableId: 4,
-    status: "PROCESSING"
+    status: "PROCESSING",
   },
 ];
 
@@ -176,26 +182,33 @@ const menuItems: MenuItemEntity[] = [
   },
 ];
 
-
-
 const OrderTakingPage = () => {
-  const [selectMode, setSelectMode] = useState('table');
-  const [selectedOrderId, setSelectedOrderId] = useState<number | null>(initOrders[0].id);
+  const [selectMode, setSelectMode] = useState("table");
+  const [selectedOrderId, setSelectedOrderId] = useState<number | null>(
+    initOrders[0].id
+  );
   const [orders, setOrders] = useState<OrderEntity[]>(initOrders);
-  const [selectedTableIds, setSelectedTableIds] = useState<number[]>(orderTables
-    .filter(orderTable => orderTable.orderId === orders[0].id).map(orderTable => orderTable.tableId));
+  const [selectedTableIds, setSelectedTableIds] = useState<number[]>(
+    orderTables
+      .filter((orderTable) => orderTable.orderId === orders[0].id)
+      .map((orderTable) => orderTable.tableId)
+  );
 
-  const tableOccupiedIds: number[] = orderTables.map(orderTable => orderTable.tableId);
-  const currentOrder = orders.find(order => order.id === selectedOrderId);
+  const tableOccupiedIds: number[] = orderTables.map(
+    (orderTable) => orderTable.tableId
+  );
+  const currentOrder = orders.find((order) => order.id === selectedOrderId);
 
   const handleOrderItemsChange = (newOrderItems: OrderItemEntity[]) => {
     const newOrder = {
       ...currentOrder,
-      orderItems: newOrderItems
-    }
-    const newOrders = orders.map(order => order.id === selectedOrderId ? newOrder : order);
+      orderItems: newOrderItems,
+    };
+    const newOrders = orders.map((order) =>
+      order.id === selectedOrderId ? newOrder : order
+    );
     setOrders(newOrders);
-  }
+  };
 
   const handleSelectTable = (tableId: number) => {
     console.log(tableId);
@@ -203,23 +216,27 @@ const OrderTakingPage = () => {
       return;
     }
 
-    const nextOrderTable = orderTables.find(orderTable => orderTable.tableId === tableId);
+    const nextOrderTable = orderTables.find(
+      (orderTable) => orderTable.tableId === tableId
+    );
     if (!nextOrderTable) {
-      setSelectedTableIds([])
+      setSelectedTableIds([]);
       setSelectedOrderId(null);
       return;
     }
 
     const nextSelectedTableIds = orderTables
-      .filter(orderTable => orderTable.orderId === nextOrderTable.orderId)
-      .map(orderTable => orderTable.tableId);
+      .filter((orderTable) => orderTable.orderId === nextOrderTable.orderId)
+      .map((orderTable) => orderTable.tableId);
 
     setSelectedTableIds(nextSelectedTableIds);
     setSelectedOrderId(nextOrderTable.orderId);
-  }
+  };
 
   const handleAddMenuItem = (menuItemId: number) => {
-    let currentOrderItem = currentOrder.orderItems.find(orderItem => orderItem.menuItemId === menuItemId);
+    let currentOrderItem = currentOrder.orderItems.find(
+      (orderItem) => orderItem.menuItemId === menuItemId
+    );
 
     if (currentOrderItem == null) {
       currentOrderItem = {
@@ -227,55 +244,67 @@ const OrderTakingPage = () => {
         menuItemId: menuItemId,
         orderedQuantity: 1,
         reservedQuantity: 0,
-        price: menuItems.find(menuItem => menuItem.id === menuItemId).sellingPrice,
+        price: menuItems.find((menuItem) => menuItem.id === menuItemId)
+          .sellingPrice,
         status: "PROCESSING",
-      }
+      };
     } else {
       currentOrderItem = {
         ...currentOrderItem,
         orderedQuantity: currentOrderItem.orderedQuantity + 1,
-        price: menuItems.find(menuItem => menuItem.id === menuItemId).sellingPrice * (currentOrderItem.orderedQuantity + 1)
-      }
+        price:
+          menuItems.find((menuItem) => menuItem.id === menuItemId)
+            .sellingPrice *
+          (currentOrderItem.orderedQuantity + 1),
+      };
     }
 
-    const newOrderItems = currentOrder.orderItems.map(orderItem => orderItem.menuItemId === menuItemId ? currentOrderItem : orderItem);
+    const newOrderItems = currentOrder.orderItems.map((orderItem) =>
+      orderItem.menuItemId === menuItemId ? currentOrderItem : orderItem
+    );
     handleOrderItemsChange(newOrderItems);
-  }
+  };
 
   return (
     <main className="w-full h-screen flex p-4 gap-4 bg-[#edebe8]">
       <div className="basis-1/2">
         <div className="flex m-3 border h-12 w-48 text-[#898a84] text-sm bg-[#e5e6e1] font-semibold rounded-md p-1 gap-2">
           <button
-            className={`basis-1/2 rounded-md transition-all duration-500 ${selectMode === 'table' ? "text-[#fafafa] bg-[#2b2b2b] shadow-sm" : ""
-              }`}
-            onClick={() => setSelectMode('table')}
+            className={`basis-1/2 rounded-md transition-all duration-500 ${
+              selectMode === "table"
+                ? "text-[#fafafa] bg-[#2b2b2b] shadow-sm"
+                : ""
+            }`}
+            onClick={() => setSelectMode("table")}
           >
             Bàn ăn
           </button>
           <button
-            className={`basis-1/2 rounded-md transition-all duration-500 ${selectMode === 'menu' ? "text-[#fafafa] bg-[#2b2b2b] shadow-sm" : ""
-              }`}
-            onClick={() => setSelectMode('menu')}
+            className={`basis-1/2 rounded-md transition-all duration-500 ${
+              selectMode === "menu"
+                ? "text-[#fafafa] bg-[#2b2b2b] shadow-sm"
+                : ""
+            }`}
+            onClick={() => setSelectMode("menu")}
           >
             Thực đơn
           </button>
         </div>
-        {selectMode === 'table' ?
+        {selectMode === "table" ? (
           <Table
             tableOccupiedIds={tableOccupiedIds}
             selectedTableIds={selectedTableIds}
             handleSelectTable={handleSelectTable}
           />
-          :
-          <Menu
-            handleAddMenuItem={handleAddMenuItem}
-            menuItems={menuItems} />}
+        ) : (
+          <Menu handleAddMenuItem={handleAddMenuItem} menuItems={menuItems} />
+        )}
       </div>
       <Receipt
         menuItems={menuItems}
         orderItems={currentOrder?.orderItems}
-        handleOrderItemsChange={handleOrderItemsChange} />
+        handleOrderItemsChange={handleOrderItemsChange}
+      />
     </main>
   );
 };

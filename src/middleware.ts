@@ -16,7 +16,7 @@ export function middleware(request: NextRequest) {
   const payload = decodeJWT(token.value);
   const role = payload.scope;
   if (!role || !hasPermission(role, pathname)) {
-    return NextResponse.redirect(new URL("/home", request.url));
+    return NextResponse.redirect(new URL("/", request.url));
   }
 
   return NextResponse.next();
