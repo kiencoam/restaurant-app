@@ -13,6 +13,7 @@ import {
   formatDateToVietnameseFormat,
   formatDateToYYYYMMDD,
 } from "@/utils/timeUtils";
+import { getStatisticByCustomerAndDate, getStatisticByCustomerAndHour } from "@/app/api-client/StatisticService";
 
 const sampleCustomerPerDate = [
   { date: new Date("12-04-2024"), count: 40 },
@@ -43,22 +44,47 @@ export function CustomerChart() {
   );
 
   useEffect(() => {
-    /* Gọi API **/
-    const endTime = new Date();
-    const startDate = new Date(new Date().setDate(endTime.getDate() - 4));
-    const queryForDate = `start_date=${formatDateToYYYYMMDD(
-      startDate
-    )}&end_date=${formatDateToYYYYMMDD(endTime)}`;
-    // const data = await getStatisticByCustomerAndHour(queryForDate);
-    // setCustomerPerDate(data.map((item) => ({ date: new Date(item.date), count: item.count })));
-
-    const startTime = new Date(new Date().setDate(endTime.getHours() - 7));
-    const queryForHours = `start_date=${formatDateToString(
-      startTime
-    )}&end_date=${formatDateToString(endTime)}`;
-    // const data = await getStatisticByCustomerAndHour(queryForHours);
-    // setCustomerPerHours(data.map((item) => ({ hour: new Date(item.hour), count: item.count }));
+    const fetchCustomerData = async () => {
+      const endTime = new Date();
+  
+      // Lấy dữ liệu số lượng khách hàng theo ngày
+      const startDate = new Date(new Date().setDate(endTime.getDate() - 4));
+      const queryForDate = `start_date=${formatDateToYYYYMMDD(
+        startDate
+      )}&end_date=${formatDateToYYYYMMDD(endTime)}`;
+      try {
+        const dateData = await getStatisticByCustomerAndDate(queryForDate);
+        setCustomersPerDate(
+          dateData.customerStatistics.map((item) => ({
+            date: new Date(item.date),
+            count: item.count,
+          }))
+        );
+      } catch (error) {
+        console.error("Error fetching customer data by date:", error);
+      }
+  
+      // Lấy dữ liệu số lượng khách hàng theo giờ
+      const startTime = new Date(new Date().setHours(endTime.getHours() - 7));
+      const queryForHours = `start_date=${formatDateToString(
+        startTime
+      )}&end_date=${formatDateToString(endTime)}`;
+      try {
+        const hourData = await getStatisticByCustomerAndHour(queryForHours);
+        setCustomersPerHours(
+          hourData.customerStatistics.map((item) => ({
+            hour: new Date(item.hour),
+            count: item.count,
+          }))
+        );
+      } catch (error) {
+        console.error("Error fetching customer data by hour:", error);
+      }
+    };
+  
+    fetchCustomerData();
   }, []);
+  
 
   const dataPerDate: ChartData<"bar"> = {
     labels: customersPerDate.map((data) =>

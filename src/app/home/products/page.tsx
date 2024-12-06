@@ -47,7 +47,7 @@ const ProductsPage = () => {
       ...getProductRequest,
       [field]: e.target.value
     })
-    console.log(getProductRequest)
+    console.log  (getProductRequest)
   }
 
   const buildQueryParams = useCallback(() => {

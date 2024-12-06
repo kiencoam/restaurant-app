@@ -1,5 +1,7 @@
 'use client';
 
+import { MenuItemEntity, OrderItemEntity } from "@/app/home/order-taking/entity";
+
 
 export function Receipt({
   menuItems,

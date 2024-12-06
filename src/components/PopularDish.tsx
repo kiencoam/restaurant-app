@@ -3,7 +3,7 @@
 */
 "use client";
 
-import { MenuItemStatistic } from "@/app/api-client/StatisticService";
+import { getStatisticByMenuItem, MenuItemStatistic } from "@/app/api-client/StatisticService";
 import { useState, useEffect } from "react";
 
 const sampleMostPopularByMonth = [
@@ -114,30 +114,55 @@ export function PopularDish() {
 
   // Khởi tạo
   useEffect(() => {
-    /* Gọi API */
-    const endDate = new Date();
-    const startDate = new Date(new Date().setDate(endDate.getDate() - 7));
-    const query = `start_date=${startDate.toISOString()}&end_date=${endDate.toISOString()}&category=PRICE`;
-    // data = getStatisticByMenuItem(query);
-    setMostPopular(sampleMostPopularByWeek);
+    const fetchMostPopularItems = async () => {
+      try {
+        const endDate = new Date(); // Ngày hiện tại
+        const startDate = new Date(new Date().setDate(endDate.getDate() - 7)); // 7 ngày trước
+        const query = `start_time=${startDate.toISOString()}&end_time=${endDate.toISOString()}&category=PRICE&limit=10`;
+
+        // Giả sử đây là hàm gọi API
+        const response = await getStatisticByMenuItem(query);
+
+        // Giả sử response trả về một mảng
+        setMostPopular(response.menuItemStatistics); // Cập nhật state với dữ liệu từ API
+      } catch (error) {
+        console.error("Error fetching most popular items:", error);
+      }
+    };
+
+    fetchMostPopularItems();
   }, []);
+
 
   // Chuyển chế độ xem
   useEffect(() => {
-    /* Gọi API */
-    const endDate = new Date();
-    if (selectedMode === "weekly") {
-      const startDate = new Date(new Date().setDate(endDate.getDate() - 7));
-      const query = `start_date=${startDate.toISOString()}&end_date=${endDate.toISOString()}&category=PRICE`;
-      // data = getStatisticByMenuItem(query);
-      setMostPopular(sampleMostPopularByWeek);
-    } else {
-      const startDate = new Date(new Date().setMonth(endDate.getMonth() - 1));
-      const query = `start_date=${startDate.toISOString()}&end_date=${endDate.toISOString()}`;
-      // data = getStatisticByMenuItem(query);
-      setMostPopular(sampleMostPopularByMonth);
-    }
-  }, [selectedMode]);
+    const fetchMostPopularItems = async () => {
+      try {
+        const endDate = new Date(); 
+        let startDate;
+        let query;
+  
+        if (selectedMode === "weekly") {
+          startDate = new Date(new Date().setDate(endDate.getDate() - 7)); // 7 ngày trước
+          query = `start_date=${startDate.toISOString()}&end_date=${endDate.toISOString()}&category=PRICE&limit=10`;
+  
+          const response = await getStatisticByMenuItem(query);
+          setMostPopular(response.menuItemStatistics || sampleMostPopularByWeek);
+        } else {
+          startDate = new Date(new Date().setMonth(endDate.getMonth() - 1)); // 1 tháng trước
+          query = `start_date=${startDate.toISOString()}&end_date=${endDate.toISOString()}`;
+  
+          const response = await getStatisticByMenuItem(query);
+          setMostPopular(response.menuItemStatistics || sampleMostPopularByMonth);
+        }
+      } catch (error) {
+        console.error("Error fetching most popular items:", error);
+      }
+    };
+  
+    fetchMostPopularItems();
+  }, [selectedMode]); // Chạy lại khi selectedMode thay đổi
+  ;
 
   return (
     <section className="bg-white p-4 shadow-sm ml-3 mt-6 h-[280px]">

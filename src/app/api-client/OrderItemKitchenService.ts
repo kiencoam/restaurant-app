@@ -13,7 +13,7 @@ export type OrderItemKitchenEntity = {
   quantity: number;
   status: string;
   note?: string;
-  receivedTime: string;
+  receivedTime: Date;
   menuItem: MenuItemEntity;
   table: TableEntity;
 };

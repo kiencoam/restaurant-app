@@ -43,6 +43,7 @@ export const getDetailSupplier = async (
 };
 
 export const getAllSuppliers = async (query: string) => {
+  console.log(`${baseUrl}?${query}`);
   return await apiClientService
     .get(`${baseUrl}/${query}`)
     .then((res) => res.data);
