@@ -1,7 +1,6 @@
 import { default as ReactSelect, components } from "react-select";
 import { Tooltip } from "react-tooltip";
 import CreateCustomerForm from "./create-customer-form";
-import Select from "react-select";
 
 export default function CreateOrderForm({
   searchCustomer,
@@ -12,7 +11,6 @@ export default function CreateOrderForm({
   tableOptions,
   handleSecondSelectChange,
   secondSelectValue,
-  customStyles,
   noOptionsMessage,
   toggleNewReservation,
   isNewCustomer,
@@ -32,6 +30,61 @@ export default function CreateOrderForm({
       ...newOrder,
       customerId: selectedOption ? selectedOption.value : null,
     });
+  };
+
+  const customStyles = {
+    control: (styles) => ({
+      ...styles,
+      backgroundColor: "transparent",
+      borderColor: "#FFFFFF",
+      padding: "0rem", // equivalent to Tailwind's p-2
+      width: "15rem", // equivalent to Tailwind's w-60
+      outline: "none",
+      fontSize: "0.875rem", // equivalent to Tailwind's text-sm
+      boxShadow: "none",
+      "&:hover": {
+        borderColor: "transparent", // Keeps the border color on hover as none
+      },
+    }),
+    option: (styles, { isFocused, isSelected }) => ({
+      ...styles,
+      backgroundColor: isSelected ? "#7ab5e6" : isFocused ? "#ebf8ff" : "white",
+      color: isSelected ? "white" : "#2d3748",
+      cursor: "pointer",
+      "&:hover": {
+        backgroundColor: "#ebf8ff",
+        color: "#2d3748",
+      },
+    }),
+    multiValue: (styles) => ({
+      ...styles,
+      backgroundColor: "#b7b7b7",
+      borderRadius: "12px",
+      padding: "0.25rem", // Adds padding for multi-value items
+    }),
+    multiValueLabel: (styles) => ({
+      ...styles,
+      color: "#2d3748",
+      fontSize: "0.875rem", // Tailwind text-sm equivalent
+    }),
+    multiValueRemove: (styles) => ({
+      ...styles,
+      color: "#2d3748",
+      ":hover": {
+        backgroundColor: "#e53e3e",
+        color: "white",
+      },
+    }),
+    menu: (styles) => ({
+      ...styles,
+      boxShadow: "0 4px 8px rgba(0, 0, 0, 0.15)",
+    }),
+    input: (styles) => ({
+      ...styles,
+      width: "15rem", // Tailwind w-60 equivalent
+      margin: "0px",
+      fontSize: "0.875rem", // Tailwind text-sm equivalent
+    }),
   };
 
   const Option = (props) => {

@@ -1,70 +1,45 @@
 "use client";
+import React, { useState, useEffect, useRef } from "react";
+import { SupplierEntity } from "./data";
+import CreateSupplierForm from "./create-supplier-form";
+import SupplierList from "./supplier-list";
 
-import React, { useState, useRef, useEffect } from "react";
-import { UserEntity } from "./data";
-import CreateStaffForm from "./create-staff-form";
-import StaffList from "./staff-list";
-import DatePicker from "react-datepicker";
-import "react-datepicker/dist/react-datepicker.css";
-
-const staffs: UserEntity[] = [
+const suppliers: SupplierEntity[] = [
   {
     id: 1,
-    name: "Nguyễn Văn A",
+    code: "NCC0001",
+    name: "Công ty TNHH Citigo",
     phoneNumber: "0123456789",
-    email: "nguyenvana@gmail.com",
-    password: "123",
+    email: "citigo@hust.vn",
     address: "Hà Nội",
-    dob: "01/01/1990",
-    gender: "male",
-    roleId: 1,
-    position: "ADMIN",
-    salaryType: "HOURLY",
-    salaryPerHour: 15000,
-    salaryPerMonth: 0,
-    status: "IN",
-    note: "Newbie",
+    totalDebt: 0,
+    totalCost: 1000000,
+    status: "ACTIVE",
+    note: "Lâu năm",
   },
   {
     id: 2,
-    name: "Nguyễn Văn B",
-    phoneNumber: "0123456789",
-    email: "nguyenvanb@gmail.com",
-    password: "123",
-    address: "Hà Nội",
-    dob: "01/02/1989",
-    gender: "female",
-    roleId: 1,
-    position: "CHEF",
-    salaryType: "DAYLY",
-    salaryPerHour: 0,
-    salaryPerMonth: 15000000,
-    status: "OUT",
-    note: "Con giam doc",
+    code: "NCC0002",
+    name: "Công ty Hoàng gia",
+    phoneNumber: "0123456889",
+    email: "hg@hust.vn",
+    address: "Hà Tây",
+    totalDebt: 1000000000,
+    totalCost: 0,
+    status: "INACTIVE",
   },
 ];
 
-const StaffManagementPage = () => {
+const SupplierPage = () => {
   const [masterChecked, setMasterChecked] = useState(false);
-  const [isNewStaff, setIsNewStaff] = useState(false);
-  const [checkedRows, setCheckedRows] = useState({});
+  const [newSupplier, setNewSupplier] = useState<SupplierEntity>();
   const [flyOutActions, setFlyOutActions] = useState(false);
+  const [checkedRows, setCheckedRows] = useState({});
+  const isAnyRowChecked = Object.values(checkedRows).some(Boolean);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const filterRef = useRef(null);
+  const [isNewSupplier, setIsNewSupplier] = useState(false);
   const [expandedRow, setExpandedRow] = useState(null);
-
-  const [startDate, setStartDate] = useState(new Date("2014/01/01"));
-  const [endDate, setEndDate] = useState(new Date("2025/12/31"));
-
-  const handleStartDateChange = (date) => {
-    setStartDate(date);
-  };
-
-  const handleEndDateChange = (date) => {
-    setEndDate(date);
-  };
-
-  const isAnyRowChecked = Object.values(checkedRows).some(Boolean);
 
   const handleRowClick = (id) => {
     if (expandedRow === id) {
@@ -74,33 +49,12 @@ const StaffManagementPage = () => {
     }
   };
 
-  const handleMasterCheckboxChange = () => {
-    const newMasterChecked = !masterChecked;
-    setMasterChecked(newMasterChecked);
-
-    const updatedCheckedRows = {};
-    staffs.forEach((staff) => {
-      updatedCheckedRows[staff.id] = newMasterChecked;
-    });
-    setCheckedRows(updatedCheckedRows);
+  const toggleFilterDropdown = () => {
+    setIsFilterOpen((prev) => !prev);
   };
 
-  useEffect(() => {
-    // Sync master checkbox with individual row checkboxes
-    const allChecked = staffs.every((staff) => checkedRows[staff.id]);
-    setMasterChecked(allChecked);
-  }, [checkedRows]);
-
-  const handleRowCheckboxChange = (id) => {
-    const updatedCheckedRows = {
-      ...checkedRows,
-      [id]: !checkedRows[id],
-    };
-    setCheckedRows(updatedCheckedRows);
-  };
-
-  const toggleNewStaff = () => {
-    setIsNewStaff((prev) => !prev);
+  const toggleNewSupplier = () => {
+    setIsNewSupplier((prev) => !prev);
   };
 
   useEffect(() => {
@@ -113,14 +67,35 @@ const StaffManagementPage = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const toggleFilterDropdown = () => {
-    setIsFilterOpen((prev) => !prev);
+  const handleMasterCheckboxChange = () => {
+    const newMasterChecked = !masterChecked;
+    setMasterChecked(newMasterChecked);
+
+    const updatedCheckedRows = {};
+    suppliers.forEach((supplier) => {
+      updatedCheckedRows[supplier.id] = newMasterChecked;
+    });
+    setCheckedRows(updatedCheckedRows);
+  };
+
+  useEffect(() => {
+    // Sync master checkbox with individual row checkboxes
+    const allChecked = suppliers.every((supplier) => checkedRows[supplier.id]);
+    setMasterChecked(allChecked);
+  }, [checkedRows]);
+
+  const handleRowCheckboxChange = (id) => {
+    const updatedCheckedRows = {
+      ...checkedRows,
+      [id]: !checkedRows[id],
+    };
+    setCheckedRows(updatedCheckedRows);
   };
 
   return (
     <div className="w-full h-screen font-nunito bg-[#f7f7f7]">
       <div className="flex p-6 justify-between items-center">
-        <div className="text-2xl font-extrabold">Nhân viên</div>
+        <div className="text-2xl font-extrabold">Nhà cung cấp</div>
         <div className="flex items-center gap-2">
           {isAnyRowChecked && (
             <li
@@ -184,7 +159,7 @@ const StaffManagementPage = () => {
             <input
               className="p-2 bg-transparent outline-none"
               type="text"
-              placeholder="Tìm kiếm tên nhân viên"
+              placeholder="Theo tên, điện thoại"
             />
           </div>
 
@@ -216,42 +191,56 @@ const StaffManagementPage = () => {
                 className="absolute mt-2 w-48 bg-white border border-gray-300 rounded-md shadow-lg divide-y-2"
               >
                 <div className="p-2">
-                  <p className="font-bold m-2 px-2">Sinh nhật</p>
-                  <label className="flex items-center space-x-4 mt-2">
-                    <div className="min-w-[30px]">Từ</div>
-                    <DatePicker
-                      dateFormat="dd/MM/yyyy"
-                      className="border-b-2 focus:border-b-black w-full outline-none"
-                      selected={startDate}
-                      onChange={handleStartDateChange}
-                      selectsStart
-                      startDate={startDate}
-                      endDate={endDate}
+                  <p className="font-bold m-2 px-2">Tổng mua</p>
+                  <label className="flex items-center space-x-2 mt-2">
+                    <div className="w-8">Từ</div>
+                    <input
+                      type="text"
+                      className="form-input border-b-2 focus:border-b-black w-3/4 outline-none"
+                      placeholder="0"
                     />
                   </label>
-                  <label className="flex items-center space-x-4 mt-2">
-                    <div className="min-w-[30px]">Đến</div>
-                    <DatePicker
-                      dateFormat="dd/MM/yyyy"
-                      className="border-b-2 focus:border-b-black w-full outline-none"
-                      selected={endDate}
-                      onChange={handleEndDateChange}
-                      selectsEnd
-                      startDate={startDate}
-                      endDate={endDate}
-                      minDate={startDate}
+                  <label className="flex items-center space-x-2 mt-2">
+                    <div className="w-8">Đến</div>
+                    <input
+                      type="text"
+                      className="form-input border-b-2 ml-2 focus:border-b-black w-3/4 outline-none"
+                      placeholder="9999999999"
+                    />
+                  </label>
+                </div>
+                <div className="p-2">
+                  <p className="font-bold m-2 px-2">Nợ</p>
+                  <label className="flex items-center space-x-2 mt-2">
+                    <div className="w-8">Từ</div>
+                    <input
+                      type="text"
+                      className="form-input border-b-2 focus:border-b-black w-3/4 outline-none"
+                      placeholder="0"
+                    />
+                  </label>
+                  <label className="flex items-center space-x-2 mt-2">
+                    <div className="w-8">Đến</div>
+                    <input
+                      type="text"
+                      className="form-input border-b-2 ml-2 focus:border-b-black w-3/4 outline-none"
+                      placeholder="9999999999"
                     />
                   </label>
                 </div>
                 <div className="p-2">
                   <p className="font-bold m-2 px-2">Trạng thái</p>
                   <label className="flex items-center space-x-2 mt-2">
-                    <input type="checkbox" className="form-checkbox" />
-                    <span>Đang làm việc</span>
+                    <input type="radio" className="form-radio" name ="status"/>
+                    <span>Tất cả</span>
                   </label>
                   <label className="flex items-center space-x-2 mt-2">
-                    <input type="checkbox" className="form-checkbox" />
-                    <span>Đã nghỉ</span>
+                    <input type="radio" className="form-radio" name ="status"/>
+                    <span>Đang hoạt động</span>
+                  </label>
+                  <label className="flex items-center space-x-2 mt-2">
+                    <input type="radio" className="form-radio" name ="status"/>
+                    <span>Ngừng hoạt động</span>
                   </label>
                 </div>
               </div>
@@ -259,7 +248,7 @@ const StaffManagementPage = () => {
           </div>
           <button
             className="flex items-center border rounded-md px-2 shadow-sm bg-black"
-            onClick={toggleNewStaff}
+            onClick={() => setIsNewSupplier(!isNewSupplier)}
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -273,24 +262,30 @@ const StaffManagementPage = () => {
                 clipRule="evenodd"
               />
             </svg>
-            <div className="p-2 text-sm font-bold text-white">Tạo mới</div>
+            <div className="p-2 text-sm font-bold text-white">Nhà cung cấp</div>
           </button>
-          {isNewStaff && <CreateStaffForm toggleNewStaff={toggleNewStaff} />}
+          {isNewSupplier && (
+              <CreateSupplierForm
+                newSupplier={newSupplier}
+                setNewSupplier={setNewSupplier}
+                toggleNewSupplier={toggleNewSupplier}
+              />
+            )}
         </div>
-      </div>
+      </div>    
       <div className="px-6">
-        <StaffList
-          staffs={staffs}
+        <SupplierList
+          suppliers={suppliers}
           masterChecked={masterChecked}
           checkedRows={checkedRows}
           handleMasterCheckboxChange={handleMasterCheckboxChange}
           handleRowCheckboxChange={handleRowCheckboxChange}
-          handleRowClick={handleRowClick}
-          expandedRow={expandedRow}
+          handleRowClick = {handleRowClick}
+          expandedRow = {expandedRow}
         />
       </div>
     </div>
   );
 };
 
-export default StaffManagementPage;
+export default SupplierPage;

@@ -52,6 +52,13 @@ const ROLES = {
     "/home/kitchen",
     "/home/order-booking",
     "/home/order-taking",
+    "/home/purchase-return",
+    "/home/purchase-return/return",
+    "/home/supplier-management",
+    "/home/paysheet",
+    "/home/calendar",
+    "/home/bill",
+    "/home/tableandroom",
   ],
 };
 

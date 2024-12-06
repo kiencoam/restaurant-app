@@ -132,36 +132,35 @@ const OpenPage = () => {
               </svg>
             </button>
             {isAddingNewOpen && (
-              <div className="absolute mt-2 w-4/5 top-4  left-[272px] bg-white border border-gray-300 rounded-md shadow-lg">
-                <div className="border-b-2 bg-[#f0efeb] px-4 py-6 font-bold">
-                  Thêm hàng hóa
-                </div>
+              <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+              <div className="bg-white p-6 rounded-lg shadow-lg w-3/5 h-6/10">
+                <div className="text-xl font-bold mb-4">Thêm hàng hóa</div>
                 <div className="flex pt-3">
                   <div className="flex items-center gap-3">
                     <div className="px-2 py-4 w-28">Mã hàng hóa</div>
                     <input
-                      className="border-b-2 w-64 h-fit"
+                      className="border-b-2 focus:border-b-black w-64 h-fit outline-none"
                       placeholder="Mã tự động sinh"
                     ></input>
                   </div>
                   <div className="flex items-center gap-3 pl-3">
                     <div className="px-2 py-4">Giá vốn</div>
-                    <input className="border-b-2 w-40 h-fit"></input>
+                    <input className="border-b-2 focus:border-b-black outline-none w-40 h-fit"></input>
                   </div>
                 </div>
                 <div className="flex">
                   <div className="flex items-center gap-3">
                     <div className="px-2 py-4 w-28">Tên hàng</div>
-                    <input className="border-b-2 w-64 h-fit"></input>
+                    <input className="border-b-2 focus:border-b-black outline-none w-64 h-fit"></input>
                   </div>
                   <div className="flex items-center gap-3 pl-3">
                     <div className="px-2 py-4">Giá bán</div>
-                    <input className="border-b-2 w-40 h-fit"></input>
+                    <input className="border-b-2 focus:border-b-black outline-none w-40 h-fit"></input>
                   </div>
                 </div>
-                <div className="flex items-center">
+                <div className="flex items-center gap-3">
                   <div className="px-2 py-4 w-28">Loại hàng</div>
-                  <select className="w- h-fit bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
+                  <select className="w-64 h-fit border-b-2 focus:border-b-black outline-none">
                     <option selected>Chọn loại hàng</option>
                     <option value="Type1">Type1</option>
                     <option value="Type2">Type2</option>
@@ -169,23 +168,31 @@ const OpenPage = () => {
                     <option value="Type4">Type4</option>
                   </select>
                 </div>
-                <div className="flex right-0 justify-end pb-8 pr-8">
-                  <div className="flex gap-4">
-                    <button
-                      className="p-2 bg-black rounded-xl font-semibold text-white"
-                      onClick={toggleAddingNewOpen}
+                <div className="flex justify-end gap-3 items-center mt-4">
+                  <button
+                    className="flex pl-2 items-center border rounded-md bg-black "
+                    onClick={toggleAddingNewOpen}
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      height="24px"
+                      viewBox="0 -960 960 960"
+                      width="24px"
+                      fill="#FFFFFF"
                     >
-                      Lưu
-                    </button>
-                    <button
-                      className="p-2 border rounded-xl"
-                      onClick={toggleAddingNewOpen}
-                    >
-                      Hủy
-                    </button>
-                  </div>
+                      <path d="M840-680v480q0 33-23.5 56.5T760-120H200q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h480l160 160Zm-80 34L646-760H200v560h560v-446ZM480-240q50 0 85-35t35-85q0-50-35-85t-85-35q-50 0-85 35t-35 85q0 50 35 85t85 35ZM240-560h360v-160H240v160Zm-40-86v446-560 114Z" />
+                    </svg>
+                    <div className="p-2 text-white  rounded right-0">Lưu</div>
+                  </button>
+                  <button
+                    className="p-2 rounded right-0"
+                    onClick={toggleAddingNewOpen}
+                  >
+                    Hủy
+                  </button>
                 </div>
               </div>
+            </div>
             )}
           </div>
         </div>
