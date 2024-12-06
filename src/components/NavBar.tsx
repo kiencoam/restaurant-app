@@ -1,16 +1,19 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import Logout from "./Logout";
-import Link from "next/link";
+import { useContext, useState } from "react";
 import { hasPermission } from "@/auth";
+import Link from "next/link";
 import Image from "next/image";
-import { useState } from "react";
+import Logout from "./Logout";
+import { loginUserContext } from "./LoginUserProvider";
 
-const NavBar = ({ role }) => {
+const NavBar = () => {
   const pathname = usePathname();
 
   const [toggle, setToggle] = useState(false);
+
+  const role = useContext(loginUserContext).role;
 
   return (
     <div className="fixed left-0 top-0 flex flex-col min-h-screen w-[256px] p-2 justify-between items-center bg-[#262626] font-title font-[500] tracking-tight text-navtext">
