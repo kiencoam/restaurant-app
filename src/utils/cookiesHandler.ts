@@ -16,10 +16,10 @@ export const getRole = async (): Promise<string> => {
   return payload.scope;
 };
 
-export const getUser = async (): Promise<{ userId: number; role: string }> => {
+export const getUser = async (): Promise<{ id: number; role: string }> => {
   const tokenValue = await getTokenValue();
   const payload = decodeJWT(tokenValue);
-  return { userId: payload.sub, role: payload.scope };
+  return { id: payload.sub, role: payload.scope };
 };
 
 export const setToken = (token: string) => {

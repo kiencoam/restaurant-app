@@ -17,10 +17,10 @@ export default function RootLayout({
   const cookieStore = cookies();
   const token = cookieStore.get("token");
 
-  let user = null;
+  let user: { id: number; role: string } = null;
   if (token) {
     const payload = decodeJWT(token.value);
-    user = { userId: payload.sub, role: payload.scope };
+    user = { id: payload.sub, role: payload.scope };
   }
 
   return (

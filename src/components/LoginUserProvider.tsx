@@ -1,9 +1,9 @@
 "use client";
 
-import { createContext, useContext } from "react";
+import { createContext } from "react";
 
 export const loginUserContext = createContext<{
-  userId: number;
+  id: number;
   role: string;
 } | null>(null);
 
@@ -12,7 +12,7 @@ const loginUserProvider = ({
   user,
 }: {
   children: React.ReactNode;
-  user: { userId: number; role: string };
+  user: { id: number; role: string };
 }) => {
   return (
     <loginUserContext.Provider value={user}>
