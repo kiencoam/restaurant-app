@@ -1,7 +1,5 @@
 "use client";
-
-import React, { useState, useEffect, useRef } from "react";
-
+import React, { useState, useEffect, useRef, useCallback } from "react";
 
 import { getAllProducts, GetProductRequest, ProductEntity, updateProduct, UpdateProductRequest } from "../../api-client/ProductService";
 import ProductForm from "./ProductForm";
@@ -16,25 +14,26 @@ const ProductsPage = () => {
   const [flyOutActions, setFlyOutActions] = useState(false);
 
   const [expandedRow, setExpandedRow] = useState(null);
+
   const [pageSize, setpageSize] = useState(5); // Default to showing 5 rows
+
   const [totalRecords, setTotalRecords] = useState(null);
+
   const [currentPage, setCurrentPage] = useState(1);
-  const [productStatus, setProductStatus] = useState(null);
-  const [priceRange, setPriceRange] = useState([null, null]);
 
   const [editingRow, setEditingRow] = useState(null); // Track the currently editing row
+
   const [checkedRows, setCheckedRows] = useState({});
+
   const [masterChecked, setMasterChecked] = useState(false);
-  const [productType, setProductType] = useState(""); // State to manage filter for 'Loại thực đơn'
+
   const [isFilterOpen, setIsFilterOpen] = useState(false);
 
   const [isAddingNewOpen, setIsAddingNewOpen] = useState(false);
 
   const [getProductRequest, setGetProductRequest] = useState<GetProductRequest>({
     page: 0,
-
-    pageSize: 10,
-
+    pageSize: 15,
     name: "",
     status: "",
     priceFrom: null,
@@ -51,59 +50,41 @@ const ProductsPage = () => {
     console.log(getProductRequest)
   }
 
-
+  const buildQueryParams = useCallback(() => {
+    let queryParams = `page=${getProductRequest.page}&page_size=${getProductRequest.pageSize}`
+    if (getProductRequest.name.trim() !== "") {
+      queryParams = queryParams.concat(`&name=${getProductRequest.name}`)
+    }
+    if (getProductRequest.status) {
+      queryParams = queryParams.concat(`&status=${getProductRequest.status}`)
+    }
+    if (getProductRequest.priceFrom) {
+      queryParams = queryParams.concat(`&price_from=${getProductRequest.priceFrom}`)
+    }
+    if (getProductRequest.priceTo) {
+      queryParams = queryParams.concat(`&price_to=${getProductRequest.priceTo}`)
+    }
+    if (getProductRequest.sortBy) {
+      queryParams = queryParams.concat(`&sort_by=${getProductRequest.sortBy}`)
+    }
+    if (getProductRequest.sortType) {
+      queryParams = queryParams.concat(`&sort_type=${getProductRequest.sortType}`)
+    }
+    return queryParams;
+  }, [getProductRequest])
 
 
   useEffect(() => {
-    // fecthProducts()
+    const fecthProducts = (queryParams) => {
+      getAllProducts(queryParams).then(res => setProducts(res.second))
+    }
 
-    setProducts([
-      {
-        id: 1,
-        name: "Thuốc lá Kent HD",
-        code: "SP000001",
-        description: "Thuốc lá Kent HD",
-        costPrice: 20500,
-        sellingPrice: 30000,
-        thumbnailImg:
-          "https://cleverads.vn/blog/wp-content/uploads/2023/10/thi-truong-healthy-food-1.jpg",
-        status: "sale",
-        productType: "Khác",
-        stock: {
-          id: 1,
-          availableQuantity: 1000,
-          soldQuantity: 0,
-          productId: 1
-        },
-      },
-      {
-        id: 2,
-        name: "Thuốc lá Marlboro",
-        code: "SP000002",
-        costPrice: 22500,
-        description: "Thuốc lá Marlboro",
-        sellingPrice: 35000,
-        thumbnailImg: "",
-        status: "stop",
-        productType: "Khác",
-        stock: {
-          id: 2,
-          soldQuantity: 0,
-          productId: 2,
-          availableQuantity: 1500,
-        },
-      },
-    ]);
-  }, [])
+    fecthProducts(buildQueryParams())
 
-  const fecthProducts = async () => {
-    getAllProducts("").then(res => setProducts(res))
-  }
+  }, [buildQueryParams])
+
 
   console.log("products", products);
-
-  console.log("expandedRow");
-
 
   const filterRef = useRef(null);
 
@@ -219,16 +200,12 @@ const ProductsPage = () => {
         <div className="flex items-center gap-2">
           {isAnyRowChecked && (
             <li
-
-              className="lg:px-8 relative flex items-center space-x-1"
-
+              className="p-4 lg:px-8 relative flex items-center space-x-1"
               onMouseEnter={() => setFlyOutActions(true)}
               onMouseLeave={() => setFlyOutActions(false)}
             >
               <a
-
-                className="p-2 text-center hover:text-slate-900 h-[38px]"
-
+                className="text-slate-800 hover:text-slate-900"
                 aria-expanded={flyOutActions}
               >
                 Thao tác
@@ -336,13 +313,15 @@ const ProductsPage = () => {
             </svg>
             <div className="p-2 text-sm font-bold text-white">Tạo mới</div>
           </button>
-
-          {isAddingNewOpen && <ProductForm toggleAddingNewOpen={toggleAddingNewOpen} />}
+          {isAddingNewOpen &&
+            <ProductForm
+              toggleAddingNewOpen={toggleAddingNewOpen}
+              setProducts={setProducts}
+            />}
         </div>
       </div>
 
-      <ProductList 
-
+      <ProductList
         masterChecked={masterChecked}
         products={products}
         handleMasterCheckboxChange={handleMasterCheckboxChange}
