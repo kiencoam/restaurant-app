@@ -9,6 +9,9 @@ export type OrderEntity = {
     checkInTime?: string;
     checkOutTime?: string;
     paymentId?: number;
+    totalPrice?: number;
+    promotion?: number;
+    needToPay?: number;
     paymentMethod?: string;
     orderItems: OrderItemEntity[];
     orderTables: OrderTableEntity[];

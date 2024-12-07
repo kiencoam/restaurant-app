@@ -11,24 +11,11 @@ import { Ordered } from "@/components/Ordered";
 import { Prepared } from "@/components/Prepared";
 import { MenuItemEntity, TableEntity } from "../order-taking/entity";
 import { useEffect, useState, useCallback } from "react";
-
-import { updateOrderItemKitchen, UpdateOrderItemKitchenStatusRequest } from "@/app/api-client/OrderItemKitchenService";
+import { OrderItemKitchenEntity, updateOrderItemKitchen, UpdateOrderItemKitchenStatusRequest } from "@/app/api-client/OrderItemKitchenService";
 import { getAllOrders } from "@/app/api-client/OrderService";
 
 // giống type trong OrderItemKitchenService.ts nhưng receiveTime là Date
 // nên sửa lại entity trong OrderItemKitchenService.ts rồi import ở đây
-type OrderItemKitchenEntity = {
-  id: number;
-  orderId: number;
-  tableId: number;
-  menuItemId: number;
-  quantity: number;
-  status: string;
-  note?: string;
-  receivedTime: Date;
-  menuItem: MenuItemEntity;
-  table: TableEntity;
-};
 
 const samplePendingKitchenItems: OrderItemKitchenEntity[] = [
   {

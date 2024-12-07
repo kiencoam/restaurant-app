@@ -1,11 +1,130 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
-import { UserEntity } from "./data";
-import CreateStaffForm from "./create-staff-form";
-import StaffList from "./staff-list";
+import { SalaryPeriodEntity, UserEntity } from "./data";
+import CreatePaysheet from "./create-paysheet";
+import PaysheetList from "./paysheet-list";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+
+const salaryPeriods: SalaryPeriodEntity[] = [
+  {
+    id: 1,
+    code: "BL001",
+    title: "Kỳ lương Tháng 11",
+    fromDate: "01/11/2024",
+    toDate: "30/11/2024",
+    totalSalary: 40000000,
+    paidSalary: 0,
+    status: "PROCESSING",
+    salaryDetails: [
+      {
+        id: 1,
+        code: "PL001",
+        userId: 1,
+        userName: "Nguyễn Văn A",
+        salaryPeriodId: 1,
+        totalWorkingDays: 29,
+        totalWorkingHours: 0,
+        totalSalary: 40000000,
+        paidSalary: 0,
+        status: "Chưa thanh toán",
+        paymentMethod: "Chuyển khoản",
+        user: {
+          id: 1,
+          name: "Nguyễn Văn A",
+          phoneNumber: "0123456789",
+          email: "nguyenvana@gmail.com",
+          password: "123",
+          address: "Hà Nội",
+          dob: "01/01/1990",
+          gender: "male",
+          roleId: 1,
+          position: "ADMIN",
+          salaryType: "DAILY",
+          salaryPerHour: 0,
+          salaryPerMonth: 40000000,
+          status: "IN",
+          note: "Newbie",
+        },
+      },
+      {
+        id: 2,
+        code: "PL002",
+        userId: 2,
+        userName: "Nguyễn Văn B",
+        salaryPeriodId: 1,
+        totalWorkingDays: 20,
+        totalWorkingHours: 0,
+        totalSalary: 25000000,
+        paidSalary: 0,
+        status: "Chưa thanh toán",
+        paymentMethod: "Tiền mặt",
+        user: {
+          id: 2,
+          name: "Nguyễn Văn B",
+          phoneNumber: "0123456789",
+          email: "nguyenvanb@gmail.com",
+          password: "123",
+          address: "Hà Nội",
+          dob: "01/01/1990",
+          gender: "female",
+          roleId: 1,
+          position: "CHEF",
+          salaryType: "DAILY",
+          salaryPerHour: 0,
+          salaryPerMonth: 25000000,
+          status: "IN",
+          note: "Con giam doc",
+        },
+      },
+    ],
+    updatedTime: "30/11/2024 14:00:35",
+  },
+  {
+    id: 2,
+    code: "BL002",
+    title: "Kỳ lương Tháng 10",
+    fromDate: "01/10/2024",
+    toDate: "31/10/2024",
+    totalSalary: 120000000,
+    paidSalary: 120000000,
+    status: "DONE",
+    salaryDetails: [
+      {
+        id: 1,
+        code: "PL003",
+        userId: 3,
+        userName: "Nguyễn Văn C",
+        salaryPeriodId: 2,
+        totalWorkingDays: 0,
+        totalWorkingHours: 248,
+        totalSalary: 12400000,
+        paidSalary: 12400000,
+        status: "Đã thanh toán",
+        paymentMethod: "Chuyển khoản",
+        user: {
+          id: 3,
+          name: "Nguyễn Văn C",
+          phoneNumber: "0123436789",
+          email: "nguyenvanc@gmail.com",
+          password: "123",
+          address: "Hà Nội",
+          dob: "02/02/1999",
+          gender: "male",
+          roleId: 1,
+          position: "CASHIER",
+          salaryType: "HOURLY",
+          salaryPerHour: 50000,
+          salaryPerMonth: 0,
+          status: "IN",
+          note: "Con nuoi giam doc",
+        },
+      },
+    ],
+    updatedTime: "31/10/2024 12:52:30",
+  },
+];
 
 const staffs: UserEntity[] = [
   {
@@ -19,9 +138,9 @@ const staffs: UserEntity[] = [
     gender: "male",
     roleId: 1,
     position: "ADMIN",
-    salaryType: "HOURLY",
-    salaryPerHour: 15000,
-    salaryPerMonth: 0,
+    salaryType: "DAILY",
+    salaryPerHour: 0,
+    salaryPerMonth: 40000000,
     status: "IN",
     note: "Newbie",
   },
@@ -32,37 +151,81 @@ const staffs: UserEntity[] = [
     email: "nguyenvanb@gmail.com",
     password: "123",
     address: "Hà Nội",
-    dob: "01/02/1989",
+    dob: "01/01/1990",
     gender: "female",
     roleId: 1,
     position: "CHEF",
-    salaryType: "DAYLY",
+    salaryType: "DAILY",
+    salaryPerHour: 0,
+    salaryPerMonth: 25000000,
+    status: "IN",
+    note: "Con giam doc",
+  },
+  {
+    id: 3,
+    name: "Nguyễn Văn C",
+    phoneNumber: "0123436789",
+    email: "nguyenvanc@gmail.com",
+    password: "123",
+    address: "Hà Nội",
+    dob: "02/02/1999",
+    gender: "male",
+    roleId: 1,
+    position: "CASHIER",
+    salaryType: "HOURLY",
+    salaryPerHour: 50000,
+    salaryPerMonth: 0,
+    status: "IN",
+    note: "Con nuoi giam doc",
+  },
+  {
+    id: 4,
+    name: "Nguyễn xx",
+    phoneNumber: "0123436781",
+    email: "nguyenxx@gmail.com",
+    password: "123",
+    address: "Hà Nội",
+    dob: "01/01/2004",
+    gender: "male",
+    roleId: 1,
+    position: "WAITER",
+    salaryType: "HOURLY",
+    salaryPerHour: 50000,
+    salaryPerMonth: 0,
+    status: "IN",
+    note: "Con nuoi giam doc",
+  },
+  {
+    id: 5,
+    name: "Trần xx",
+    phoneNumber: "0123436781",
+    email: "tranxx@gmail.com",
+    password: "1234",
+    address: "Hà Nội",
+    dob: "01/01/1995",
+    gender: "male",
+    roleId: 1,
+    position: "MANAGER",
+    salaryType: "DAILY",
     salaryPerHour: 0,
     salaryPerMonth: 15000000,
-    status: "OUT",
-    note: "Con giam doc",
+    status: "IN",
+    note: "Con nuoi giam doc",
   },
 ];
 
-const StaffManagementPage = () => {
+const PaysheetPage = () => {
   const [masterChecked, setMasterChecked] = useState(false);
-  const [isNewStaff, setIsNewStaff] = useState(false);
+  const [isNewPaysheet, setIsNewPaysheet] = useState(false);
   const [checkedRows, setCheckedRows] = useState({});
   const [flyOutActions, setFlyOutActions] = useState(false);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const filterRef = useRef(null);
   const [expandedRow, setExpandedRow] = useState(null);
+  const [searchUser, setSearchUser] = useState("");
 
   const [startDate, setStartDate] = useState(new Date("2014/01/01"));
   const [endDate, setEndDate] = useState(new Date("2025/12/31"));
-
-  const handleStartDateChange = (date) => {
-    setStartDate(date);
-  };
-
-  const handleEndDateChange = (date) => {
-    setEndDate(date);
-  };
 
   const isAnyRowChecked = Object.values(checkedRows).some(Boolean);
 
@@ -99,8 +262,8 @@ const StaffManagementPage = () => {
     setCheckedRows(updatedCheckedRows);
   };
 
-  const toggleNewStaff = () => {
-    setIsNewStaff((prev) => !prev);
+  const toggleNewPaysheet = () => {
+    setIsNewPaysheet((prev) => !prev);
   };
 
   useEffect(() => {
@@ -117,10 +280,38 @@ const StaffManagementPage = () => {
     setIsFilterOpen((prev) => !prev);
   };
 
+  const filterUser: UserEntity[] =
+    searchUser.trim() === ""
+      ? []
+      : staffs.filter((staff) =>
+          staff.name.toLowerCase().includes(searchUser.toLowerCase())
+        );
+
+  const [newPaysheet, setNewPaysheet] = useState<SalaryPeriodEntity>({
+    id: null,
+    code: null,
+    title: null,
+    fromDate: null,
+    toDate: null,
+    totalSalary: null,
+    paidSalary: null,
+    status: null,
+    salaryDetails: null,
+    updatedTime: null,
+  });
+
+  const handleStartDateChange = (date) => {
+    setStartDate(date);
+  };
+
+  const handleEndDateChange = (date) => {
+    setEndDate(date);
+  };
+
   return (
     <div className="w-full h-screen font-nunito bg-[#f7f7f7]">
       <div className="flex p-6 justify-between items-center">
-        <div className="text-2xl font-extrabold">Nhân viên</div>
+        <div className="text-2xl font-extrabold">Bảng lương</div>
         <div className="flex items-center gap-2">
           {isAnyRowChecked && (
             <li
@@ -182,9 +373,9 @@ const StaffManagementPage = () => {
               />
             </svg>
             <input
-              className="p-2 bg-transparent outline-none"
+              className="p-2 bg-transparent outline-none w-60"
               type="text"
-              placeholder="Tìm kiếm tên nhân viên"
+              placeholder="Tên bảng lương, tên nhân viên"
             />
           </div>
 
@@ -216,9 +407,8 @@ const StaffManagementPage = () => {
                 className="absolute mt-2 w-48 bg-white border border-gray-300 rounded-md shadow-lg divide-y-2"
               >
                 <div className="p-2">
-                  <p className="font-bold m-2 px-2">Sinh nhật</p>
-                  <label className="flex items-center space-x-4 mt-2">
-                    <div className="min-w-[30px]">Từ</div>
+                  <p className="font-bold m-2 px-2">Thời gian</p>
+                  <label className="flex items-center space-x-2 mt-2">
                     <DatePicker
                       dateFormat="dd/MM/yyyy"
                       className="border-b-2 focus:border-b-black w-full outline-none"
@@ -229,8 +419,7 @@ const StaffManagementPage = () => {
                       endDate={endDate}
                     />
                   </label>
-                  <label className="flex items-center space-x-4 mt-2">
-                    <div className="min-w-[30px]">Đến</div>
+                  <label className="flex items-center space-x-2 mt-2">
                     <DatePicker
                       dateFormat="dd/MM/yyyy"
                       className="border-b-2 focus:border-b-black w-full outline-none"
@@ -247,11 +436,11 @@ const StaffManagementPage = () => {
                   <p className="font-bold m-2 px-2">Trạng thái</p>
                   <label className="flex items-center space-x-2 mt-2">
                     <input type="checkbox" className="form-checkbox" />
-                    <span>Đang làm việc</span>
+                    <span>Tạm tính</span>
                   </label>
                   <label className="flex items-center space-x-2 mt-2">
                     <input type="checkbox" className="form-checkbox" />
-                    <span>Đã nghỉ</span>
+                    <span>Đã chốt lương</span>
                   </label>
                 </div>
               </div>
@@ -259,7 +448,7 @@ const StaffManagementPage = () => {
           </div>
           <button
             className="flex items-center border rounded-md px-2 shadow-sm bg-black"
-            onClick={toggleNewStaff}
+            onClick={toggleNewPaysheet}
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -275,12 +464,21 @@ const StaffManagementPage = () => {
             </svg>
             <div className="p-2 text-sm font-bold text-white">Tạo mới</div>
           </button>
-          {isNewStaff && <CreateStaffForm toggleNewStaff={toggleNewStaff} />}
+          {isNewPaysheet && (
+            <CreatePaysheet
+              toggleNewPaysheet={toggleNewPaysheet}
+              filterUser={filterUser}
+              searchUser={searchUser}
+              setSearchUser={setSearchUser}
+              newPaysheet={newPaysheet}
+              setNewPaysheet={setNewPaysheet}
+            />
+          )}
         </div>
       </div>
       <div className="px-6">
-        <StaffList
-          staffs={staffs}
+        <PaysheetList
+          paysheets={salaryPeriods}
           masterChecked={masterChecked}
           checkedRows={checkedRows}
           handleMasterCheckboxChange={handleMasterCheckboxChange}
@@ -293,4 +491,4 @@ const StaffManagementPage = () => {
   );
 };
 
-export default StaffManagementPage;
+export default PaysheetPage;

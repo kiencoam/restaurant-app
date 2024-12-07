@@ -5,6 +5,8 @@ import PurchaseOrderTable from "./PurchaseOrderTable"
 import PurchaseOrderFilter from "./PurchaseOrderFilter";
 import { getAllStockHistories, StockHistoryEntity } from "@/app/api-client/StockHistoryService";
 import dayjs from "dayjs";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 
 const PurchaseOrderPage = () => {
   const [stockHistories, setStockHistories] = useState<StockHistoryEntity[]>([])
@@ -22,8 +24,8 @@ const PurchaseOrderPage = () => {
     userName: "",
     productName: "",
     note: "",
-    fromDate: "",
-    toDate: "",
+    fromDate: new Date("2014/01/01"),
+    toDate: new Date("2025/12/31"),
   });
 
 
@@ -36,8 +38,8 @@ const PurchaseOrderPage = () => {
   };
 
 
-  const formatDate = (date: string) => {
-    if (!date) return null;
+  const formatDate = (date: Date) => {
+    if (!date) return null; // Kiểm tra đầu vào
     return dayjs(date).format("YYYY-MM-DD HH:mm:ss");
   };
 
@@ -86,13 +88,41 @@ const PurchaseOrderPage = () => {
 
 
   console.log("Stock Histories", stockHistories);
+
   const filterRef = useRef(null);
+
   // Hàm xử lý thay đổi bộ lọc
   const handleFilterChange = (updatedFilters) => {
     setGetStockHistoryRequest((prevState) => ({
       ...prevState,
       ...updatedFilters,
     }));
+  }
+
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [rowsPerPage, setRowsPerPage] = useState(5);
+
+  // Calculate total pages
+  const totalPages = Math.ceil(stockHistories.length / rowsPerPage);
+
+  // Get current page rows
+  const startIndex = (currentPage - 1) * rowsPerPage;
+  const currentRowsData = stockHistories.slice(
+    startIndex,
+    startIndex + rowsPerPage
+  );
+
+  // Handle page change
+  const changePage = (newPage) => {
+    if (newPage >= 1 && newPage <= totalPages) {
+      setCurrentPage(newPage);
+    }
+  };
+
+  //Handle rowsPerPage change
+  const changeRowsPerPage = (rows) => {
+    setRowsPerPage(rows);
   };
   // // Toggle row expansion
   // const toggleRowExpansion = (code) => {
@@ -102,11 +132,11 @@ const PurchaseOrderPage = () => {
   //   }));
   // };
 
-  const handleRowClick = (code) => {
-    if (expandedRows === code) {
+  const handleRowClick = (id) => {
+    if (expandedRows === id) {
       setExpandedRows(null); // Collapse the row if it's already expanded
     } else {
-      setExpandedRows(code); // Expand the clicked row
+      setExpandedRows(id); // Expand the clicked row
     }
   };
 
@@ -142,7 +172,6 @@ const PurchaseOrderPage = () => {
             toggleSearchOptions={toggleSearchOptions}
             handleFilterChange={handleFilterChange} // Truyền hàm xử lý thay đổi bộ lọc
           />
-
           <Link href="/home/purchase-order/new">
             <button className="flex items-center border rounded-md px-2 shadow-sm bg-black">
               <svg
@@ -166,13 +195,61 @@ const PurchaseOrderPage = () => {
       {/* Content */}
       <div className="p-6">
         <PurchaseOrderTable
-          data={stockHistories}
+          data={currentRowsData}
           expandedRows={expandedRows}
           handleRowClick={handleRowClick}
         />
+        <div className="flex items-center space-x-8 mt-4 ml-[24px]">
+          <div className="flex">
+            <div>Số bản ghi: </div>
+            <select
+              className="bg-[#f7f7f7] outline-none"
+              value={rowsPerPage}
+              onChange={(e) => changeRowsPerPage(Number(e.target.value))}
+            >
+              {/* <option defaultValue={rowsPerPage}>{rowsPerPage}</option> */}
+              <option value={5}>5</option>
+              <option value={10}>10</option>
+              <option value={15}>15</option>
+              <option value={20}>20</option>
+            </select>
+          </div>
+          <div className="flex space-x-2">
+            <button
+              onClick={() => changePage(currentPage - 1)}
+              disabled={currentPage === 1}
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                height="24px"
+                viewBox="0 -960 960 960"
+                width="24px"
+                fill="#000000"
+              >
+                <path d="m313-440 224 224-57 56-320-320 320-320 57 56-224 224h487v80H313Z" />
+              </svg>
+            </button>
+            <span>
+              Page {currentPage} of {totalPages}
+            </span>
+            <button
+              onClick={() => changePage(currentPage + 1)}
+              disabled={currentPage === totalPages}
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                height="24px"
+                viewBox="0 -960 960 960"
+                width="24px"
+                fill="#000000"
+              >
+                <path d="M647-440H160v-80h487L423-744l57-56 320 320-320 320-57-56 224-224Z" />
+              </svg>
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );
 }
-
 export default PurchaseOrderPage;

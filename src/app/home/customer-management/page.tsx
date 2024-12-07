@@ -3,6 +3,8 @@ import React, { useState, useEffect, useRef } from "react";
 import CreateCustomerForm from "./create-customer-form";
 import { CustomerEntity } from "./data";
 import CustomerList from "./customer-list";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 
 const customers: CustomerEntity[] = [
   {
@@ -14,7 +16,7 @@ const customers: CustomerEntity[] = [
     dob: "1990-01-01",
     gender: "male",
     totalCost: "1000000",
-    note: "hay bung tien"
+    note: "hay bung tien",
   },
   {
     id: 6,
@@ -70,7 +72,8 @@ const CustomerManagementPage = () => {
   const filterRef = useRef(null);
   const [isNewCustomer, setIsNewCustomer] = useState(false);
   const [expandedRow, setExpandedRow] = useState(null);
-
+  const [startDate, setStartDate] = useState(new Date("2014/01/01"));
+  const [endDate, setEndDate] = useState(new Date("2025/12/31"));
 
   const handleRowClick = (id) => {
     if (expandedRow === id) {
@@ -80,8 +83,6 @@ const CustomerManagementPage = () => {
     }
   };
 
-
-  
   const toggleFilterDropdown = () => {
     setIsFilterOpen((prev) => !prev);
   };
@@ -105,7 +106,7 @@ const CustomerManagementPage = () => {
     setMasterChecked(newMasterChecked);
 
     const updatedCheckedRows = {};
-    customers.forEach(customer => {
+    customers.forEach((customer) => {
       updatedCheckedRows[customer.id] = newMasterChecked;
     });
     setCheckedRows(updatedCheckedRows);
@@ -113,7 +114,7 @@ const CustomerManagementPage = () => {
 
   useEffect(() => {
     // Sync master checkbox with individual row checkboxes
-    const allChecked = customers.every(customer => checkedRows[customer.id]);
+    const allChecked = customers.every((customer) => checkedRows[customer.id]);
     setMasterChecked(allChecked);
   }, [checkedRows]);
 
@@ -124,6 +125,13 @@ const CustomerManagementPage = () => {
     };
     setCheckedRows(updatedCheckedRows);
   };
+  const handleStartDateChange = (date) => {
+    setStartDate(date);
+  };
+
+  const handleEndDateChange = (date) => {
+    setEndDate(date);
+  };
 
   return (
     <div className="w-full h-screen font-nunito bg-[#f7f7f7]">
@@ -132,7 +140,7 @@ const CustomerManagementPage = () => {
         <div className="flex items-center gap-2">
           {isAnyRowChecked && (
             <li
-              className="p-4 lg:px-8 relative flex items-center space-x-1"
+              className="lg:px-8 relative flex items-center space-x-1"
               onMouseEnter={() => setFlyOutActions(true)}
               onMouseLeave={() => setFlyOutActions(false)}
             >
@@ -225,18 +233,29 @@ const CustomerManagementPage = () => {
               >
                 <div className="p-2">
                   <p className="font-bold m-2 px-2">Sinh nhật</p>
-                  <label className="flex items-center space-x-2 mt-2">
-                    <input
-                      type="text"
-                      className="form-input border-b-2 focus:border-b-black w-full outline-none"
-                      placeholder="Từ dd/mm/yyyy"
+                  <label className="flex items-center space-x-4 mt-2">
+                    <div className="min-w-[30px]">Từ</div>
+                    <DatePicker
+                      dateFormat="dd/MM/yyyy"
+                      className="border-b-2 focus:border-b-black w-full outline-none"
+                      selected={startDate}
+                      onChange={handleStartDateChange}
+                      selectsStart
+                      startDate={startDate}
+                      endDate={endDate}
                     />
                   </label>
-                  <label className="flex items-center space-x-2 mt-2">
-                    <input
-                      type="text"
-                      className="form-input border-b-2 focus:border-b-black w-full outline-none"
-                      placeholder="Đến dd/mm/yyyy"
+                  <label className="flex items-center space-x-4 mt-2">
+                    <div className="min-w-[30px]">Đến</div>
+                    <DatePicker
+                      dateFormat="dd/MM/yyyy"
+                      className="border-b-2 focus:border-b-black w-full outline-none"
+                      selected={endDate}
+                      onChange={handleEndDateChange}
+                      selectsEnd
+                      startDate={startDate}
+                      endDate={endDate}
+                      minDate={startDate}
                     />
                   </label>
                 </div>
@@ -288,15 +307,15 @@ const CustomerManagementPage = () => {
         </div>
       </div>
       <div className="px-6">
-      <CustomerList
-        customers={customers}
-        masterChecked={masterChecked}
-        checkedRows={checkedRows}
-        handleMasterCheckboxChange={handleMasterCheckboxChange}
-        handleRowCheckboxChange={handleRowCheckboxChange}
-        handleRowClick = {handleRowClick}
-        expandedRow = {expandedRow}
-      />
+        <CustomerList
+          customers={customers}
+          masterChecked={masterChecked}
+          checkedRows={checkedRows}
+          handleMasterCheckboxChange={handleMasterCheckboxChange}
+          handleRowCheckboxChange={handleRowCheckboxChange}
+          handleRowClick={handleRowClick}
+          expandedRow={expandedRow}
+        />
       </div>
     </div>
   );

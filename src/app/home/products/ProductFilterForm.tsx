@@ -8,48 +8,39 @@ export default function ProductFilterForm({ filterRef, getProductRequest, handle
                 <div className="p-2">
                     <p className="font-bold m-2 px-2">Loại hàng hóa</p>
                     <label className="flex items-center space-x-2 mt-2">
-                        <input type="radio" className="form-radio" value="INGREDIENT" name="productType"
-                            onChange={(e) => handleProductFilterChange(e, "productType")}
-                        />
-                        <span>Nguyên liệu thô</span>
+
+                        <input type="radio" className="form-radio" name = "type_product"/>
+                        <span>Hàng hóa thường</span>
                     </label>
                     <label className="flex items-center space-x-2 mt-2">
-                        <input type="radio" className="form-radio" value="READY_TO_EAT" name="productType"
-                            onChange={(e) => handleProductFilterChange(e, "productType")} />
-                        <span>Chế biến sẵn</span>
+                        <input type="radio" className="form-radio" name = "type_product" />
+                        <span>Chế biến</span>
                     </label>
                     <label className="flex items-center space-x-2 mt-2">
-                        <input type="radio" className="form-radio" value="PROCESSED_FOOD" name="productType"
-                            onChange={(e) => handleProductFilterChange(e, "productType")} />
-                        <span>Món ăn chế biến</span>
+                        <input type="radio" className="form-radio" name = "type_product"/>
+                        <span>Dịch vụ</span>
                     </label>
                     <label className="flex items-center space-x-2 mt-2">
-                        <input type="radio" className="form-radio" value="DRINK" name="productType"
-                            onChange={(e) => handleProductFilterChange(e, "productType")} />
-                        <span>Đồ uống</span>
-                    </label>
-                    <label className="flex items-center space-x-2 mt-2">
-                        <input type="radio" className="form-radio" value="UTELSILS" name="productType"
-                            onChange={(e) => handleProductFilterChange(e, "productType")} />
-                        <span>Dụng cụ</span>
-                    </label>
-                    <label className="flex items-center space-x-2 mt-2">
-                        <input type="radio" className="form-radio" value="OTHER" name="productType"
-                            onChange={(e) => handleProductFilterChange(e, "productType")} />
-                        <span>Khác</span>
+                        <input type="radio" className="form-radio" name = "type_product"/>
+                        <span>Combo - Đóng gói</span>
+
                     </label>
                 </div>
                 <div className="p-2">
                     <p className="font-bold ml-2 px-2">Tình trạng</p>
                     <label className="flex items-center space-x-2 mt-2">
-                        <input type="radio" className="form-radio" value="ACTIVE" name="status"
+
+                        <input value={"ACTIVE"} type="radio" className="form-radio" name = "status"
+
                             onChange={(e) => handleProductFilterChange(e, "status")}
                         />
                         <span>Đang kinh doanh</span>
                     </label>
                     <label className="flex items-center space-x-2 mt-2">
                         <input
-                            type="radio" className="form-radio" value="INACTIVE" name="status"
+
+                            value={"INACTIVE"} type="radio" className="form-radio" name = "status"
+
                             onChange={(e) => handleProductFilterChange(e, "status")}
                         />
                         <span>Ngừng kinh doanh</span>

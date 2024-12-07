@@ -10,6 +10,8 @@ import StockHistoryInfo from "./StockHistoryInfo";
 
 
 const OpenPage = ({ params }: { params: { open: string } }) => {
+  //lấy [open] làm code 
+  //sửa middleware trước khi test vì không mở được dynamic route
   const [stockHistory, setStockHistory] = useState<StockHistoryEntity>(null)
 
   const [isAddingNewOpen, setIsAddingNewOpen] = useState(false);
@@ -240,7 +242,6 @@ const OpenPage = ({ params }: { params: { open: string } }) => {
             {isAddingNewOpen &&
               <ProductForm
                 toggleAddingNewOpen={toggleAddingNewOpen}
-                setProducts={setProducts}
               />}
           </div>
         </div>

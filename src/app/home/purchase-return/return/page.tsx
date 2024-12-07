@@ -97,7 +97,7 @@ const ReturnPage = () => {
       {/* Left section for table and search bar */}
       <div className="p-6">
         <div className="flex items-center gap-2 ">
-        <Link href = "/home/purchase-order/">
+        <Link href = "/home/purchase-return/">
           <button
             className="hover:bg-gray-400"
             data-tooltip-id="my-tooltip"

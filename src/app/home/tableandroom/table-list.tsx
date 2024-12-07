@@ -1,28 +1,17 @@
 import { formatDateTime } from "@/utils/timeUtils";
 import React, { useState } from "react";
 
-export default function CustomerList({
-  customers,
-  masterChecked,
-  checkedRows,
-  handleMasterCheckboxChange,
-  handleRowCheckboxChange,
-  handleRowClick,
-  expandedRow,
-}) {
+export default function TableList({ tables, handleRowClick, expandedRow }) {
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(5);
 
   // Calculate total pages
-  const totalPages = Math.ceil(customers.length / rowsPerPage);
+  const totalPages = Math.ceil(tables.length / rowsPerPage);
 
   // Get current page rows
   const startIndex = (currentPage - 1) * rowsPerPage;
-  const currentRowsCustomers = customers.slice(
-    startIndex,
-    startIndex + rowsPerPage
-  );
+  const currentRowsTables = tables.slice(startIndex, startIndex + rowsPerPage);
 
   // Handle page change
   const changePage = (newPage) => {
@@ -41,99 +30,75 @@ export default function CustomerList({
       <table className="min-w-full bg-white border border-gray-200 mt-6">
         <thead>
           <tr className="bg-[#f7fafc] border-b-2">
-            <th className="px-4 py-2 border-b text-left">
-              <input
-                type="checkbox"
-                checked={masterChecked}
-                onChange={handleMasterCheckboxChange}
-              />
-            </th>
-            <th className="px-4 py-2 border-b text-left">Mã khách hàng</th>
-            <th className="px-4 py-2 border-b text-left">Tên khách hàng</th>
-            <th className="px-4 py-2 border-b text-left">Điện thoại</th>
-            <th className="px-4 py-2 border-b text-left">Tổng bán</th>
+            <th className="px-4 py-2 border-b text-left">Mã phòng/bàn</th>
+            <th className="px-4 py-2 border-b text-left">Tên phòng/bàn</th>
+            <th className="px-4 py-2 border-b text-left">Khu vực</th>
+            <th className="px-4 py-2 border-b text-left">Số ghế</th>
+            <th className="px-4 py-2 border-b text-left">Trạng thái</th>
           </tr>
         </thead>
         <tbody>
-          {currentRowsCustomers.map((customer) => (
-            <React.Fragment key={customer.id}>
+          {currentRowsTables.map((table) => (
+            <React.Fragment key={table.id}>
               <tr
-                key={customer.id}
-                className={`hover:bg-gray-100 border-b-2 cursor-pointer ${
-                  checkedRows[customer.id] ? "bg-gray-100" : ""
-                }`}
+                key={table.id}
+                className="hover:bg-gray-100 border-b-2 cursor-pointer"
                 onClick={(e) => {
-                  const target = e.target as HTMLElement; // Cast to HTMLElement
-
-                  // Ignore click on checkboxes and action buttons
-                  if (
-                    (target instanceof HTMLInputElement &&
-                      target.type === "checkbox") ||
-                    target.tagName.toLowerCase() === "button" ||
-                    target.closest("button")
-                  ) {
-                    return;
-                  }
-                  handleRowClick(customer.id); // Expand or collapse row
+                  handleRowClick(table.id); // Expand or collapse row
                 }}
               >
-                <td className="px-4 py-2 border-b">
-                  <input
-                    type="checkbox"
-                    checked={!!checkedRows[customer.id]}
-                    onChange={() => handleRowCheckboxChange(customer.id)}
-                  />
-                </td>
                 <td className="px-4 py-2 border-b text-blue-600">
-                  <button>{customer.id}</button>
+                  <button>{table.id}</button>
                 </td>
-                <td className="px-4 py-2 border-b">{customer.name}</td>
-                <td className="px-4 py-2 border-b">{customer.phoneNumber}</td>
-                <td className="px-4 py-2 border-b">{customer.totalCost}</td>
+                <td className="px-4 py-2 border-b">{table.name}</td>
+                <td className="px-4 py-2 border-b">{table.location}</td>
+                <td className="px-4 py-2 border-b">{table.capacity}</td>
+                <td className="px-4 py-2 border-b">
+                  {table.isActive === true
+                    ? "Đang hoạt động"
+                    : "Ngừng hoạt động"}
+                </td>
               </tr>
-              {expandedRow === customer.id && (
+              {expandedRow === table.id && (
                 <tr>
-                  <td colSpan={5} className="bg-gray-50 p-4">
+                  <td colSpan={6} className="bg-gray-50 p-4">
                     {/* Detailed information and editable fields */}
                     <div className="space-y-4">
                       <div className="flex space-x-12">
                         <label className="w-64">
-                          Mã khách hàng:
+                          Mã phòng/bàn:
                           <input
                             type="text"
-                            value={customer.id}
+                            value={table.id}
                             className="w-full border-b-2 bg-gray-50 mt-2"
                             disabled
                           />
                         </label>
                         <label className="w-64">
-                          Email:
+                          Tên phòng/bàn:
                           <input
                             type="text"
-                            value={customer.email}
-                            className="w-full border-b-2 bg-gray-50 mt-2"
-                            disabled
+                            value={table.name}
+                            className="w-full border-b-2 bg-gray-50 mt-2 focus:border-b-black outline-none"
                           />
                         </label>
                       </div>
                       <div className="flex justify-between items-center">
                         <div className="flex space-x-12">
                           <label className="w-64">
-                            Tên khách hàng
+                            Khu vực
                             <input
                               type="text"
-                              value={customer.name}
-                              className="w-full border-b-2 bg-gray-50 mt-2"
-                              disabled
+                              value={table.location}
+                              className="w-full border-b-2 bg-gray-50 mt-2 focus:border-b-black outline-none"
                             />
                           </label>
                           <label className="w-64">
-                            Điện thoại
+                            Số ghế
                             <input
                               type="text"
-                              value={customer.phoneNumber}
-                              className="w-full border-b-2 bg-gray-50 mt-2"
-                              disabled
+                              value={table.capacity}
+                              className="w-full border-b-2 bg-gray-50 mt-2 focus:border-b-black outline-none"
                             />
                           </label>
                         </div>
@@ -141,51 +106,32 @@ export default function CustomerList({
                       <div className="flex justify-between items-center">
                         <div className="flex space-x-12">
                           <label className="w-64">
-                            Ngày sinh
-                            <input
-                              type="text"
-                              value={customer.dob}
-                              className="w-full border-b-2 bg-gray-50 mt-2"
-                              disabled
-                            />
-                          </label>
-                          <label className="w-64">
-                            Địa chỉ
-                            <input
-                              type="text"
-                              value={customer.address}
-                              className="w-full border-b-2 bg-gray-50 mt-2"
-                              disabled
-                            />
-                          </label>
-                        </div>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <div className="flex space-x-12">
-                          <label className="w-64">
-                            Ghi chú
-                            <input
-                              type="text"
-                              value={customer.note}
-                              className="w-full border-b-2 bg-gray-50 mt-2"
-                              disabled
-                            />
+                            Trạng thái
+                            <select className="w-full border-b-2 bg-gray-50 mt-2 outline-none">
+                              <option selected={table.isActive}>
+                                {table.isActive === true
+                                  ? "Đang hoạt động"
+                                  : "Ngừng hoạt động"}
+                              </option>
+                              <option value = "true">Đang hoạt động</option>
+                              <option value = "false">Ngừng hoạt động</option>
+                            </select>
                           </label>
                         </div>
                       </div>
                       <div className="flex justify-end">
                         <div className="flex gap-2">
                           <button
-                            onClick={() => handleRowClick(customer.id)}
+                            onClick={() => handleRowClick(table.id)}
                             className="border rounded-md px-2 shadow-sm bg-black text-white"
                           >
                             Lưu
                           </button>
                           <button
-                            onClick={() => handleRowClick(customer.id)}
+                            onClick={() => handleRowClick(table.id)}
                             className="border rounded-md px-2 shadow-sm"
                           >
-                            Hủy
+                            Xóa
                           </button>
                         </div>
                       </div>

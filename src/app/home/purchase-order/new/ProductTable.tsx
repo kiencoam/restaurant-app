@@ -1,5 +1,5 @@
 import React from "react";
-import { CreateStockHistoryItemRequestv2 } from "./page";
+import { CreateStockHistoryItemRequestv2 } from "./NewStockHistory";
 
 interface ProductTableProps {
   tableData: CreateStockHistoryItemRequestv2[];

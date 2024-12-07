@@ -73,13 +73,13 @@ const StockHistoryInfo: React.FC<StockHistoryInfoProps> = ({
       <div className="flex justify-between mt-20">
         <button
           className="bg-blue-500 text-white px-4 py-2 rounded w-[130px]"
-          onClick={() => handleSaveNote("Phiếu tạm")} // Lưu với trạng thái "Phiếu tạm"
+          onClick={() => handleSaveNote("pending")} // Lưu với trạng thái "Phiếu tạm"
         >
           Lưu tạm
         </button>
         <button
           className="bg-green-500 text-white px-4 py-2 rounded w-[130px]"
-          onClick={() => handleSaveNote("Hoàn thành")} // Lưu với trạng thái "Hoàn thành"
+          onClick={() => handleSaveNote("completed")} // Lưu với trạng thái "Hoàn thành"
         >
           Hoàn thành
         </button>

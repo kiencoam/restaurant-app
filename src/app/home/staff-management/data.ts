@@ -13,10 +13,5 @@ export type UserEntity = {
     salaryPerHour?:number;
     salaryPerMonth?:number;
     status?:string;
-}
-export type AccountEntity = {
-    id: number;
-    userName: string;
-    password: string;
-    position: string;
+    note?:string;
 }
