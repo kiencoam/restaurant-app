@@ -1,12 +1,13 @@
 "use client";
 import React, { useState, useEffect, useRef } from "react";
 import CreateCustomerForm from "./create-customer-form";
-import { CustomerEntity } from "./data";
 import CustomerList from "./customer-list";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+import { CustomerEntity, getAllCustomers } from "@/app/api-client/CustomerService";
+import { PageInfo } from "@/app/api-client/PageInfo";
 
-const customers: CustomerEntity[] = [
+const initCustomers: CustomerEntity[] = [
   {
     id: 1,
     name: "Nguyễn Văn A",
@@ -62,18 +63,100 @@ const customers: CustomerEntity[] = [
   },
 ];
 
+type GetCustomerRequest = {
+  page: number,
+  page_size: number,
+  name?: string,
+  phone_number?: string,
+  address?: string,
+  gender?: string,
+  begin_total_cost?: number,
+  end_total_cost?: number,
+  begin_dob?: string,
+  end_dob?: string,
+}
+
 const CustomerManagementPage = () => {
+  const [customers, setCustomers] = useState<CustomerEntity[]>([]);
+
   const [masterChecked, setMasterChecked] = useState(false);
-  const [newCustomer, setNewCustomer] = useState<CustomerEntity>();
+
   const [flyOutActions, setFlyOutActions] = useState(false);
+
   const [checkedRows, setCheckedRows] = useState({});
+
   const isAnyRowChecked = Object.values(checkedRows).some(Boolean);
+
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+
   const filterRef = useRef(null);
+
   const [isNewCustomer, setIsNewCustomer] = useState(false);
+
   const [expandedRow, setExpandedRow] = useState(null);
-  const [startDate, setStartDate] = useState(new Date("2014/01/01"));
+
+  const [startDate, setStartDate] = useState(new Date("2004/01/01"));
+
   const [endDate, setEndDate] = useState(new Date("2025/12/31"));
+
+  const [pageInfo, setPageInfo] = useState<PageInfo>({
+    totalPage: null,
+    totalRecord: null,
+    pageSize: null,
+    nextPage: null,
+    previousPage: null,
+  });
+
+  const [filter, setFilter] = useState<GetCustomerRequest>({
+    page: 0,
+    page_size: 10
+  })
+
+  const handlePageSizeChange = (value: number) => {
+    setFilter({
+      ...filter,
+      page_size: value
+    })
+  }
+
+  const handlePageNumberChange = (value: number) => {
+    setFilter({
+      ...filter,
+      page: value
+    })
+  }
+
+  console.log("filter", filter);
+
+  useEffect(() => {
+    const query = Object.entries(filter)
+      .map(([key, value]) => {
+        if (value) {
+          return `${key}=${value}`;
+        }
+      })
+      .join("&");
+
+    getAllCustomers(query).then((data) => {
+      setPageInfo(data.first);
+      setCustomers(data.second);
+    })
+  }, [filter]);
+
+
+  const handleFilterCostChange = (e, field) => {
+    let newValue = e.target.value;
+    if (newValue === "") {
+      newValue = null;
+    } else {
+      newValue = Number(newValue);
+    }
+
+    setFilter({
+      ...filter,
+      [field]: newValue
+    })
+  }
 
   const handleRowClick = (id) => {
     if (expandedRow === id) {
@@ -126,11 +209,17 @@ const CustomerManagementPage = () => {
     setCheckedRows(updatedCheckedRows);
   };
   const handleStartDateChange = (date) => {
-    setStartDate(date);
+    setFilter({
+      ...filter,
+      begin_dob: date.toISOString().split("T")[0],
+    })
   };
 
   const handleEndDateChange = (date) => {
-    setEndDate(date);
+    setFilter({
+      ...filter,
+      end_dob: date.toISOString().split("T")[0],
+    })
   };
 
   return (
@@ -158,7 +247,7 @@ const CustomerManagementPage = () => {
                   setFlyOutActions(!flyOutActions);
                 }}
               >
-                <span className="sr-only">Show submenu for "Flyout Menu"</span>
+                <span className="sr-only">Show submenu for &quot;Flyout Menu&quot;</span>
                 <svg
                   className="w-3 h-3 fill-slate-500"
                   xmlns="http://www.w3.org/2000/svg"
@@ -200,7 +289,32 @@ const CustomerManagementPage = () => {
             <input
               className="p-2 bg-transparent outline-none"
               type="text"
-              placeholder="Theo tên, điện thoại"
+              placeholder="Theo diện thoại"
+              value={filter.phone_number}
+              onChange={(e) => setFilter({ ...filter, phone_number: e.target.value })}
+            />
+          </div>
+          <div className="flex items-center border text-sm rounded-md bg-[#f7fafc] px-2 shadow-sm">
+            <svg
+              className="w-5 h-5"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="1"
+                d="M21 21l-4.35-4.35M17 11A6 6 0 1011 17a6 6 0 006-6z"
+              />
+            </svg>
+            <input
+              className="p-2 bg-transparent outline-none"
+              type="text"
+              placeholder="Theo tên"
+              value={filter.name}
+              onChange={(e) => setFilter({ ...filter, name: e.target.value })}
             />
           </div>
 
@@ -242,7 +356,7 @@ const CustomerManagementPage = () => {
                       onChange={handleStartDateChange}
                       selectsStart
                       startDate={startDate}
-                      endDate={endDate}
+                      value={filter.begin_dob}
                     />
                   </label>
                   <label className="flex items-center space-x-4 mt-2">
@@ -253,9 +367,9 @@ const CustomerManagementPage = () => {
                       selected={endDate}
                       onChange={handleEndDateChange}
                       selectsEnd
-                      startDate={startDate}
                       endDate={endDate}
                       minDate={startDate}
+                      value={filter.end_dob}
                     />
                   </label>
                 </div>
@@ -266,6 +380,8 @@ const CustomerManagementPage = () => {
                       type="text"
                       className="form-input border-b-2 focus:border-b-black w-full outline-none"
                       placeholder="0"
+                      value={filter.begin_total_cost}
+                      onChange={(e) => handleFilterCostChange(e, "begin_total_cost")}
                     />
                   </label>
                   <label className="flex items-center space-x-2 mt-2">
@@ -273,6 +389,8 @@ const CustomerManagementPage = () => {
                       type="text"
                       className="form-input border-b-2 focus:border-b-black w-full outline-none"
                       placeholder="9999999999"
+                      value={filter.end_total_cost}
+                      onChange={(e) => handleFilterCostChange(e, "end_total_cost")}
                     />
                   </label>
                 </div>
@@ -299,8 +417,7 @@ const CustomerManagementPage = () => {
           </button>
           {isNewCustomer && (
             <CreateCustomerForm
-              newCustomer={newCustomer}
-              setNewCustomer={setNewCustomer}
+              setCustomers={setCustomers}
               toggleNewCustomer={toggleNewCustomer}
             />
           )}
@@ -309,12 +426,16 @@ const CustomerManagementPage = () => {
       <div className="px-6">
         <CustomerList
           customers={customers}
+          pageInfo={pageInfo}
+          setCustomers={setCustomers}
           masterChecked={masterChecked}
           checkedRows={checkedRows}
           handleMasterCheckboxChange={handleMasterCheckboxChange}
           handleRowCheckboxChange={handleRowCheckboxChange}
           handleRowClick={handleRowClick}
           expandedRow={expandedRow}
+          handlePageSizeChange={handlePageSizeChange}
+          handlePageNumberChange={handlePageNumberChange}
         />
       </div>
     </div>

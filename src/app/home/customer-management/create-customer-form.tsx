@@ -1,8 +1,58 @@
+import { createCustomer, CreateCustomerRequest, CustomerEntity } from "@/app/api-client/CustomerService";
+import { useState } from "react";
+
+type Props = {
+  setCustomers: React.Dispatch<React.SetStateAction<CustomerEntity[]>>;
+  toggleNewCustomer: () => void;
+}
+
 export default function CreateCustomerForm({
-  setNewCustomer,
-  newCustomer,
+  setCustomers,
   toggleNewCustomer,
 }) {
+
+  const [newCustomer, setNewCustomer] = useState<CreateCustomerRequest>({
+    name: "",
+    phoneNumber: "",
+    address: "",
+    email: "",
+    dob: "",
+    gender: "",
+  })
+
+  const handleNewCustomerChange = (e: React.ChangeEvent<HTMLInputElement>, field: string) => {
+    let newValue = e.target.value;
+
+    if (field === 'gender') {
+      // if (e.target.value !== 'Nam' && e.target.value !== 'Nữ') {
+      //   alert('Giới tính chỉ có thể là Nam hoặc Nữ');
+      //   return;
+      // }
+
+      if (e.target.value === 'Nam') {
+        newValue = 'MALE';
+      } else if (e.target.value === 'Nữ') {
+        newValue = 'FEMALE';
+      }
+    }
+
+    setNewCustomer({
+      ...newCustomer,
+      [field]: newValue,
+    });
+  }
+
+  const handleCreateCustomer = async () => {
+    console.log(newCustomer);
+    try {
+      createCustomer(newCustomer).then((res) => {
+        setCustomers((prev) => [...prev, res]);
+        toggleNewCustomer();
+      })
+    } catch (error) {
+      console.log(error);
+    }
+  }
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
       <div className="bg-[#f7fafc] p-6 rounded-lg shadow-lg w-3/5 h-6/10">
@@ -26,12 +76,8 @@ export default function CreateCustomerForm({
                 className="bg-[#f7fafc] w-full outline-none focus:border-b-black border-b-2 "
                 type="text"
                 placeholder="qwe@gmail.com"
-                onChange={(e) =>
-                  setNewCustomer({
-                    ...newCustomer,
-                    email: e.target.value,
-                  })
-                }
+                value={newCustomer.email}
+                onChange={(e) => handleNewCustomerChange(e, "email")}
               />
             </div>
           </div>
@@ -43,12 +89,9 @@ export default function CreateCustomerForm({
               <input
                 className="bg-[#f7fafc] w-full outline-none focus:border-b-black border-b-2 "
                 type="text"
-                onChange={(e) =>
-                  setNewCustomer({
-                    ...newCustomer,
-                    name: e.target.value,
-                  })
-                }
+                placeholder="Ví dụ: Nguyễn Văn A"
+                value={newCustomer.name}
+                onChange={(e) => handleNewCustomerChange(e, "name")}
               />
             </div>
           </div>
@@ -59,12 +102,8 @@ export default function CreateCustomerForm({
                 className="bg-[#f7fafc] w-full outline-none focus:border-b-black border-b-2 "
                 type="text"
                 placeholder="Ví dụ: 0912345678"
-                onChange={(e) =>
-                  setNewCustomer({
-                    ...newCustomer,
-                    phoneNumber: e.target.value,
-                  })
-                }
+                value={newCustomer.phoneNumber}
+                onChange={(e) => handleNewCustomerChange(e, "phoneNumber")}
               />
             </div>
           </div>
@@ -77,12 +116,8 @@ export default function CreateCustomerForm({
                 className="bg-[#f7fafc] w-full outline-none focus:border-b-black border-b-2"
                 type="text"
                 placeholder="dd/mm/yyyy"
-                onChange={(e) =>
-                  setNewCustomer({
-                    ...newCustomer,
-                    dob: e.target.value,
-                  })
-                }
+                value={newCustomer.dob}
+                onChange={(e) => handleNewCustomerChange(e, "dob")}
               />
             </div>
           </div>
@@ -92,17 +127,21 @@ export default function CreateCustomerForm({
               <input
                 className="bg-[#f7fafc] w-full outline-none focus:border-b-black border-b-2"
                 type="text"
+                value={newCustomer.address}
+                onChange={(e) => handleNewCustomerChange(e, "address")}
               />
             </div>
           </div>
         </div>
         <div className="flex justify-between mt-4">
           <div className="flex items-center gap-4">
-            <div className="w-28">Ghi chú</div>
+            <div className="w-28">Giới tính</div>
             <div className="flex items-center text-sm  bg-[#f7fafc]  w-[243.5px]">
               <input
                 className="bg-[#f7fafc] w-full outline-none focus:border-b-black border-b-2"
                 type="text"
+                placeholder="Nam/Nữ"
+                onChange={(e) => handleNewCustomerChange(e, "gender")}
               />
             </div>
           </div>
@@ -121,7 +160,7 @@ export default function CreateCustomerForm({
             >
               <path d="M840-680v480q0 33-23.5 56.5T760-120H200q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h480l160 160Zm-80 34L646-760H200v560h560v-446ZM480-240q50 0 85-35t35-85q0-50-35-85t-85-35q-50 0-85 35t-35 85q0 50 35 85t85 35ZM240-560h360v-160H240v160Zm-40-86v446-560 114Z" />
             </svg>
-            <div className="p-2 text-white  rounded right-0">Lưu</div>
+            <div onClick={handleCreateCustomer} className="p-2 text-white  rounded right-0">Lưu</div>
           </button>
           <button className="p-2 rounded right-0" onClick={toggleNewCustomer}>
             Hủy
