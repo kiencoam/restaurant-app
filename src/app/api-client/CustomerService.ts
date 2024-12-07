@@ -6,29 +6,29 @@ export type CustomerEntity = {
   id: number;
   name: string;
   phoneNumber: string;
+  email?: string;
+  address?: string;
+  dob?: string;
+  gender?: string;
+  totalCost?: string;
+  note?: string;
+}
+export type CreateCustomerRequest = {
+  name: string;
+  phoneNumber: string;
   address: string;
-  email: string;
-  dob: string;
+  email?: string;
+  dob?: string;
   gender: string;
-  totalCost: number;
 };
 
-export type CreateCustomerRequest = {
+export type UpdateCustomerRequest = {
   name: string;
   phoneNumber: string;
   address: string;
   email: string;
   dob: string;
   gender: string;
-};
-
-export type UpdateCustomerRequest = {
-  name?: string;
-  phoneNumber?: string;
-  address?: string;
-  email?: string;
-  dob?: string;
-  gender?: string;
 };
 
 
