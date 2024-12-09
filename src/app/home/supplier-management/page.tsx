@@ -1,47 +1,162 @@
 "use client";
+{/* Không có deleteSupplier API */ }
 import React, { useState, useEffect, useRef } from "react";
-import { SupplierEntity } from "./data";
 import CreateSupplierForm from "./create-supplier-form";
 import SupplierList from "./supplier-list";
+import { getAllSuppliers, SupplierEntity } from "@/app/api-client/SupplierService";
+import { PageInfo } from "@/app/api-client/PageInfo";
+import { SupplierStatusEnum } from "@/app/constants/SupplierStatusEnum";
 
-const suppliers: SupplierEntity[] = [
-  {
-    id: 1,
-    code: "NCC0001",
-    name: "Công ty TNHH Citigo",
-    phoneNumber: "0123456789",
-    email: "citigo@hust.vn",
-    address: "Hà Nội",
-    totalDebt: 0,
-    totalCost: 1000000,
-    status: "ACTIVE",
-    note: "Lâu năm",
-  },
-  {
-    id: 2,
-    code: "NCC0002",
-    name: "Công ty Hoàng gia",
-    phoneNumber: "0123456889",
-    email: "hg@hust.vn",
-    address: "Hà Tây",
-    totalDebt: 1000000000,
-    totalCost: 0,
-    status: "INACTIVE",
-  },
-];
+// const SampleSuppliers: SupplierEntity[] = [
+//   {
+//     id: 1, 
+//     code: "NCC0001",
+//     name: "Công ty TNHH Citigo",
+//     phoneNumber: "0123456789",
+//     email: "citigo@hust.vn",
+//     address: "Hà Nội",
+//     totalDebt: 0,
+//     totalCost: 1000000,
+//     status: "ACTIVE",
+//     note: "Lâu năm",
+//   },
+//   {
+//     id: 2,
+//     code: "NCC0002",
+//     name: "Công ty Hoàng gia",
+//     phoneNumber: "0123456889",
+//     email: "hg@hust.vn",
+//     address: "Hà Tây",
+//     totalDebt: 1000000000,
+//     totalCost: 0,
+//     status: "INACTIVE",
+//     note: "no note"
+//   },
+// ];
+
+export type GetSupplierRequest = {
+  page: number;
+  page_size: number;
+  name?: string;
+  phone_number?: string;
+  debt_from?: number;
+  debt_to?: number;
+  total_cost_from?: number;
+  total_cost_to?: number;
+  status?: string
+}
+
 
 const SupplierPage = () => {
+
+  const [suppliers, setSuppliers] = useState<SupplierEntity[]>([]);
+
   const [masterChecked, setMasterChecked] = useState(false);
-  const [newSupplier, setNewSupplier] = useState<SupplierEntity>();
+
   const [flyOutActions, setFlyOutActions] = useState(false);
+
   const [checkedRows, setCheckedRows] = useState({});
-  const isAnyRowChecked = Object.values(checkedRows).some(Boolean);
+
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+
   const filterRef = useRef(null);
+
   const [isNewSupplier, setIsNewSupplier] = useState(false);
+
   const [expandedRow, setExpandedRow] = useState(null);
 
-  const handleRowClick = (id) => {
+  const [pageInfo, setPageInfo] = useState<PageInfo>({
+    totalPage: null,
+    totalRecord: null,
+    pageSize: null,
+    nextPage: null,
+    previousPage: null,
+  });
+
+  const [filter, setFilter] = useState<GetSupplierRequest>({
+    page: 0,
+    page_size: 5
+  })
+
+  const isAnyRowChecked = Object.values(checkedRows).some(Boolean);
+
+  const handlePageSizeChange = (value: number) => {
+    setFilter({
+      ...filter,
+      page_size: value,
+      page: 0
+    })
+  }
+
+  const handlePageNumberChange = (value: number) => {
+    setFilter({
+      ...filter,
+      page: value
+    })
+  }
+
+  // console.log("filter:", filter);
+  // console.log("suppliers:", suppliers)
+  useEffect(() => {
+    const query = Object.entries(filter)
+      .map(([key, value]) => {
+        if (value || key === "page") {
+          return `${key}=${value}`;
+        }
+      })
+      .join("&");
+
+    getAllSuppliers(query).then((data) => {
+      setPageInfo(data.first);
+      setSuppliers(data.second);
+    })
+  }, [filter]);
+
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+
+    const isPhoneNumber = /^[0-9]+$/.test(value);
+
+    if (isPhoneNumber) {
+      setFilter({
+        ...filter,
+        phone_number: value,
+        name: ""
+      });
+    } else {
+      setFilter({
+        ...filter,
+        name: value,
+        phone_number: ""
+      });
+    }
+  };
+
+  const handleFilterCostChange = (e, field) => {
+    let newValue = e.target.value;
+    if (newValue === "") {
+      newValue = null;
+    } else {
+      newValue = Number(newValue);
+    }
+
+    setFilter({
+      ...filter,
+      [field]: newValue
+    })
+  }
+
+  const handleStatusChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const value = event.target.value;
+    setFilter({
+      ...filter,
+      status: value,
+      page: 0
+    })
+  }
+
+  const handleRowClick = (id: any) => {
     if (expandedRow === id) {
       setExpandedRow(null); // Collapse the row if it's already expanded
     } else {
@@ -97,6 +212,8 @@ const SupplierPage = () => {
       <div className="flex p-6 justify-between items-center">
         <div className="text-2xl font-extrabold">Nhà cung cấp</div>
         <div className="flex items-center gap-2">
+          {/* Không có deleteSupplier API */}
+          {/* 
           {isAnyRowChecked && (
             <li
               className="lg:px-8 relative flex items-center space-x-1"
@@ -117,7 +234,7 @@ const SupplierPage = () => {
                   setFlyOutActions(!flyOutActions);
                 }}
               >
-                <span className="sr-only">Show submenu for "Flyout Menu"</span>
+                <span className="sr-only">Show submenu for Flyout Menu</span>
                 <svg
                   className="w-3 h-3 fill-slate-500"
                   xmlns="http://www.w3.org/2000/svg"
@@ -128,7 +245,6 @@ const SupplierPage = () => {
                 </svg>
               </button>
 
-              {/* 2nd level menu */}
               {flyOutActions && (
                 <ul className="origin-top-right absolute top-full left-1/2 -translate-x-1/2 w-[120px] bg-white border border-slate-200 p-2 rounded-lg shadow-xl">
                   <li>
@@ -137,10 +253,9 @@ const SupplierPage = () => {
                     </button>
                   </li>
                 </ul>
-                /* Thêm action ở đây */
               )}
             </li>
-          )}
+          )} */}
           <div className="flex items-center border text-sm rounded-md bg-[#f7fafc] px-2 shadow-sm">
             <svg
               className="w-5 h-5"
@@ -160,6 +275,8 @@ const SupplierPage = () => {
               className="p-2 bg-transparent outline-none"
               type="text"
               placeholder="Theo tên, điện thoại"
+              value={filter.name || filter.phone_number}
+              onChange={handleSearchChange}
             />
           </div>
 
@@ -198,6 +315,9 @@ const SupplierPage = () => {
                       type="text"
                       className="form-input border-b-2 focus:border-b-black w-3/4 outline-none"
                       placeholder="0"
+                      value={filter.total_cost_from}
+                      onChange={(e) => handleFilterCostChange(e, "total_cost_from")}
+
                     />
                   </label>
                   <label className="flex items-center space-x-2 mt-2">
@@ -206,6 +326,9 @@ const SupplierPage = () => {
                       type="text"
                       className="form-input border-b-2 ml-2 focus:border-b-black w-3/4 outline-none"
                       placeholder="9999999999"
+                      value={filter.total_cost_to}
+                      onChange={(e) => handleFilterCostChange(e, "total_cost_to")}
+
                     />
                   </label>
                 </div>
@@ -217,6 +340,9 @@ const SupplierPage = () => {
                       type="text"
                       className="form-input border-b-2 focus:border-b-black w-3/4 outline-none"
                       placeholder="0"
+                      value={filter.debt_from}
+                      onChange={(e) => handleFilterCostChange(e, "debt_from")}
+
                     />
                   </label>
                   <label className="flex items-center space-x-2 mt-2">
@@ -225,24 +351,49 @@ const SupplierPage = () => {
                       type="text"
                       className="form-input border-b-2 ml-2 focus:border-b-black w-3/4 outline-none"
                       placeholder="9999999999"
+                      value={filter.debt_to}
+                      onChange={(e) => handleFilterCostChange(e, "debt_to")}
+
                     />
                   </label>
                 </div>
                 <div className="p-2">
                   <p className="font-bold m-2 px-2">Trạng thái</p>
                   <label className="flex items-center space-x-2 mt-2">
-                    <input type="radio" className="form-radio" name ="status"/>
+                    <input
+                      type="radio"
+                      className="form-radio"
+                      name="status"
+                      value=""
+                      checked={filter.status === ""}  // Đảm bảo chọn đúng giá trị mặc định
+                      onChange={handleStatusChange}
+                    />
                     <span>Tất cả</span>
                   </label>
                   <label className="flex items-center space-x-2 mt-2">
-                    <input type="radio" className="form-radio" name ="status"/>
+                    <input
+                      type="radio"
+                      className="form-radio"
+                      name="status"
+                      value={SupplierStatusEnum.Active}
+                      checked={filter.status === SupplierStatusEnum.Active}  // Kiểm tra giá trị để chọn radio đúng
+                      onChange={handleStatusChange}
+                    />
                     <span>Đang hoạt động</span>
                   </label>
                   <label className="flex items-center space-x-2 mt-2">
-                    <input type="radio" className="form-radio" name ="status"/>
+                    <input
+                      type="radio"
+                      className="form-radio"
+                      name="status"
+                      value={SupplierStatusEnum.Inactive}
+                      checked={filter.status === SupplierStatusEnum.Inactive}  // Kiểm tra giá trị để chọn radio đúng
+                      onChange={handleStatusChange}
+                    />
                     <span>Ngừng hoạt động</span>
                   </label>
                 </div>
+
               </div>
             )}
           </div>
@@ -265,23 +416,28 @@ const SupplierPage = () => {
             <div className="p-2 text-sm font-bold text-white">Nhà cung cấp</div>
           </button>
           {isNewSupplier && (
-              <CreateSupplierForm
-                newSupplier={newSupplier}
-                setNewSupplier={setNewSupplier}
-                toggleNewSupplier={toggleNewSupplier}
-              />
-            )}
+            <CreateSupplierForm
+              setSuppliers={setSuppliers}
+              toggleNewSupplier={toggleNewSupplier}
+              pageSize={pageInfo.pageSize}
+              setFilter={setFilter}
+            />
+          )}
         </div>
-      </div>    
+      </div>
       <div className="px-6">
         <SupplierList
           suppliers={suppliers}
           masterChecked={masterChecked}
+          pageInfo={pageInfo}
+          setSuppliers={setSuppliers}
           checkedRows={checkedRows}
           handleMasterCheckboxChange={handleMasterCheckboxChange}
           handleRowCheckboxChange={handleRowCheckboxChange}
-          handleRowClick = {handleRowClick}
-          expandedRow = {expandedRow}
+          handleRowClick={handleRowClick}
+          expandedRow={expandedRow}
+          handlePageSizeChange={handlePageSizeChange}
+          handlePageNumberChange={handlePageNumberChange}
         />
       </div>
     </div>

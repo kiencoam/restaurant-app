@@ -1,15 +1,37 @@
+import { SupplierEntity, updateSupplier, UpdateSupplierRequest } from "@/app/api-client/SupplierService";
 import { formatDateTime } from "@/utils/timeUtils";
 import React, { useState } from "react";
+import { SupplierStatusEnum } from "@/app/constants/SupplierStatusEnum";
+import { PageInfo } from "@/app/api-client/PageInfo";
+
+type Props = {
+  suppliers: SupplierEntity[];
+  pageInfo: PageInfo;
+  setSuppliers: React.Dispatch<React.SetStateAction<SupplierEntity[]>>;
+  masterChecked: boolean;
+  checkedRows: Record<number, boolean>;
+  handleMasterCheckboxChange: () => void;
+  handleRowCheckboxChange: (id: number) => void;
+  handleRowClick: (id: number) => void;
+  expandedRow: number | null;
+  handlePageSizeChange: (pageSize: number) => void;
+  handlePageNumberChange: (page: number) => void;
+};
+
 
 export default function SupplierList({
   suppliers,
   masterChecked,
+  pageInfo,
+  setSuppliers,
   checkedRows,
   handleMasterCheckboxChange,
   handleRowCheckboxChange,
   handleRowClick,
   expandedRow,
-}) {
+  handlePageSizeChange,
+  handlePageNumberChange,
+}: Props) {
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(5);
@@ -19,21 +41,84 @@ export default function SupplierList({
 
   // Get current page rows
   const startIndex = (currentPage - 1) * rowsPerPage;
-  const currentRowsSuppliers = suppliers.slice(
-    startIndex,
-    startIndex + rowsPerPage
-  );
+
+  // const currentRowsSuppliers = suppliers.slice(
+  //   startIndex,
+  //   startIndex + rowsPerPage
+  // );
+  //Lọc status ở client theo từng row
 
   // Handle page change
   const changePage = (newPage) => {
-    if (newPage >= 1 && newPage <= totalPages) {
+    if (newPage >= 1 && newPage <= pageInfo.totalPage) {
       setCurrentPage(newPage);
+      handlePageNumberChange(newPage - 1);
     }
   };
 
   //Handle rowsPerPage change
-  const changeRowsPerPage = (rows) => {
-    setRowsPerPage(rows);
+  const changeRowsPerPage = (pageSize) => {
+    setRowsPerPage(pageSize);
+    handlePageSizeChange(pageSize);
+  };
+
+  const getStatus = (s: string): string => {
+    if (s === 'INACTIVE') {
+      return 'Ngừng hoạt động';
+    } else if (s === 'ACTIVE') {
+      return 'Đang hoạt động';
+    } else return "";
+  }
+
+  const handleSaveSupplier = (id: number) => {
+    handleRowClick(id)
+    const selectedSupplier = suppliers.find((supplier) => supplier.id === id);
+    console.log(selectedSupplier)
+    if (selectedSupplier) {
+      const updatedSupplier: UpdateSupplierRequest = {
+        name: selectedSupplier.name,
+        code: selectedSupplier.code,
+        address: selectedSupplier.address,
+        email: selectedSupplier.email,
+        phoneNumber: selectedSupplier.phoneNumber,
+        status: selectedSupplier.status,
+        //note: selectedSupplier.note,
+      };
+
+
+      try {
+        updateSupplier(id, updatedSupplier).then((res) => {
+          const newSuppliers = suppliers.map((supplier) => {
+            if (supplier.id === id) {
+              return res;
+            } else {
+              return supplier;
+            }
+          });
+
+          setSuppliers(newSuppliers);
+        });
+      } catch (error) {
+        console.error(error);
+      }
+    }
+  };
+
+  const handleUpdateSupplier = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
+    id: number,
+    field: string
+  ) => {
+    const newSuppliers = suppliers.map((supplier) =>
+      supplier.id === id
+        ? {
+          ...supplier,
+          [field]: e.target.value,
+        }
+        : supplier
+    );
+
+    setSuppliers(newSuppliers);
   };
 
   return (
@@ -56,13 +141,12 @@ export default function SupplierList({
           </tr>
         </thead>
         <tbody>
-          {currentRowsSuppliers.map((supllier) => (
+          {suppliers.map((supllier) => (
             <React.Fragment key={supllier.id}>
               <tr
                 key={supllier.id}
-                className={` hover:bg-gray-100 border-b-2 cursor-pointer ${
-                  checkedRows[supllier.id] ? "bg-gray-100" : ""
-                }`}
+                className={` hover:bg-gray-100 border-b-2 cursor-pointer ${checkedRows[supllier.id] ? "bg-gray-100" : ""
+                  }`}
                 onClick={(e) => {
                   const target = e.target as HTMLElement; // Cast to HTMLElement
 
@@ -86,7 +170,7 @@ export default function SupplierList({
                   />
                 </td>
                 <td className="px-4 py-2 border-b text-blue-600">
-                  <button>{supllier.id}</button>
+                  <button>{supllier.code}</button>
                 </td>
                 <td className="px-4 py-2 border-b">{supllier.name}</td>
                 <td className="px-4 py-2 border-b text-right">
@@ -96,9 +180,9 @@ export default function SupplierList({
                   {supllier.totalCost}
                 </td>
                 <td className="px-4 py-2 border-b">
-                  {supllier.status === "ACTIVE"
-                    ? "Đang hoạt động"
-                    : "Ngừng hoạt động"}
+                  {supllier.status === SupplierStatusEnum.Inactive
+                    ? "Ngừng hoạt động"
+                    : "Đang hoạt động"}
                 </td>
               </tr>
               {expandedRow === supllier.id && (
@@ -111,7 +195,7 @@ export default function SupplierList({
                           Mã nhà cung cấp:
                           <input
                             type="text"
-                            value={supllier.id}
+                            value={supllier.code}
                             className="w-full border-b-2 bg-gray-50 mt-2"
                             disabled
                           />
@@ -122,6 +206,8 @@ export default function SupplierList({
                             type="text"
                             value={supllier.email}
                             className="w-full border-b-2 bg-gray-50 mt-2 focus:border-b-black outline-none"
+                            onChange={(e) => handleUpdateSupplier(e, supllier.id, 'email')}
+
                           />
                         </label>
                       </div>
@@ -133,6 +219,8 @@ export default function SupplierList({
                               type="text"
                               value={supllier.name}
                               className="w-full border-b-2 bg-gray-50 mt-2 focus:border-b-black outline-none"
+                              onChange={(e) => handleUpdateSupplier(e, supllier.id, 'name')}
+
                             />
                           </label>
                           <label className="w-64">
@@ -140,6 +228,7 @@ export default function SupplierList({
                             <input
                               type="text"
                               value={supllier.phoneNumber}
+                              onChange={(e) => handleUpdateSupplier(e, supllier.id, 'phoneNumber')}
                               className="w-full border-b-2 bg-gray-50 mt-2 focus:border-b-black outline-none"
                             />
                           </label>
@@ -153,6 +242,7 @@ export default function SupplierList({
                               type="text"
                               value={supllier.address}
                               className="w-full border-b-2 bg-gray-50 mt-2 focus:border-b-black outline-none"
+                              onChange={(e) => handleUpdateSupplier(e, supllier.id, 'address')}
                             />
                           </label>
                           <label className="w-64">
@@ -161,26 +251,7 @@ export default function SupplierList({
                               type="text"
                               value={supllier.totalDebt}
                               className="w-full border-b-2 bg-gray-50 mt-2 focus:border-b-black outline-none"
-                            />
-                          </label>
-                        </div>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <div className="flex space-x-12">
-                          <label className="w-64">
-                            Ghi chú
-                            <input
-                              type="text"
-                              value={supllier.note}
-                              className="w-full border-b-2 bg-gray-50 mt-2 focus:border-b-black outline-none"
-                            />
-                          </label>
-                          <label className="w-64">
-                            Tổng mua
-                            <input
-                              type="text"
-                              value={supllier.totalCost}
-                              className="w-full border-b-2 bg-gray-50 mt-2 focus:border-b-black outline-none"
+                              disabled
                             />
                           </label>
                         </div>
@@ -189,22 +260,35 @@ export default function SupplierList({
                         <div className="flex space-x-12">
                           <label className="w-64">
                             Trạng thái
-                            <select className="w-full border-b-2 bg-gray-50 mt-2 outline-none">
-                              <option selected={supllier.status}>
-                                {supllier.status == "ACTIVE"
-                                  ? "Đang hoạt động"
-                                  : "Ngừng hoạt động"}
-                              </option>
+                            <select
+                              className="w-full border-b-2 bg-gray-50 mt-2 outline-none"
+                              value={supllier.status}
+                              onChange={(e) => handleUpdateSupplier(e, supllier.id, 'status')}
+                            >
                               <option value="ACTIVE">Đang hoạt động</option>
                               <option value="INACTIVE">Ngừng hoạt động</option>
                             </select>
                           </label>
                         </div>
                       </div>
+                      {/* <div className="flex justify-between items-center">
+                        <div className="flex space-x-12">
+                          <label className="w-64">
+                            Ghi chú
+                            <input
+                              type="text"
+                              value={supllier.note}
+                              className="w-full border-b-2 bg-gray-50 mt-2 focus:border-b-black outline-none"
+                              onChange={(e) => handleUpdateSupplier(e, supllier.id, 'note')}
+                            />
+                          </label>
+                        </div>
+                      </div> */}
+
                       <div className="flex justify-end">
                         <div className="flex gap-2">
                           <button
-                            onClick={() => handleRowClick(supllier.id)}
+                            onClick={() => handleSaveSupplier(supllier.id)}
                             className="border rounded-md px-2 shadow-sm bg-black text-white"
                           >
                             Lưu
@@ -232,9 +316,14 @@ export default function SupplierList({
           <select
             className="bg-[#f7f7f7] outline-none"
             value={rowsPerPage}
-            onChange={(e) => changeRowsPerPage(Number(e.target.value))}
+            onChange={(e) => {
+              changeRowsPerPage(Number(e.target.value));
+              setCurrentPage(1);
+
+            }}
           >
-            <option defaultValue={rowsPerPage}>{rowsPerPage}</option>
+            {/* <option defaultValue={rowsPerPage}>{rowsPerPage}</option> */}
+            <option value={1}>1</option>
             <option value={5}>5</option>
             <option value={10}>10</option>
             <option value={15}>15</option>
@@ -256,12 +345,14 @@ export default function SupplierList({
               <path d="m313-440 224 224-57 56-320-320 320-320 57 56-224 224h487v80H313Z" />
             </svg>
           </button>
-          <span>
-            Page {currentPage} of {totalPages}
-          </span>
+          {suppliers.length > 0 &&
+            <span>
+              Page {Math.min(currentPage, pageInfo.totalPage)} of {pageInfo.totalPage}
+            </span>
+          }
           <button
             onClick={() => changePage(currentPage + 1)}
-            disabled={currentPage === totalPages}
+            disabled={currentPage === pageInfo.totalPage}
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"

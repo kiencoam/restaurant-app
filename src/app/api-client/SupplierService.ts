@@ -11,6 +11,8 @@ export type SupplierEntity = {
   totalDebt: number;
   totalCost: number;
   status: string;
+  //new
+  // note?: string;
 };
 
 export type CreateSupplierRequest = {
@@ -19,6 +21,8 @@ export type CreateSupplierRequest = {
   address: string;
   email: string;
   phoneNumber: string;
+  //new
+  //note?: string;
 };
 
 export type UpdateSupplierRequest = {
@@ -28,6 +32,8 @@ export type UpdateSupplierRequest = {
   email?: string;
   phoneNumber?: string;
   status?: string;
+  //new
+  //note?: string;
 };
 
 export const createSupplier = async (
@@ -45,7 +51,7 @@ export const getDetailSupplier = async (
 export const getAllSuppliers = async (query: string) => {
   console.log(`${baseUrl}?${query}`);
   return await apiClientService
-    .get(`${baseUrl}/${query}`)
+    .get(`${baseUrl}?${query}`)
     .then((res) => res.data);
 };
 

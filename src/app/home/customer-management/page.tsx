@@ -3,9 +3,11 @@ import React, { useState, useEffect, useRef } from "react";
 import CreateCustomerForm from "./create-customer-form";
 import CustomerList from "./customer-list";
 import DatePicker from "react-datepicker";
+//Pick date n nhận n - 1
 import "react-datepicker/dist/react-datepicker.css";
-import { CustomerEntity, getAllCustomers } from "@/app/api-client/CustomerService";
+import { CustomerEntity, getAllCustomers, deleteCustomer } from "@/app/api-client/CustomerService";
 import { PageInfo } from "@/app/api-client/PageInfo";
+import { DeleteModal } from "../../../components/DeleteModal";
 
 const initCustomers: CustomerEntity[] = [
   {
@@ -63,7 +65,7 @@ const initCustomers: CustomerEntity[] = [
   },
 ];
 
-type GetCustomerRequest = {
+export type GetCustomerRequest = {
   page: number,
   page_size: number,
   name?: string,
@@ -78,6 +80,8 @@ type GetCustomerRequest = {
 
 const CustomerManagementPage = () => {
   const [customers, setCustomers] = useState<CustomerEntity[]>([]);
+
+  const [deleteModal, setDeleteModal] = useState(false);
 
   const [masterChecked, setMasterChecked] = useState(false);
 
@@ -109,13 +113,14 @@ const CustomerManagementPage = () => {
 
   const [filter, setFilter] = useState<GetCustomerRequest>({
     page: 0,
-    page_size: 10
+    page_size: 5
   })
 
   const handlePageSizeChange = (value: number) => {
     setFilter({
       ...filter,
-      page_size: value
+      page_size: value,
+      page: 0
     })
   }
 
@@ -126,7 +131,7 @@ const CustomerManagementPage = () => {
     })
   }
 
-  console.log("filter", filter);
+  // console.log("filter", filter);
 
   useEffect(() => {
     const query = Object.entries(filter)
@@ -141,6 +146,7 @@ const CustomerManagementPage = () => {
       setPageInfo(data.first);
       setCustomers(data.second);
     })
+    // console.log(query)
   }, [filter]);
 
 
@@ -158,7 +164,7 @@ const CustomerManagementPage = () => {
     })
   }
 
-  const handleRowClick = (id) => {
+  const handleRowClick = (id: any) => {
     if (expandedRow === id) {
       setExpandedRow(null); // Collapse the row if it's already expanded
     } else {
@@ -208,6 +214,35 @@ const CustomerManagementPage = () => {
     };
     setCheckedRows(updatedCheckedRows);
   };
+
+  const handleDeleteCustomer = () => {
+    const selectedIds = Object.keys(checkedRows)
+      .filter(id => checkedRows[id])
+      .map(id => Number(id));
+    console.log(selectedIds)
+
+    if (selectedIds.length === 0) {
+      alert("Không có khách hàng nào được chọn để xóa.");
+      return;
+    }
+    // Call API deleteCustomers
+    Promise.all(selectedIds.map(id => deleteCustomer(id)))
+      .then(() => {
+        // alert("Xóa thành công!");
+        const newCheckedRows = { ...checkedRows };
+        selectedIds.forEach(id => {
+          delete newCheckedRows[id];
+        });
+        setCheckedRows(newCheckedRows);
+        setFilter(prev => ({ ...prev })); // Kích hoạt useEffect
+      })
+      .catch(error => {
+        alert("Có lỗi khi xóa khách hàng.");
+        console.error(error);
+      });
+      setDeleteModal(false);
+
+  }
   const handleStartDateChange = (date) => {
     setFilter({
       ...filter,
@@ -227,50 +262,63 @@ const CustomerManagementPage = () => {
       <div className="flex p-6 justify-between items-center">
         <div className="text-2xl font-extrabold">Khách hàng</div>
         <div className="flex items-center gap-2">
-          {isAnyRowChecked && (
-            <li
-              className="lg:px-8 relative flex items-center space-x-1"
-              onMouseEnter={() => setFlyOutActions(true)}
-              onMouseLeave={() => setFlyOutActions(false)}
-            >
-              <a
-                className="text-slate-800 hover:text-slate-900"
-                aria-expanded={flyOutActions}
+          <ul>
+            {isAnyRowChecked && (
+              <li
+                className="lg:px-8 relative flex items-center space-x-1"
+                onMouseEnter={() => setFlyOutActions(true)}
+                onMouseLeave={() => setFlyOutActions(false)}
               >
-                Thao tác
-              </a>
-              <button
-                className="shrink-0 p-1"
-                aria-expanded={flyOutActions}
-                onClick={(e) => {
-                  e.preventDefault();
-                  setFlyOutActions(!flyOutActions);
-                }}
-              >
-                <span className="sr-only">Show submenu for &quot;Flyout Menu&quot;</span>
-                <svg
-                  className="w-3 h-3 fill-slate-500"
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="12"
-                  height="12"
+                <a
+                  className="text-slate-800 hover:text-slate-900"
+                  aria-expanded={flyOutActions}
                 >
-                  <path d="M10 2.586 11.414 4 6 9.414.586 4 2 2.586l4 4z" />
-                </svg>
-              </button>
+                  Thao tác
+                </a>
+                <button
+                  className="shrink-0 p-1"
+                  aria-expanded={flyOutActions}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setFlyOutActions(!flyOutActions);
+                  }}
+                >
+                  <span className="sr-only">Show submenu for Flyout Menu</span>
+                  <svg
+                    className="w-3 h-3 fill-slate-500"
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="12"
+                    height="12"
+                  >
+                    <path d="M10 2.586 11.414 4 6 9.414.586 4 2 2.586l4 4z" />
+                  </svg>
+                </button>
 
-              {/* 2nd level menu */}
-              {flyOutActions && (
-                <ul className="origin-top-right absolute top-full left-1/2 -translate-x-1/2 w-[120px] bg-white border border-slate-200 p-2 rounded-lg shadow-xl">
-                  <li>
-                    <button className="text-slate-800 text-center w-[100px] hover:bg-slate-50 p-2">
-                      Xóa
-                    </button>
-                  </li>
-                </ul>
-                /* Thêm action ở đây */
-              )}
-            </li>
-          )}
+                {/* 2nd level menu */}
+                {flyOutActions && (
+                  <ul className="origin-top-right absolute top-full left-1/2 -translate-x-1/2 w-[120px] bg-white border border-slate-200 p-2 rounded-lg shadow-xl">
+                    <li>
+                      <button
+                        className="text-slate-800 text-center w-[100px] hover:bg-slate-50 p-2"
+                        onClick={() => setDeleteModal(true)}
+                      >
+                        Xóa
+                      </button>
+                    </li>
+                  </ul>
+                )}
+              </li>
+            )}
+
+            {/* Modal xác nhận xóa */}
+            <DeleteModal
+              type="khách hàng"
+              isOpen={deleteModal}
+              onClose={() => setDeleteModal(false)}
+              onDelete={handleDeleteCustomer}
+            />
+          </ul>
+
           <div className="flex items-center border text-sm rounded-md bg-[#f7fafc] px-2 shadow-sm">
             <svg
               className="w-5 h-5"
@@ -417,8 +465,10 @@ const CustomerManagementPage = () => {
           </button>
           {isNewCustomer && (
             <CreateCustomerForm
+              pageSize={pageInfo.pageSize}
               setCustomers={setCustomers}
               toggleNewCustomer={toggleNewCustomer}
+              setFilter = {setFilter}
             />
           )}
         </div>

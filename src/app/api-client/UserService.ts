@@ -6,7 +6,7 @@ const baseUrl: string = "http://localhost:8080/api/v1/users";
 export type UserEntity = {
   id: number;
   email: string;
-  // password: string; @JsonIgnore?
+  password: string; 
   name: string;
   phoneNumber: string;
   gender: string;
