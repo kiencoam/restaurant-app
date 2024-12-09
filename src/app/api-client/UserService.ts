@@ -10,7 +10,7 @@ export type UserEntity = {
   name: string;
   phoneNumber: string;
   gender: string;
-  dateOfBirth: Date;
+  dateOfBirth: string;
   roleId: number;
   cccd: string;
   cvImg: string;

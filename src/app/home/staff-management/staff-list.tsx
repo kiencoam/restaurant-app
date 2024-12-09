@@ -2,6 +2,7 @@
 
 import { PageInfo } from "@/app/api-client/PageInfo";
 import { updateUser, UpdateUserRequest, UserEntity } from "@/app/api-client/UserService";
+import { formatDateToYYYYMMDD } from "@/utils/timeUtils";
 import React, { useState } from "react";
 
 type Props = {
@@ -63,15 +64,17 @@ export default function StaffList({
     handlePageSizeChange(pageSize);
   };
 
-  function formatDate(date: Date): string {
-    if (!date) {
-      return ""; // Return an empty string or a fallback value if the date is invalid
-    }
-    const day = String(date.getDate()).padStart(2, '0');
-    const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are zero-indexed
-    const year = date.getFullYear();
-    return `${day}/${month}/${year}`;
-  }
+  // function formatDate(date: Date): string {
+  //   if (!date) {
+  //     return ""; // Return an empty string or a fallback value if the date is invalid
+  //   }
+  //   const day = String(date.getDate()).padStart(2, '0');
+  //   const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are zero-indexed
+  //   const year = date.getFullYear();
+  //   return `${day}/${month}/${year}`;
+  // }
+
+  // console.log("staffs:", staffs);
 
   const handleSaveStaff = (id: number) => {
     handleRowClick(id)
@@ -82,7 +85,7 @@ export default function StaffList({
         name: selectedStaff.name,
         phoneNumber: selectedStaff.phoneNumber,
         gender: selectedStaff.gender,
-        dateOfBirth: formatDate(selectedStaff.dateOfBirth),
+        dateOfBirth: selectedStaff.dateOfBirth,
         roleId: selectedStaff.roleId,
         cccd: selectedStaff.cccd,
         cvImg: selectedStaff.cvImg,
@@ -278,7 +281,7 @@ export default function StaffList({
                               Ngày sinh
                               <input
                                 type="text"
-                                value={formatDate(staff.dateOfBirth)}
+                                value={staff.dateOfBirth}
                                 className="w-full border-b-2 bg-gray-50 mt-2 outline-none focus:border-b-black"
                                 onChange={(e) => handleUpdateStaff(e, staff.id, 'dateOfBirth')}
 

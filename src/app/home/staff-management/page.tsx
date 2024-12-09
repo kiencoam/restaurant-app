@@ -1,5 +1,5 @@
 "use client";
-
+//chạy đoạn create role trước
 import React, { useState, useRef, useEffect } from "react";
 import CreateStaffForm from "./create-staff-form";
 import StaffList from "./staff-list";
@@ -7,6 +7,7 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { UserEntity, CreateUserRequest, getAllUsers } from "@/app/api-client/UserService";
 import { PageInfo } from "@/app/api-client/PageInfo";
+import { createRole, CreateRoleRequest, deleteRole, getAllRoles } from "@/app/api-client/RoleService";
 
 //User
 
@@ -92,6 +93,56 @@ const StaffManagementPage = () => {
     page_size: 5
   });
 
+  // khi role rỗng, chạy các đoạn này để tạo role : id, name, description
+
+  // const handleCreateRole = async () => {
+  //   const roles: CreateRoleRequest[] = [
+  //     { name: "MANAGER", description: "MANAGER" },
+  //     { name: "WAITER", description: "WAITER" },
+  //     { name: "CHEF", description: "CHEF" },
+  //     { name: "CASHIER", description: "CASHIER" },
+  //   ];
+  
+  //   try {
+  //     const promises = roles.map((role) => createRole(role));
+  //     const results = await Promise.all(promises);
+  //     results.forEach((res, index) => {
+  //       console.log(`Role ${roles[index].name} created:`, res);
+  //     });
+  //     console.log("All roles created successfully.");
+  //   } catch (error) {
+  //     console.log("Error creating roles:", error);
+  //   }
+  // };
+
+  // const handleDeleteRole = async () => {
+  //   // Giả sử bạn có danh sách các ID role cần xóa
+  //   const roleIds: number[] = [5, 8, 9, 7]; // Thay thế bằng ID thực tế
+  
+  //   try {
+  //     const promises = roleIds.map((id) => deleteRole(id)); // Gọi hàm API xóa role
+  //     const results = await Promise.all(promises); // Đợi tất cả lời hứa hoàn thành
+  //     results.forEach((res, index) => {
+  //       console.log(`Role with ID ${roleIds[index]} deleted:`, res);
+  //     });
+  //     console.log("All roles deleted successfully.");
+  //   } catch (error) {
+  //     console.log("Error deleting roles:", error);
+  //   }
+  // };
+  
+  // const handleGetAll = async () => {
+  //   try {
+  //     const roles = await getAllRoles(); // Gọi API lấy danh sách roles
+  //     console.log("Roles fetched successfully:", roles);
+  //     return roles;
+  //   } catch (error) {
+  //     console.log("Error fetching roles:", error);
+  //     throw error;
+  //   }
+  // };
+  
+
 
   const handlePageSizeChange = (value: number) => {
     setFilter({
@@ -130,6 +181,7 @@ const StaffManagementPage = () => {
     const isPhoneNumber = /^[0-9]+$/.test(value);
 
     if (isPhoneNumber) {
+      console.log("true")
       setFilter({
         ...filter,
         phone_number: value,

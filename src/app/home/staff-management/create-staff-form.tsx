@@ -1,4 +1,5 @@
 //Phải comment một số tsx input vì backend chưa có !
+//Fix roleId, uncomment toggleNewStaff
 import { createUser, CreateUserRequest, UserEntity } from "@/app/api-client/UserService";
 import { useState } from "react";
 import { GetStaffRequest } from "./page";
@@ -27,6 +28,14 @@ const RoleDisplay = {
   CASHIER: "Cashier",
 };
 
+const RoleIdDisplay = {
+  ADMIN: 1,
+  MANAGER: 3,
+  WAITER: 4,
+  CHEF: 2,
+  CASHIER: 6,
+};
+
 export default function CreateStaffForm({
   toggleNewStaff, setStaffs, pageSize, setFilter
 }: Props) {
@@ -53,6 +62,16 @@ export default function CreateStaffForm({
     salaryPerMonth: 0,
   });
 
+  function convertDateToISOFormat(input: string): string {
+    const [day, month, year] = input.split("/");
+  
+    // Đảm bảo rằng tháng và ngày đều có 2 chữ số
+    const formattedMonth = String(month).padStart(2, "0");
+    const formattedDay = String(day).padStart(2, "0");
+  
+    return `${year}-${formattedMonth}-${formattedDay}`;
+  }
+  
   const handleNewStaffChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>, field: string) => {
     let newValue = e.target.value;
     setNewStaff({
@@ -63,14 +82,19 @@ export default function CreateStaffForm({
 
   //lỗi khi lưu bị refresh lại và có lỗi
   const handleCreateStaff = async () => {
-    console.log("Payload sent to API:", newStaff);
+    const finalNewStaff = {
+      ...newStaff,
+      dateOfBirth: convertDateToISOFormat(newStaff.dateOfBirth),
+      roleId: RoleIdDisplay[newStaff.position],
+    }
+    console.log("Payload sent to API:", finalNewStaff);
     console.log("Staff create");
     try {
-      createUser(newStaff).then((res) => {
+      createUser(finalNewStaff).then((res) => {
         // res.status = StaffStatusEnum.Active; 
         console.log("Staff created:", res);
         setFilter(prev => ({ ...prev })); // Kích hoạt useEffect
-        toggleNewStaff();
+        //toggleNewStaff();
       });
     } catch (error) {
       console.log("Error creating staff:", error);
