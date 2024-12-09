@@ -1,21 +1,45 @@
 'use client';
 
+import { addMenuItemsToOrder, AddMenuItemsToOrderRequest } from "@/app/api-client/OrderService";
+import { TableEntity } from "@/app/api-client/TableService";
+import { MenuItemEntity, OrderItemEntity } from "@/app/home/order-taking/entity";
+
 
 export function Receipt({
   menuItems,
   orderItems,
-  handleOrderItemsChange
+  handleOrderItemsChange,
+  currentTable,
+  selectedOrderId,
+  handleCreatePayment
 }:
   {
     menuItems: MenuItemEntity[],
     orderItems: OrderItemEntity[],
     handleOrderItemsChange: (orderItems: OrderItemEntity[]) => void
+    currentTable: TableEntity,
+    selectedOrderId: number,
+    handleCreatePayment: (payload: any) => void
   }) {
 
+  console.log("table", currentTable);
 
   const totalCost = orderItems?.reduce((acc, item) => acc + item.price, 0);
 
-  const handleNotifyKitchen = () => {
+  const handleNotifyKitchen = async () => {
+    const addMenuItemToOrderRequest: AddMenuItemsToOrderRequest = {
+      menuItemsQuantity: orderItems.map((item) => ({
+        menuItemId: item.menuItemId,
+        quantity: item.orderedQuantity - item.reservedQuantity
+      })).filter((item) => item.quantity > 0)
+    }
+
+    await addMenuItemsToOrder(selectedOrderId, addMenuItemToOrderRequest).then((res) => {
+      console.log("res", res);
+    })
+
+    console.log("addMenuItemToOrderRequest", addMenuItemToOrderRequest);
+
     const newOrderItems = orderItems.map((item) => (
       {
         ...item,
@@ -26,31 +50,31 @@ export function Receipt({
     handleOrderItemsChange(newOrderItems);
   }
 
-  const handleInCreaseClick = (itemId: number) => {
+  const handleInCreaseClick = (menuItemId: number) => {
     const newOrderItems = orderItems.map((item) => {
-      if (item.id == itemId) {
+      if (item.menuItemId == menuItemId) {
         return {
           ...item,
           orderedQuantity: item.orderedQuantity + 1,
-          price: menuItems.find(menuItem => menuItem.id === item.menuItemId).sellingPrice * (item.orderedQuantity + 1)
         }
       } else {
         return item;
       }
     })
+    console.log("newOrderItems", newOrderItems);
     handleOrderItemsChange(newOrderItems);
   }
 
-  const handleDecreaseClick = (itemId: number) => {
-    const targetItem = orderItems.find(item => item.id === itemId);
+  const handleDecreaseClick = (menuItemId: number) => {
+    const targetItem = orderItems.find(item => item.menuItemId === menuItemId);
     if (targetItem.orderedQuantity === 1 && targetItem.reservedQuantity === 0) {
-      const newOrderItems = orderItems.filter(item => item.id !== itemId);
+      const newOrderItems = orderItems.filter(item => item.menuItemId !== menuItemId);
       handleOrderItemsChange(newOrderItems);
       return;
     }
 
     const newOrderItems = orderItems.map((item) => {
-      if (item.id == itemId) {
+      if (item.menuItemId == menuItemId) {
         if (item.orderedQuantity <= item.reservedQuantity) {
           return item;
         }
@@ -72,8 +96,8 @@ export function Receipt({
       <div className="relative h-full w-full flex flex-col justify-between bg-[#fafafa] shadow-sm rounded-2xl p-4 font-semibold">
         <div>
           <div className="relative ml-[150px] mb-3 z-50 font-bold font-uniform text-sm text-[#959595]">
-            T-1 / Tầng 1
-            <div className="absolute rounded-b-lg shadow-sm inset-0 -translate-x-4 -translate-y-4 z-[-1] bg-[#ede6d5] w-24 h-12"></div>
+            {currentTable.name} - {currentTable.location}
+            <div className="absolute rounded-b-lg shadow-sm inset-0 -translate-x-4 -translate-y-4 z-[-1] bg-[#ede6d5] w-[150px] h-12"></div>
           </div>
 
           <div className="flex items-center h-10 w-full border-dotted border-b-2 border-[#adadad] font-bold mb-2">
@@ -84,14 +108,14 @@ export function Receipt({
           <div className="max-h-[450px] overflow-auto">
             {orderItems?.map((item) => (
               <div
-                key={item.id}
+                key={item.menuItemId}
                 className="group flex items-center h-10 w-full my-2"
               >
                 <div className="overflow-hidden text-nowrap basis-2/3">
                   {menuItems.find(menuItem => menuItem.id === item.menuItemId).title}
                 </div>
                 <div className="flex justify-evenly items-center font-bold basis-1/6 rounded-full group-hover:border hover:bg-[#f0f0f0]">
-                  <button onClick={() => handleDecreaseClick(item.id)} className="invisible group-hover:visible active:-translate-x-0.5">
+                  <button onClick={() => handleDecreaseClick(item.menuItemId)} className="invisible group-hover:visible active:-translate-x-0.5">
                     <svg
                       className="w-5 h-5"
                       aria-hidden="true"
@@ -111,7 +135,7 @@ export function Receipt({
                     </svg>
                   </button>
                   <div>{item.orderedQuantity}</div>
-                  <button onClick={() => handleInCreaseClick(item.id)} className="invisible group-hover:visible active:translate-x-0.5">
+                  <button onClick={() => handleInCreaseClick(item.menuItemId)} className="invisible group-hover:visible active:translate-x-0.5">
                     <svg
                       className="w-5 h-5"
                       aria-hidden="true"
@@ -147,7 +171,10 @@ export function Receipt({
             className="basis-1/2 h-full rounded-md shadow-sm bg-[#f7f7f7] border border-[#333333] text-[#333333] active:bg-[#333333] active:text-[#f7f7f7]">
             Báo nhà bếp
           </button>
-          <button className="basis-1/2 h-full rounded-md shadow-sm bg-[#333333] border border-[#333333] text-[#f7f7f7] active:bg-[#f7f7f7] active:text-[#333333]">
+          <button
+            className="basis-1/2 h-full rounded-md shadow-sm bg-[#333333] border border-[#333333] text-[#f7f7f7] active:bg-[#f7f7f7] active:text-[#333333]"
+            onClick={handleCreatePayment}
+          >
             Thanh toán
           </button>
         </div>

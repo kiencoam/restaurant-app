@@ -2,37 +2,25 @@
 
 import { useState } from "react";
 import Image from "next/image";
+import { MenuItemEntity, MenuSectionEntity } from "@/app/home/order-taking/entity";
 
-const menuSections: MenuSectionEntity[] = [
-  {
-    id: 1,
-    title: "Đồ nhắm",
-    description: "Đồ nhắm ngon",
-  },
-  {
-    id: 2,
-    title: "Đồ uống",
-    description: "Đồ uống lạnh",
-  },
-  {
-    id: 3,
-    title: "Đồ ăn vặt",
-    description: "Đồ ăn vặt",
-  },
-];
 
 export function Menu
   (
     {
       handleAddMenuItem,
-      menuItems
+      menuSections
     }:
       {
         handleAddMenuItem: (itemId: number) => void,
-        menuItems: MenuItemEntity[]
+        menuSections: MenuSectionEntity[]
       }
   ) {
   const [selectedMenuSectionId, setSelectedMenuSectionId] = useState(null);
+
+  const menuItems = menuSections?.flatMap((section) => section.menuItems);
+
+  const viewMenuItems = menuItems.filter((item) => selectedMenuSectionId === null ? true : item.menuSectionId === selectedMenuSectionId);
 
   return (
     <section className="py-2">
@@ -62,12 +50,7 @@ export function Menu
         </div>
 
         <div className="p-2 flex flex-wrap gap-2 max-h-[500px] overflow-auto">
-          {menuItems
-            .filter((item) =>
-              selectedMenuSectionId === null
-                ? true
-                : item.menuSectionId === selectedMenuSectionId
-            )
+          {viewMenuItems
             .map((item) => (
               <div
                 key={item.id}
