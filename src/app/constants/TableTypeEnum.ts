@@ -1,9 +1,9 @@
 enum TableTypeEnum {
-    Regular = "REGULAR",
-    Vip = "VIP"
+    Table = "TABLE",
+    Room = "ROOM"
 }
 
-// logs "REGULAR"
-console.log(TableTypeEnum.Regular);
-// logs "VIP"
-console.log(TableTypeEnum.Vip);
+// logs "TABLE"
+console.log(TableTypeEnum.Table);
+// logs "ROOM"
+console.log(TableTypeEnum.Room);

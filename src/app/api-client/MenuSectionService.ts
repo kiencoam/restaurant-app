@@ -31,7 +31,7 @@ export const getDetailMenuSection = async (id: number): Promise<MenuSectionEntit
     return await apiClientService.get(`${baseUrl}/${id}`).then(res => res.data); 
 }
 
-export const getAllMenuSections = async () => {
+export const getAllMenuSections = async (): Promise<MenuSectionEntity[]> => {
     return await apiClientService.get(baseUrl).then(res => res.data);
 }
 

@@ -1,28 +1,83 @@
-import { formatDateTime } from "@/utils/timeUtils";
+/*
+  Gọi API update thông tin bàn ở dòng 35
+  GỌi API xóa bàn ở dòng 47
+  Xóa = Đổi status
+*/
+
+import { deleteTable, TableEntity, updateTable, UpdateTableRequest } from "@/app/api-client/TableService";
 import React, { useState } from "react";
+import { sampleLocations } from "@/app/api-client/Locations";
+import { GetTableRequest } from "./page";
 
-export default function TableList({ tables, handleRowClick, expandedRow }) {
-  // Pagination state
-  const [currentPage, setCurrentPage] = useState(1);
-  const [rowsPerPage, setRowsPerPage] = useState(5);
+const sampleTypes = ["TABLE", "ROOM"];
 
-  // Calculate total pages
-  const totalPages = Math.ceil(tables.length / rowsPerPage);
+export default function TableList({
+  tables,
+  setTables,
+  setFilter,
+}: {
+  tables: TableEntity[];
+  setTables: React.Dispatch<React.SetStateAction<TableEntity[]>>;
+  setFilter: React.Dispatch<React.SetStateAction<GetTableRequest>>;
+}) {
+  const [updatingTableId, setUpdatingTableId] = useState<number | null>(null);
+  const [updatingTable, setUpdatingTable] = useState<UpdateTableRequest | null>(
+    null
+  );
 
-  // Get current page rows
-  const startIndex = (currentPage - 1) * rowsPerPage;
-  const currentRowsTables = tables.slice(startIndex, startIndex + rowsPerPage);
-
-  // Handle page change
-  const changePage = (newPage) => {
-    if (newPage >= 1 && newPage <= totalPages) {
-      setCurrentPage(newPage);
+  const handleRowClick = (id: number) => {
+    if (updatingTableId === id) {
+      setUpdatingTableId(null); // Collapse the row if it's already expanded
+      setUpdatingTable(null);
+    } else {
+      setUpdatingTableId(id); // Expand the clicked row
+      setUpdatingTable(tables.find((table) => table.id === id));
     }
   };
 
-  //Handle rowsPerPage change
-  const changeRowsPerPage = (rows) => {
-    setRowsPerPage(rows);
+  const handleSaveUpdate = async () => {
+    try {
+      updateTable(updatingTableId, updatingTable).then((res) => {
+        setTables((prev) =>
+          prev.map((table) =>
+            table.id === updatingTableId ? { ...table, ...res } : table
+          )
+        );
+      });
+    } catch (error) {
+      console.error(error);
+    }
+    /* Gọi API */
+    // await updateTable(updatingTableId, updatingTable);
+    // if (ok) {
+    // setTables((prev) =>
+    //   prev.map((table) =>
+    //     table.id === updatingTableId ? { ...table, ...updatingTable } : table
+    //   )
+    // );
+    handleRowClick(updatingTableId);
+  };
+
+  
+  const handleDelete = () => {
+    /* Gọi API */
+    const hasConfirmed = confirm("Bạn có chắc muốn xóa phòng/bàn này không?");
+    if (!hasConfirmed) return;
+    console.log(updatingTableId);
+    deleteTable(updatingTableId)
+      .then(() => {
+        console.log("deleted")
+        handleRowClick(updatingTableId);
+        setFilter(prev => ({ ...prev })); // Kích hoạt useEffect    
+      })
+      .catch((error) => {
+        alert("Có lỗi khi xóa phòng/bàn.");
+        console.error(error);
+      });
+    // await deleteTable(updatingTableId);
+    // if (ok) {
+    // handleRowClick(updatingTableId);
+    // setTables((prev) => prev.filter((table) => table.id !== updatingTableId));
   };
 
   return (
@@ -38,7 +93,7 @@ export default function TableList({ tables, handleRowClick, expandedRow }) {
           </tr>
         </thead>
         <tbody>
-          {currentRowsTables.map((table) => (
+          {tables.map((table) => (
             <React.Fragment key={table.id}>
               <tr
                 key={table.id}
@@ -59,84 +114,124 @@ export default function TableList({ tables, handleRowClick, expandedRow }) {
                     : "Ngừng hoạt động"}
                 </td>
               </tr>
-              {expandedRow === table.id && (
+              {updatingTableId === table.id && (
                 <tr>
                   <td colSpan={6} className="bg-gray-50 p-4">
                     {/* Detailed information and editable fields */}
-                    <div className="space-y-4">
-                      <div className="flex space-x-12">
-                        <label className="w-64">
-                          Mã phòng/bàn:
-                          <input
-                            type="text"
-                            value={table.id}
-                            className="w-full border-b-2 bg-gray-50 mt-2"
-                            disabled
-                          />
-                        </label>
-                        <label className="w-64">
-                          Tên phòng/bàn:
-                          <input
-                            type="text"
-                            value={table.name}
-                            className="w-full border-b-2 bg-gray-50 mt-2 focus:border-b-black outline-none"
-                          />
-                        </label>
-                      </div>
-                      <div className="flex justify-between items-center">
+                    <form onSubmit={() => handleSaveUpdate()}>
+                      <div className="space-y-4">
                         <div className="flex space-x-12">
                           <label className="w-64">
-                            Khu vực
-                            <input
-                              type="text"
-                              value={table.location}
-                              className="w-full border-b-2 bg-gray-50 mt-2 focus:border-b-black outline-none"
-                            />
+                            Mã phòng/bàn:
+                            <div className="w-full border-b-2 bg-gray-50 mt-2 text-gray-500">
+                              {table.id}
+                            </div>
                           </label>
                           <label className="w-64">
-                            Số ghế
+                            Tên phòng/bàn:
                             <input
                               type="text"
-                              value={table.capacity}
+                              value={updatingTable.name}
+                              onChange={(e) =>
+                                setUpdatingTable((prev) => ({
+                                  ...prev,
+                                  name: e.target.value,
+                                }))
+                              }
+                              required
                               className="w-full border-b-2 bg-gray-50 mt-2 focus:border-b-black outline-none"
                             />
                           </label>
                         </div>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <div className="flex space-x-12">
-                          <label className="w-64">
-                            Trạng thái
-                            <select className="w-full border-b-2 bg-gray-50 mt-2 outline-none">
-                              <option selected={table.isActive}>
-                                {table.isActive === true
-                                  ? "Đang hoạt động"
-                                  : "Ngừng hoạt động"}
-                              </option>
-                              <option value = "true">Đang hoạt động</option>
-                              <option value = "false">Ngừng hoạt động</option>
-                            </select>
-                          </label>
+                        <div className="flex justify-between items-center">
+                          <div className="flex space-x-12">
+                            <label className="w-64">
+                              Vị trí
+                              <select
+                                className="w-full border-b-2 bg-gray-50 mt-2 outline-none"
+                                value={updatingTable.location}
+                                onChange={(e) =>
+                                  setUpdatingTable((prev) => ({
+                                    ...prev,
+                                    location: e.target.value,
+                                  }))
+                                }
+                              >
+                                {sampleLocations.map((location) => (
+                                  <option key={location} value={location}>
+                                    {location}
+                                  </option>
+                                ))}
+                              </select>
+                            </label>
+                            <label className="w-64">
+                              Số ghế
+                              <div className="w-full border-b-2 bg-gray-50 mt-2 text-gray-500">
+                                {table.capacity}
+                              </div>
+                            </label>
+                          </div>
                         </div>
-                      </div>
-                      <div className="flex justify-end">
-                        <div className="flex gap-2">
-                          <button
-                            onClick={() => handleRowClick(table.id)}
-                            className="border rounded-md px-2 shadow-sm bg-black text-white"
-                          >
-                            Lưu
-                          </button>
-                          <button
-                            onClick={() => handleRowClick(table.id)}
-                            className="border rounded-md px-2 shadow-sm"
-                          >
-                            Xóa
-                          </button>
+                        <div className="flex justify-between items-center">
+                          <div className="flex space-x-12">
+                            <label className="w-64">
+                              Trạng thái
+                              <select
+                                className="w-full border-b-2 bg-gray-50 mt-2 outline-none"
+                                value={
+                                  updatingTable.isActive ? "true" : "false"
+                                }
+                                onChange={(e) =>
+                                  setUpdatingTable((prev) => ({
+                                    ...prev,
+                                    isActive: e.target.value === "true",
+                                  }))
+                                }
+                              >
+                                <option value="true">Đang hoạt động</option>
+                                <option value="false">Ngừng hoạt động</option>
+                              </select>
+                            </label>
+                            <label className="w-64">
+                              Loại
+                              <select
+                                className="w-full border-b-2 bg-gray-50 mt-2 outline-none"
+                                value={updatingTable.type}
+                                onChange={(e) =>
+                                  setUpdatingTable((prev) => ({
+                                    ...prev,
+                                    type: e.target.value,
+                                  }))
+                                }
+                              >
+                                {sampleTypes.map((type) => (
+                                  <option key={type} value={type}>
+                                    {type}
+                                  </option>
+                                ))}
+                              </select>
+                            </label>
+                          </div>
                         </div>
+                        <div className="flex justify-end">
+                          <div className="flex gap-2">
+                            <button
+                              type="submit"
+                              className="border rounded-md px-2 shadow-sm bg-black text-white"
+                            >
+                              Lưu
+                            </button>
+                            <button
+                              onClick={() => handleDelete()}
+                              className="border rounded-md px-2 shadow-sm bg-red-600 text-white"
+                            >
+                              Xóa
+                            </button>
+                          </div>
+                        </div>
+                        {/* Add other editable fields as needed */}
                       </div>
-                      {/* Add other editable fields as needed */}
-                    </div>
+                    </form>
                   </td>
                 </tr>
               )}
@@ -144,55 +239,6 @@ export default function TableList({ tables, handleRowClick, expandedRow }) {
           ))}
         </tbody>
       </table>
-      <div className="flex items-center space-x-8 mt-4">
-        <div className="flex">
-          <div>Số bản ghi: </div>
-          <select
-            className="bg-[#f7f7f7] outline-none"
-            value={rowsPerPage}
-            onChange={(e) => changeRowsPerPage(Number(e.target.value))}
-          >
-            <option defaultValue={rowsPerPage}>{rowsPerPage}</option>
-            <option value={5}>5</option>
-            <option value={10}>10</option>
-            <option value={15}>15</option>
-            <option value={20}>20</option>
-          </select>
-        </div>
-        <div className="flex space-x-2">
-          <button
-            onClick={() => changePage(currentPage - 1)}
-            disabled={currentPage === 1}
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              height="24px"
-              viewBox="0 -960 960 960"
-              width="24px"
-              fill="#000000"
-            >
-              <path d="m313-440 224 224-57 56-320-320 320-320 57 56-224 224h487v80H313Z" />
-            </svg>
-          </button>
-          <span>
-            Page {currentPage} of {totalPages}
-          </span>
-          <button
-            onClick={() => changePage(currentPage + 1)}
-            disabled={currentPage === totalPages}
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              height="24px"
-              viewBox="0 -960 960 960"
-              width="24px"
-              fill="#000000"
-            >
-              <path d="M647-440H160v-80h487L423-744l57-56 320 320-320 320-57-56 224-224Z" />
-            </svg>
-          </button>
-        </div>
-      </div>
     </div>
   );
 }

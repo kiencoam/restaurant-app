@@ -243,6 +243,7 @@ const CustomerManagementPage = () => {
       setDeleteModal(false);
 
   }
+  
   const handleStartDateChange = (date) => {
     setFilter({
       ...filter,

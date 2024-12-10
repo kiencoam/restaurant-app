@@ -31,12 +31,12 @@ export const getDetailShift = async (id: number): Promise<ShiftEntity> => {
   return await apiClientService.get(`${baseUrl}/${id}`).then((res) => res.data);
 };
 
-export const getAll = async () => {
+export const getAll = async ()  => {
   return await apiClientService.get(baseUrl).then((res) => res.data);
 };
 
 export const updateShift = async (
-  id: string,
+  id: number,
   payload: UpdateShiftRequest
 ): Promise<ShiftEntity> => {
   return await apiClientService
@@ -44,7 +44,7 @@ export const updateShift = async (
     .then((res) => res.data);
 };
 
-export const deleteShift = async (id: string): Promise<ShiftEntity> => {
+export const deleteShift = async (id: number): Promise<ShiftEntity> => {
   return await apiClientService
     .delete(`${baseUrl}/${id}`)
     .then((res) => res.data);

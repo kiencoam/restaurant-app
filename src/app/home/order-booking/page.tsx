@@ -1,21 +1,37 @@
+/*
+  Gọi API lấy danh sách bàn ở dòng 586
+  Gọi API lấy danh sách khách hàng và danh sách bàn ở dòng 611
+  Gọi API cập nhận order status ở dòng 709
+*/
+
 "use client";
+
 import React, { useState, useEffect, useRef } from "react";
 import "react-tooltip/dist/react-tooltip.css";
 import { CustomerEntity } from "./data";
-import { formatDateToString } from "@/utils/timeUtils";
+import { formatDateToISOString } from "@/utils/timeUtils";
 import { default as ReactSelect, components } from "react-select";
 import OrderList from "./order-list";
 import CreateOrderForm from "./create-order-form";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-import {
-  CreateOrderRequest,
-  GetOrderRequest,
-  OrderEntity,
-  TableEntity,
-} from "../order-taking/entity";
+import { TableEntity } from "../order-taking/entity";
+import { OrderEntity } from "./data";
+import { PageInfo } from "@/app/api-client/PageInfo";
 
-const tables: TableEntity[] = [
+type ParamsRequest = {
+  page: number;
+  page_size: number;
+  order_status?: string[];
+  start_time: Date;
+  end_time: Date;
+  user_name?: string;
+  customer_name?: string;
+  note?: string;
+  tableIds?: number[];
+};
+
+const sampleTables: TableEntity[] = [
   {
     id: 1,
     name: "Bàn 1",
@@ -98,7 +114,7 @@ const tables: TableEntity[] = [
   },
 ];
 
-const initOrders: OrderEntity[] = [
+const sampleOrders: OrderEntity[] = [
   {
     id: 1,
     customerId: 1,
@@ -107,8 +123,8 @@ const initOrders: OrderEntity[] = [
     totalCost: 125000,
     numberOfPeople: 2,
     note: "Không ớt",
-    checkInTime: "2024-04-01T12:00:00",
-    checkOutTime: "2024-04-01T13:00:00",
+    checkInTime: new Date("2024-04-01T12:00:00"),
+    checkOutTime: new Date("2024-04-01T13:00:00"),
     paymentId: 1,
     paymentMethod: "CASH",
     orderItems: [
@@ -145,6 +161,14 @@ const initOrders: OrderEntity[] = [
         id: 1,
         orderId: 1,
         tableId: 1,
+        table: {
+          id: 1,
+          name: "Bàn 1",
+          capacity: 4,
+          type: "NORMAL",
+          location: "Tầng 1",
+          isActive: true,
+        },
       },
     ],
   },
@@ -156,8 +180,8 @@ const initOrders: OrderEntity[] = [
     totalCost: 125000,
     numberOfPeople: 2,
     note: "Không ớt",
-    checkInTime: "2024-04-01T12:00:00",
-    checkOutTime: "2024-04-01T13:00:00",
+    checkInTime: new Date("2024-04-01T12:00:00"),
+    checkOutTime: new Date("2024-04-01T13:00:00"),
     paymentId: 1,
     paymentMethod: "CASH",
     orderItems: [
@@ -194,6 +218,14 @@ const initOrders: OrderEntity[] = [
         id: 2,
         orderId: 2,
         tableId: 3,
+        table: {
+          id: 3,
+          name: "Bàn 3",
+          capacity: 4,
+          type: "NORMAL",
+          location: "Tầng 3",
+          isActive: true,
+        },
       },
     ],
   },
@@ -205,8 +237,8 @@ const initOrders: OrderEntity[] = [
     totalCost: 125000,
     numberOfPeople: 2,
     note: "Không ớt",
-    checkInTime: "2024-04-01T12:00:00",
-    checkOutTime: "2024-04-01T13:00:00",
+    checkInTime: new Date("2024-04-01T12:00:00"),
+    checkOutTime: new Date("2024-04-01T13:00:00"),
     paymentId: 1,
     paymentMethod: "CASH",
     orderItems: [
@@ -243,6 +275,14 @@ const initOrders: OrderEntity[] = [
         id: 3,
         orderId: 3,
         tableId: 5,
+        table: {
+          id: 5,
+          name: "Bàn 5",
+          capacity: 4,
+          type: "NORMAL",
+          location: "Tầng 2",
+          isActive: true,
+        },
       },
     ],
   },
@@ -254,8 +294,8 @@ const initOrders: OrderEntity[] = [
     totalCost: 125000,
     numberOfPeople: 2,
     note: "Không ớt",
-    checkInTime: "2024-04-01T12:00:00",
-    checkOutTime: "2024-04-01T13:00:00",
+    checkInTime: new Date("2024-04-01T12:00:00"),
+    checkOutTime: new Date("2024-04-01T13:00:00"),
     paymentId: 1,
     paymentMethod: "CASH",
     orderItems: [
@@ -292,6 +332,14 @@ const initOrders: OrderEntity[] = [
         id: 4,
         orderId: 4,
         tableId: 7,
+        table: {
+          id: 7,
+          name: "Phòng VIP 1",
+          capacity: 4,
+          type: "NORMAL",
+          location: "VIP 1",
+          isActive: true,
+        },
       },
     ],
   },
@@ -303,8 +351,8 @@ const initOrders: OrderEntity[] = [
     totalCost: 125000,
     numberOfPeople: 2,
     note: "Không ớt",
-    checkInTime: "2024-04-01T12:00:00",
-    checkOutTime: "2024-04-01T13:00:00",
+    checkInTime: new Date("2024-04-01T12:00:00"),
+    checkOutTime: new Date("2024-04-01T13:00:00"),
     paymentId: 1,
     paymentMethod: "CASH",
     orderItems: [
@@ -341,12 +389,20 @@ const initOrders: OrderEntity[] = [
         id: 5,
         orderId: 5,
         tableId: 9,
+        table: {
+          id: 9,
+          name: "Bàn 9",
+          capacity: 4,
+          type: "NORMAL",
+          location: "Tầng 1",
+          isActive: true,
+        },
       },
     ],
   },
 ];
 
-const customers: CustomerEntity[] = [
+const sampleCustomers: CustomerEntity[] = [
   {
     id: 1,
     name: "Nguyễn Văn A",
@@ -416,171 +472,255 @@ const Option = (props) => {
   );
 };
 
+const DropdownIndicator = null;
+
+const customStyles = {
+  control: (styles) => ({
+    ...styles,
+    backgroundColor: "transparent",
+    borderColor: "#f7f7f7",
+    padding: "0rem", // equivalent to Tailwind's p-2
+    width: "30rem", // equivalent to Tailwind's w-60
+    outline: "none",
+    fontSize: "0.875rem", // equivalent to Tailwind's text-sm
+    boxShadow: "none",
+    "&:hover": {
+      borderColor: "transparent", // Keeps the border color on hover as none
+    },
+  }),
+  option: (styles, { isFocused, isSelected }) => ({
+    ...styles,
+    backgroundColor: isSelected ? "#7ab5e6" : isFocused ? "#ebf8ff" : "white",
+    color: isSelected ? "white" : "#2d3748",
+    cursor: "pointer",
+    "&:hover": {
+      backgroundColor: "#ebf8ff",
+      color: "#2d3748",
+    },
+  }),
+  multiValue: (styles) => ({
+    ...styles,
+    backgroundColor: "#b7b7b7",
+    borderRadius: "12px",
+    padding: "0.25rem", // Adds padding for multi-value items
+  }),
+  multiValueLabel: (styles) => ({
+    ...styles,
+    color: "#2d3748",
+    fontSize: "0.875rem", // Tailwind text-sm equivalent
+  }),
+  multiValueRemove: (styles) => ({
+    ...styles,
+    color: "#2d3748",
+    ":hover": {
+      backgroundColor: "#e53e3e",
+      color: "white",
+    },
+  }),
+  menu: (styles) => ({
+    ...styles,
+    boxShadow: "0 4px 8px rgba(0, 0, 0, 0.15)",
+  }),
+  input: (styles) => ({
+    ...styles,
+    width: "15rem", // Tailwind w-60 equivalent
+    margin: "0px",
+    fontSize: "0.875rem", // Tailwind text-sm equivalent
+  }),
+};
+
 const OrderBookingPage = () => {
-  const [hoveredRow, setHoveredRow] = useState(null);
+  const filterRef = useRef(null);
 
-  const [flyOutActions, setFlyOutActions] = useState(false);
+  const [tables, setTables] = useState<TableEntity[]>(sampleTables);
+  const [orders, setOrders] = useState<OrderEntity[]>(sampleOrders);
+  const [customers, setCustomers] = useState<CustomerEntity[]>(sampleCustomers);
 
-  const [checkedRows, setCheckedRows] = useState({});
-
-  const [masterChecked, setMasterChecked] = useState(false);
+  const [checkedOrders, setCheckedOrders] = useState<OrderEntity[]>([]);
 
   const [searchOptionsOpen, setSearchOptionsOpen] = useState(false);
-
-  const [filterOrder, setFilterOrder] = useState<GetOrderRequest>({
-    startTime: formatDateToString(new Date()),
-    endTime: formatDateToString(
-      new Date(new Date().setDate(new Date().getDate() + 1))
-    ),
-    orderStatus: new Set(),
-    tableIds: new Set(),
-  });
-
   const [isFilterOpen, setIsFilterOpen] = useState(false);
-
   const [isNewOrder, setIsNewOrder] = useState(false);
 
-  const [isNewCustomer, setIsNewCustomer] = useState(false);
+  const [selectedTables, setSelectedTables] = useState<
+    {
+      value: number;
+      label: string;
+    }[]
+  >([]); //choose tables and rooms next to search
 
-  const [searchCustomer, setSearchCustomer] = useState("");
+  const [searchCustomerText, setSearchCustomerText] = useState("");
+  const [searchStaffText, setSearchStaffText] = useState("");
+  const [searchNoteText, setSearchNoteText] = useState("");
 
-  const [newOrder, setNewOrder] = useState<CreateOrderRequest>({
-    customerId: null,
-    userId: null,
-    checkInTime: "",
-    checkOutTime: "",
-    numberOfPeople: 1,
-    tableIds: new Set(),
+  const [displayMode, setDisplayMode] = useState("all");
+
+  const [startDate, setStartDate] = useState(
+    new Date(new Date().setDate(new Date().getDate() - 7))
+  );
+  const [endDate, setEndDate] = useState(
+    new Date(new Date().setDate(new Date().getDate() + 7))
+  );
+
+  const [pageInfo, setPageInfo] = useState<PageInfo>({
+    totalPage: null,
+    totalRecord: null,
+    pageSize: null,
+    nextPage: null,
+    previousPage: null,
   });
 
-  const [newCustomer, setNewCustomer] = useState<CustomerEntity>();
+  const [paramsRequest, setParamsRequest] = useState<ParamsRequest>({
+    page: 1,
+    page_size: 10,
+    order_status: [],
+    start_time: startDate,
+    end_time: endDate,
+    user_name: "",
+    customer_name: "",
+    note: "",
+    tableIds: [],
+  });
 
-  const filterCustomer: CustomerEntity[] =
-    searchCustomer.trim() === ""
-      ? []
-      : customers.filter((customer) =>
-          customer.name.toLowerCase().includes(searchCustomer.toLowerCase())
-        );
+  useEffect(() => {
+    /* Gọi API */
+    const query = Object.entries(paramsRequest)
+      .filter(
+        ([key, value]) =>
+          value !== "" && !(Array.isArray(value) && value.length === 0)
+      )
+      .map(([key, value]) => {
+        if (value instanceof Date) {
+          return `${key}=${formatDateToISOString(value)}`;
+        } else if (Array.isArray(value)) {
+          return value.map((val: string | number) => `${key}=${val}`).join("&");
+        } else {
+          return `${key}=${value}`;
+        }
+      })
+      .join("&");
+    console.log(query);
+    // getAllOrders(query).then((data) => {
+    //   setPageInfo(data.first);
+    //   setOrders(data.second);
+    // });
+    setOrders(sampleOrders);
+  }, [paramsRequest]);
 
-  //console.log("filterCustomer", filterCustomer);
-  //console.log("filterOrder", filterOrder);
-  //console.log("newOrder", newOrder);
-  //console.log("newCustomer", newCustomer);
+  useEffect(() => {
+    /* Gọi API */
+    setTables(sampleTables);
+    setCustomers(sampleCustomers);
+  }, []);
 
-  const [startDate, setStartDate] = useState(new Date("2014/01/01"));
-  const [endDate, setEndDate] = useState(new Date("2025/12/31"));
+  const handleSelectedTablesChange = (selectedOptions) => {
+    setSelectedTables(selectedOptions);
 
-  const handleStartDateChange = (date) => {
-    setStartDate(date);
+    setParamsRequest((prev) => ({
+      ...prev,
+      tableIds: selectedOptions.map((option) => option.value),
+    }));
   };
 
-  const handleEndDateChange = (date) => {
-    setEndDate(date);
+  const handleCustomerSearchKeyDown = (
+    e: React.KeyboardEvent<HTMLInputElement>
+  ) => {
+    if (e.key === "Enter") {
+      setParamsRequest((prev) => ({
+        ...prev,
+        customer_name: searchCustomerText,
+      }));
+    }
+  };
+
+  const handleSearchOptions = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    setParamsRequest((prev) => ({
+      ...prev,
+      customer_name: searchCustomerText,
+      user_name: searchStaffText,
+      note: searchNoteText,
+    }));
+    setSearchOptionsOpen(false);
   };
 
   const handleFilterOrderStatusChange = (
     e: React.ChangeEvent<HTMLInputElement>
   ) => {
-    const newOrderStatus = new Set(filterOrder.orderStatus);
     if (e.target.checked) {
-      newOrderStatus.add(e.target.value);
+      setParamsRequest((prev) => ({
+        ...prev,
+        order_status: [...prev.order_status, e.target.value],
+      }));
     } else {
-      newOrderStatus.delete(e.target.value);
+      setParamsRequest((prev) => ({
+        ...prev,
+        order_status: prev.order_status.filter(
+          (status) => status !== e.target.value
+        ),
+      }));
     }
-    setFilterOrder({ ...filterOrder, orderStatus: newOrderStatus });
   };
 
-  const filterRef = useRef(null);
+  const handleIncomingCustomerDisplayChange = (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    if (e.target.value === "late") {
+      setParamsRequest((prev) => ({
+        ...prev,
+        start_time: startDate,
+        end_time: new Date(),
+      }));
+      setDisplayMode("late");
+    } else if (e.target.value === "incoming") {
+      setParamsRequest((prev) => ({
+        ...prev,
+        start_time: new Date(),
+        end_time: endDate,
+      }));
+      setDisplayMode("incoming");
+    } else {
+      setParamsRequest((prev) => ({
+        ...prev,
+        start_time: startDate,
+        end_time: endDate,
+      }));
+      setDisplayMode("all");
+    }
+  };
 
-  const tableOptions = tables?.map((table) => ({
-    value: table.id,
-    label: table.name,
-  }));
+  const handleCheck = (order: OrderEntity, check: boolean) => {
+    if (check) {
+      setCheckedOrders((prev) => [...prev, order]);
+    } else {
+      setCheckedOrders((prev) => prev.filter((ord) => ord.id !== order.id));
+    }
+  };
 
-  const [firstSelectValue, setFirstSelectValue] = useState([]); //choose tables and rooms next to search
-  const [secondSelectValue, setSecondSelectValue] = useState([]); //choose tables and rooms in the adding new
-  console.log("first", firstSelectValue);
+  const handleCheckAll = (check: boolean) => {
+    setCheckedOrders(check ? orders : []);
+  };
 
-  const handleFirstSelectTableChange = (selectedOptions) => {
-    setFirstSelectValue(selectedOptions);
+  const handleUpdateStatus = async (order: OrderEntity, status: string) => {
+    if (order.orderStatus !== "CONFIRMED" && order.orderStatus !== "ABANDONED")
+      return;
 
-    const newTableIds: Set<number> = new Set();
-    selectedOptions.forEach((element: { value: number }) => {
-      newTableIds.add(element.value);
+    /* Gọi API */
+    // updateOrderStatus(orderId, { status });
+    // if (ok) {
+    setOrders((prev) =>
+      prev.map((ord) =>
+        ord.id === order.id ? { ...ord, orderStatus: status } : ord
+      )
+    );
+  };
+
+  const handleMultipleOrders = (status: string) => {
+    checkedOrders.forEach((orderId) => {
+      handleUpdateStatus(orderId, status);
     });
-
-    setFilterOrder({ ...filterOrder, tableIds: newTableIds });
-  };
-
-  const handleSecondSelectChange = (selectedOptions) => {
-    setSecondSelectValue(selectedOptions);
-
-    const newTableIds: Set<number> = new Set();
-    selectedOptions.forEach((element) => {
-      newTableIds.add(element.value);
-    });
-
-    setNewOrder({ ...newOrder, tableIds: newTableIds });
-  };
-  const DropdownIndicator = null;
-  const noOptionsMessage = () => "Bàn/Phòng không có sẵn"; // Custom message
-  const customStyles = {
-    control: (styles) => ({
-      ...styles,
-      backgroundColor: "transparent",
-      borderColor: "#f7f7f7",
-      padding: "0rem", // equivalent to Tailwind's p-2
-      width: "30rem", // equivalent to Tailwind's w-60
-      outline: "none",
-      fontSize: "0.875rem", // equivalent to Tailwind's text-sm
-      boxShadow: "none",
-      "&:hover": {
-        borderColor: "transparent", // Keeps the border color on hover as none
-      },
-    }),
-    option: (styles, { isFocused, isSelected }) => ({
-      ...styles,
-      backgroundColor: isSelected ? "#7ab5e6" : isFocused ? "#ebf8ff" : "white",
-      color: isSelected ? "white" : "#2d3748",
-      cursor: "pointer",
-      "&:hover": {
-        backgroundColor: "#ebf8ff",
-        color: "#2d3748",
-      },
-    }),
-    multiValue: (styles) => ({
-      ...styles,
-      backgroundColor: "#b7b7b7",
-      borderRadius: "12px",
-      padding: "0.25rem", // Adds padding for multi-value items
-    }),
-    multiValueLabel: (styles) => ({
-      ...styles,
-      color: "#2d3748",
-      fontSize: "0.875rem", // Tailwind text-sm equivalent
-    }),
-    multiValueRemove: (styles) => ({
-      ...styles,
-      color: "#2d3748",
-      ":hover": {
-        backgroundColor: "#e53e3e",
-        color: "white",
-      },
-    }),
-    menu: (styles) => ({
-      ...styles,
-      boxShadow: "0 4px 8px rgba(0, 0, 0, 0.15)",
-    }),
-    input: (styles) => ({
-      ...styles,
-      width: "15rem", // Tailwind w-60 equivalent
-      margin: "0px",
-      fontSize: "0.875rem", // Tailwind text-sm equivalent
-    }),
-  };
-
-  const toggleFilterDropdown = () => {
-    setIsFilterOpen((prev) => !prev);
+    setCheckedOrders([]);
   };
 
   useEffect(() => {
@@ -592,49 +732,6 @@ const OrderBookingPage = () => {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
-
-  const toggleSearchOptions = () => {
-    setSearchOptionsOpen((prev) => !prev);
-  };
-
-  const toggleNewCustomer = () => {
-    setIsNewCustomer((prev) => !prev);
-  };
-
-  const toggleNewReservation = () => {
-    setIsNewOrder((prev) => !prev);
-  };
-
-  const handleSearch = (e) => {
-    e.preventDefault();
-    console.log("Searching for:", filterOrder);
-    // Add search functionality here
-  };
-
-  const handleMasterCheckboxChange = () => {
-    const newMasterChecked = !masterChecked;
-    setMasterChecked(newMasterChecked);
-
-    const updatedCheckedRows = {};
-    customers.forEach((_, index) => {
-      updatedCheckedRows[index] = newMasterChecked;
-    });
-    setCheckedRows(updatedCheckedRows);
-  };
-
-  const handleRowCheckboxChange = (index) => {
-    const updatedCheckedRows = {
-      ...checkedRows,
-      [index]: !checkedRows[index],
-    };
-    setCheckedRows(updatedCheckedRows);
-
-    // Update the master checkbox state based on individual checkboxes
-    const allChecked = customers.every((_, i) => updatedCheckedRows[i]);
-    setMasterChecked(allChecked);
-  };
-
-  const isAnyRowChecked = Object.values(checkedRows).some(Boolean);
 
   return (
     <div className="w-full h-screen font-nunito bg-[#f7f7f7] p-6">
@@ -660,9 +757,9 @@ const OrderBookingPage = () => {
               className="p-2 bg-transparent outline-none"
               type="text"
               placeholder="Theo tên khách hàng"
-              onChange={(e) =>
-                setFilterOrder({ ...filterOrder, customerName: e.target.value })
-              }
+              value={searchCustomerText}
+              onChange={(e) => setSearchCustomerText(e.target.value)}
+              onKeyDown={handleCustomerSearchKeyDown}
             />
             <button onClick={() => setSearchOptionsOpen(!searchOptionsOpen)}>
               <svg
@@ -680,49 +777,39 @@ const OrderBookingPage = () => {
           {searchOptionsOpen && (
             <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 ">
               <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full">
-                <h2 className="text-xl font-bold mb-4">Search Options</h2>
-                <form onSubmit={handleSearch}>
+                <h2 className="text-xl font-bold mb-4">Tìm kiếm nâng cao</h2>
+                <form onSubmit={handleSearchOptions}>
                   <input
                     placeholder="Tìm theo khách đặt"
-                    className="p-2 mb-2 outline-none border-b-2 focus:border-b-black"
-                    onChange={(e) =>
-                      setFilterOrder({
-                        ...filterOrder,
-                        customerName: e.target.value,
-                      })
-                    }
-                  ></input>
+                    className="p-2 mt-2 w-full outline-none border-b-2 focus:border-b-black"
+                    value={searchCustomerText}
+                    onChange={(e) => setSearchCustomerText(e.target.value)}
+                  />
                   <input
                     placeholder="Theo người nhận đặt"
-                    className="p-2 mb-2 outline-none border-b-2 focus:border-b-black"
-                    onChange={(e) =>
-                      setFilterOrder({
-                        ...filterOrder,
-                        userName: e.target.value,
-                      })
-                    }
-                  ></input>
+                    className="p-2 mt-2 w-full outline-none border-b-2 focus:border-b-black"
+                    value={searchStaffText}
+                    onChange={(e) => setSearchStaffText(e.target.value)}
+                  />
                   <div className="flex justify-between">
                     <input
                       placeholder="Theo ghi chú"
-                      className="p-2 mb-2 border-b-2 focus:border-b-black outline-none"
-                      onChange={(e) =>
-                        setFilterOrder({ ...filterOrder, note: e.target.value })
-                      }
-                    ></input>
+                      className="p-2 mt-2 w-full border-b-2 focus:border-b-black outline-none"
+                      value={searchNoteText}
+                      onChange={(e) => setSearchNoteText(e.target.value)}
+                    />
                   </div>
-                  <div className="flex justify-end">
+                  <div className="flex justify-end mt-8 mb-2">
                     <div className="flex gap-2">
                       <button
                         type="submit"
                         className="p-2 bg-black text-white rounded mb-2"
-                        onClick={toggleSearchOptions}
                       >
                         Tìm kiếm
                       </button>
                       <button
-                        className="p-2 rounded mb-2"
-                        onClick={toggleSearchOptions}
+                        className="p-2 rounded"
+                        onClick={() => setSearchOptionsOpen((prev) => !prev)}
                       >
                         Hủy
                       </button>
@@ -734,7 +821,10 @@ const OrderBookingPage = () => {
           )}
           <div className="ml-2 ">
             <ReactSelect
-              options={tableOptions}
+              options={tables.map((table) => ({
+                value: table.id,
+                label: table.name,
+              }))}
               isMulti
               closeMenuOnSelect={false}
               hideSelectedOptions={false}
@@ -743,10 +833,10 @@ const OrderBookingPage = () => {
                 DropdownIndicator,
               }}
               placeholder="Chọn phòng/bàn"
-              onChange={handleFirstSelectTableChange}
-              value={firstSelectValue}
+              onChange={handleSelectedTablesChange}
+              value={selectedTables}
               styles={customStyles}
-              noOptionsMessage={noOptionsMessage}
+              noOptionsMessage={() => "Bàn/Phòng không có sẵn"}
               // Hide dropdown list  when select any item
               // closeMenuOnSelect={true}
 
@@ -756,180 +846,200 @@ const OrderBookingPage = () => {
           </div>
         </div>
         <div className="flex gap-4 justify-end">
-          {isAnyRowChecked && (
-            <li
-              className="relative flex items-center space-x-1"
-              onMouseEnter={() => setFlyOutActions(true)}
-              onMouseLeave={() => setFlyOutActions(false)}
-            >
-              <a
-                className="text-slate-800 hover:text-slate-900"
-                aria-expanded={flyOutActions}
-              >
-                Thao tác
-              </a>
+          {checkedOrders.length > 0 && (
+            <>
               <button
-                className="shrink-0 p-1"
-                aria-expanded={flyOutActions}
-                onClick={(e) => {
-                  e.preventDefault();
-                  setFlyOutActions(!flyOutActions);
-                }}
+                className="flex items-center border border-green-500 rounded-md px-2 shadow-sm hover:shadow-md"
+                onClick={() => handleMultipleOrders("CHECKED_IN")}
               >
-                {/* <span className="sr-only">Show submenu for "Flyout Menu"</span> */}
-                <svg
-                  className="w-3 h-3 fill-slate-500"
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="12"
-                  height="12"
-                >
-                  <path d="M10 2.586 11.414 4 6 9.414.586 4 2 2.586l4 4z" />
-                </svg>
+                <div className="p-2 text-sm font-semibold text-green-500">
+                  Nhận bàn
+                </div>
               </button>
 
-              {/* 2nd level menu */}
-              {flyOutActions && (
-                <ul className="origin-top-right absolute top-full left-1/2 -translate-x-1/2 w-[120px] bg-white border border-slate-200 p-2 rounded-lg shadow-xl">
-                  <li>
-                    <button className="text-slate-800 text-center w-[100px] hover:bg-slate-50 p-2">
-                      Nhận bàn
-                    </button>
-                  </li>
-                  <li>
-                    <button className="text-slate-800 text-center w-[100px] hover:bg-slate-50 p-2">
-                      Hủy đặt
-                    </button>
-                  </li>
-                </ul>
-                /* Thêm action ở đây */
-              )}
-            </li>
+              <button
+                className="flex items-center border border-red-500 rounded-md px-2 shadow-sm hover:shadow-md"
+                onClick={() => handleMultipleOrders("CANCELLED")}
+              >
+                <div className="p-2 text-sm font-semibold text-red-500">
+                  Hủy đặt
+                </div>
+              </button>
+            </>
           )}
-          <button
-            className="flex items-center border rounded-md px-2 shadow-sm"
-            onClick={toggleFilterDropdown}
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth="1"
-              stroke="currentColor"
-              className="h-6 w-6"
+          <div ref={filterRef} className="relative">
+            <button
+              className="flex items-center border rounded-md px-2 shadow-sm hover:shadow-md"
+              onClick={() => setIsFilterOpen((prev) => !prev)}
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75"
-              />
-            </svg>
-            <div className="p-2 text-sm font-semibold">Filter</div>
-          </button>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth="1"
+                stroke="currentColor"
+                className="h-6 w-6"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75"
+                />
+              </svg>
+              <div className="p-2 text-sm font-semibold">Filter</div>
+            </button>
 
-          {isFilterOpen && (
-            <div
-              ref={filterRef}
-              className="absolute mt-2 w-48 top-32 right-[51.23px] bg-white border border-gray-300 rounded-md shadow-lg divide-y-2"
-            >
-              <div className="p-2">
-                <p className="font-bold ml-2 px-2">Tình trạng</p>
-                <label className="flex items-center space-x-2 mt-2">
-                  <input
-                    type="checkbox"
-                    className="form-checkbox"
-                    value={"CONFIRMED"}
-                    onChange={handleFilterOrderStatusChange}
-                  />
-                  <span>Đã xếp bàn</span>
-                </label>
-                <label className="flex items-center space-x-2 mt-2">
-                  <input
-                    type="checkbox"
-                    className="form-checkbox"
-                    value={"CHECKED_IN"}
-                    onChange={handleFilterOrderStatusChange}
-                  />
-                  <span>Đã nhận bàn</span>
-                </label>
-                <label className="flex items-center space-x-2 mt-2">
-                  <input
-                    type="checkbox"
-                    className="form-checkbox"
-                    value={"ABANDONED"}
-                    onChange={handleFilterOrderStatusChange}
-                  />
-                  <span>Đến muộn</span>
-                </label>
-                <label className="flex items-center space-x-2 mt-2">
-                  <input
-                    type="checkbox"
-                    className="form-checkbox"
-                    value={"CANCELLED"}
-                    onChange={handleFilterOrderStatusChange}
-                  />
-                  <span>Đã hủy</span>
-                </label>
-                <label className="flex items-center space-x-2 mt-2">
-                  <input
-                    type="checkbox"
-                    className="form-checkbox"
-                    value={"COMPLETED"}
-                    onChange={handleFilterOrderStatusChange}
-                  />
-                  <span>Đã thanh toán</span>
-                </label>
+            {isFilterOpen && (
+              <div className="absolute mt-2 w-48 bg-white border border-gray-300 rounded-md shadow-lg divide-y-2">
+                <div className="p-2">
+                  <p className="font-bold ml-2 px-2">Tình trạng</p>
+                  <label className="flex items-center space-x-2 mt-2">
+                    <input
+                      type="checkbox"
+                      className="form-checkbox"
+                      value={"CONFIRMED"}
+                      checked={paramsRequest.order_status.includes("CONFIRMED")}
+                      onChange={handleFilterOrderStatusChange}
+                    />
+                    <span>Đã xếp bàn</span>
+                  </label>
+                  <label className="flex items-center space-x-2 mt-2">
+                    <input
+                      type="checkbox"
+                      className="form-checkbox"
+                      value={"CHECKED_IN"}
+                      checked={paramsRequest.order_status.includes(
+                        "CHECKED_IN"
+                      )}
+                      onChange={handleFilterOrderStatusChange}
+                    />
+                    <span>Đã nhận bàn</span>
+                  </label>
+                  <label className="flex items-center space-x-2 mt-2">
+                    <input
+                      type="checkbox"
+                      className="form-checkbox"
+                      value={"ABANDONED"}
+                      checked={paramsRequest.order_status.includes("ABANDONED")}
+                      onChange={handleFilterOrderStatusChange}
+                    />
+                    <span>Đến muộn</span>
+                  </label>
+                  <label className="flex items-center space-x-2 mt-2">
+                    <input
+                      type="checkbox"
+                      className="form-checkbox"
+                      value={"CANCELLED"}
+                      checked={paramsRequest.order_status.includes("CANCELLED")}
+                      onChange={handleFilterOrderStatusChange}
+                    />
+                    <span>Đã hủy</span>
+                  </label>
+                  <label className="flex items-center space-x-2 mt-2">
+                    <input
+                      type="checkbox"
+                      className="form-checkbox"
+                      value={"COMPLETED"}
+                      checked={paramsRequest.order_status.includes("COMPLETED")}
+                      onChange={handleFilterOrderStatusChange}
+                    />
+                    <span>Đã thanh toán</span>
+                  </label>
+                </div>
+                <div className="p-2">
+                  <p className="font-bold ml-2 px-2">Hiển thị</p>
+                  <label className="flex items-center space-x-2 mt-2">
+                    <input
+                      type="radio"
+                      className="form-radio"
+                      name="customer_type"
+                      value={"all"}
+                      checked={displayMode === "all"}
+                      onChange={handleIncomingCustomerDisplayChange}
+                    />
+                    <span>Tất cả</span>
+                  </label>
+                  <label className="flex items-center space-x-2 mt-2">
+                    <input
+                      type="radio"
+                      className="form-radio"
+                      name="customer_type"
+                      value={"late"}
+                      checked={displayMode === "late"}
+                      onChange={handleIncomingCustomerDisplayChange}
+                    />
+                    <span>Lượt khách quá giờ</span>
+                  </label>
+                  <label className="flex items-center space-x-2 mt-2">
+                    <input
+                      type="radio"
+                      className="form-radio"
+                      name="customer_type"
+                      value={"incoming"}
+                      checked={displayMode === "incoming"}
+                      onChange={handleIncomingCustomerDisplayChange}
+                    />
+                    <span>Lượt khách sắp đến</span>
+                  </label>
+                </div>
+                <div className="p-2">
+                  <p className="font-bold m-2 px-2">Thời gian</p>
+                  <label className="flex items-center space-x-4 mt-2">
+                    <div className="min-w-[30px]">Từ</div>
+                    <DatePicker
+                      dateFormat="dd/MM/yyyy"
+                      className="border-b-2 focus:border-b-black w-full outline-none"
+                      selected={startDate}
+                      onChange={(date: Date | [Date, Date]) => {
+                        const selectedDate = Array.isArray(date)
+                          ? date[0]
+                          : date;
+                        setStartDate(selectedDate);
+                        if (displayMode === "late" || displayMode === "all") {
+                          setParamsRequest((prev) => ({
+                            ...prev,
+                            start_time: selectedDate,
+                          }));
+                        }
+                      }}
+                      selectsStart
+                      startDate={startDate}
+                      endDate={endDate}
+                    />
+                  </label>
+                  <label className="flex items-center space-x-4 mt-2">
+                    <div className="min-w-[30px]">Đến</div>
+                    <DatePicker
+                      dateFormat="dd/MM/yyyy"
+                      className="border-b-2 focus:border-b-black w-full outline-none"
+                      selected={endDate}
+                      onChange={(date: Date | [Date, Date]) => {
+                        const selectedDate = Array.isArray(date)
+                          ? date[0]
+                          : date;
+                        setEndDate(selectedDate);
+                        if (
+                          displayMode === "incoming" ||
+                          displayMode === "all"
+                        ) {
+                          setParamsRequest((prev) => ({
+                            ...prev,
+                            end_time: selectedDate,
+                          }));
+                        }
+                      }}
+                      selectsEnd
+                      startDate={startDate}
+                      endDate={endDate}
+                      minDate={startDate}
+                    />
+                  </label>
+                </div>
               </div>
-              <div className="p-2">
-                <p className="font-bold ml-2 px-2">Hiển thị</p>
-                <label className="flex items-center space-x-2 mt-2">
-                  <input
-                    type="radio"
-                    className="form-radio"
-                    name="customer_type"
-                  />
-                  <span>Lượt khách quá giờ</span>
-                </label>
-                <label className="flex items-center space-x-2 mt-2">
-                  <input
-                    type="radio"
-                    className="form-radio"
-                    name="customer_type"
-                  />
-                  <span>Lượt khách sắp đến</span>
-                </label>
-              </div>
-              <div className="p-2">
-                <p className="font-bold m-2 px-2">Thời gian</p>
-                <label className="flex items-center space-x-4 mt-2">
-                  <div className="min-w-[30px]">Từ</div>
-                  <DatePicker
-                    dateFormat="dd/MM/yyyy"
-                    className="border-b-2 focus:border-b-black w-full outline-none"
-                    selected={startDate}
-                    onChange={handleStartDateChange}
-                    selectsStart
-                    startDate={startDate}
-                    endDate={endDate}
-                  />
-                </label>
-                <label className="flex items-center space-x-4 mt-2">
-                  <div className="min-w-[30px]">Đến</div>
-                  <DatePicker
-                    dateFormat="dd/MM/yyyy"
-                    className="border-b-2 focus:border-b-black w-full outline-none"
-                    selected={endDate}
-                    onChange={handleEndDateChange}
-                    selectsEnd
-                    startDate={startDate}
-                    endDate={endDate}
-                    minDate={startDate}
-                  />
-                </label>
-              </div>
-            </div>
-          )}
+            )}
+          </div>
           <button
-            className="flex items-center border rounded-md px-2 shadow-sm bg-black "
+            className="flex items-center border rounded-md px-2 shadow-sm bg-black hover:shadow-md"
             onClick={() => setIsNewOrder(!isNewOrder)}
           >
             <svg
@@ -945,36 +1055,85 @@ const OrderBookingPage = () => {
           </button>
           {isNewOrder && (
             <CreateOrderForm
-              newCustomer={newCustomer}
-              isNewCustomer={isNewCustomer}
-              setIsNewCustomer={setIsNewCustomer}
-              searchCustomer={searchCustomer}
-              setSearchCustomer={setSearchCustomer}
-              filterCustomer={filterCustomer}
-              setNewOrder={setNewOrder}
-              newOrder={newOrder}
-              tableOptions={tableOptions}
-              handleSecondSelectChange={handleSecondSelectChange}
-              secondSelectValue={secondSelectValue}
-              noOptionsMessage={noOptionsMessage}
-              toggleNewReservation={toggleNewReservation}
-              toggleNewCustomer={toggleNewCustomer}
-              setNewCustomer={setNewCustomer}
+              setOrders={setOrders}
+              customers={customers}
+              setCustomers={setCustomers}
+              setIsNewOrder={setIsNewOrder}
             />
           )}
         </div>
       </div>
       <OrderList
-        initOrders={initOrders}
+        orders={orders}
         customers={customers}
-        tables={tables}
-        masterChecked={masterChecked}
-        checkedRows={checkedRows}
-        handleMasterCheckboxChange={handleMasterCheckboxChange}
-        handleRowCheckboxChange={handleRowCheckboxChange}
-        setHoveredRow={setHoveredRow}
-        hoveredRow={hoveredRow}
+        checkedOrders={checkedOrders}
+        handleCheck={handleCheck}
+        handleCheckAll={handleCheckAll}
+        handleUpdateStatus={handleUpdateStatus}
       />
+      <div className="flex items-center space-x-8 mt-4">
+        <div className="flex">
+          <div>Số bản ghi: </div>
+          <select
+            className="bg-[#f7f7f7] outline-none"
+            value={paramsRequest.page_size}
+            onChange={(e) =>
+              setParamsRequest({
+                ...paramsRequest,
+                page_size: Number(e.target.value),
+              })
+            }
+          >
+            <option value={5}>5</option>
+            <option value={10}>10</option>
+            <option value={15}>15</option>
+            <option value={20}>20</option>
+          </select>
+        </div>
+        <div className="flex space-x-2">
+          <button
+            onClick={() =>
+              setParamsRequest({
+                ...paramsRequest,
+                page: paramsRequest.page - 1,
+              })
+            }
+            disabled={paramsRequest.page === 1}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              height="24px"
+              viewBox="0 -960 960 960"
+              width="24px"
+              fill="#000000"
+            >
+              <path d="m313-440 224 224-57 56-320-320 320-320 57 56-224 224h487v80H313Z" />
+            </svg>
+          </button>
+          <span>
+            Page {paramsRequest.page} of {pageInfo.totalPage}
+          </span>
+          <button
+            onClick={() =>
+              setParamsRequest({
+                ...paramsRequest,
+                page: paramsRequest.page + 1,
+              })
+            }
+            disabled={paramsRequest.page === pageInfo.totalPage}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              height="24px"
+              viewBox="0 -960 960 960"
+              width="24px"
+              fill="#000000"
+            >
+              <path d="M647-440H160v-80h487L423-744l57-56 320 320-320 320-57-56 224-224Z" />
+            </svg>
+          </button>
+        </div>
+      </div>
     </div>
   );
 };
