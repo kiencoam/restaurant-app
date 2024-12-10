@@ -1,6 +1,6 @@
 /*
-  Gọi API update thông tin bàn ở dòng 35
-  GỌi API xóa bàn ở dòng 47
+  Gọi API update thông tin menuitems ở dòng 36
+  GỌi API xóa menuitems ở dòng 50
 */
 
 import React, { useState } from "react";
@@ -34,7 +34,7 @@ export default function MenuItemList({
 
   const handleSaveUpdate = async () => {
     /* Gọi API */
-    // await updateTable(updatingMenuItemId, updatingMenuItem);
+    // await updateMenuItem(updatingMenuItemId, updatingMenuItem);
     // if (ok) {
     setMenuItems((prev) =>
       prev.map((table) =>
@@ -51,7 +51,7 @@ export default function MenuItemList({
     const hasConfirmed = confirm("Bạn có chắc muốn xóa món này không?");
     if (!hasConfirmed) return;
 
-    // await deleteTable(updatingMenuItemId);
+    // await deleteMenuItem(updatingMenuItemId);
     // if (ok) {
     handleRowClick(updatingMenuItemId);
     setMenuItems((prev) =>

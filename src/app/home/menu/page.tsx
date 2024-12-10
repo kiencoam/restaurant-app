@@ -1,14 +1,13 @@
 /*
-  Gọi API lấy tất cả phòng/bàn ở dòng 124
+  Gọi API lấy tất cả menu items ở dòng 113
+  Gọi API lấy tất cả menu sections ở dòng 127
 */
 
 "use client";
 import React, { useEffect, useRef, useState } from "react";
 import { MenuItemEntity, MenuSectionEntity } from "../order-taking/entity";
 import { PageInfo } from "@/app/api-client/PageInfo";
-import { set } from "react-datepicker/dist/date_utils";
 import MenuItemList from "./menu-item-list";
-import CreateMenuSectionForm from "./create-menu-section";
 import CreateMenuItemForm from "./create-menu-item";
 
 type ParamsRequest = {
@@ -92,9 +91,6 @@ const MenuPage = () => {
   const [menuSections, setMenuSections] = useState<MenuSectionEntity[]>([]);
   const filterRef = useRef(null);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
-  const [displayMenuSection, setDisplayMenuSection] = useState<number | null>(
-    null
-  );
   const [isNewMenuItem, setIsNewMenuItem] = useState(false);
   const [searchText, setSearchText] = useState("");
 
@@ -120,7 +116,7 @@ const MenuPage = () => {
       .map(([key, value]) => `${key}=${value}`)
       .join("&");
     console.log(query);
-    // getAllTables(query).then((data) => {
+    // getAllMenuItems(query).then((data) => {
     //   setPageInfo(data.first);
     //   setTable(data.second);
     // });

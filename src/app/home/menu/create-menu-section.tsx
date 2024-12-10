@@ -1,10 +1,9 @@
 /*
-  Gọi API tạo mới phòng/bàn ở dòng 27
+  Gọi API tạo mới menu section ở dòng 23
 */
 
 import { useState } from "react";
-import { MenuItemEntity, MenuSectionEntity } from "../order-taking/entity";
-import { CreateMenuItemRequest } from "@/app/api-client/MenuItemService";
+import { MenuSectionEntity } from "../order-taking/entity";
 import { CreateMenuSectionRequest } from "@/app/api-client/MenuSectionService";
 
 export default function CreateMenuSectionForm({
@@ -22,7 +21,7 @@ export default function CreateMenuSectionForm({
 
   const handleSaveCreate = async () => {
     /* Gọi API */
-    //
+    // createMenuSection(newMenuSection);
     // if (ok) {
     const menuSection: MenuSectionEntity = {
       id: Math.floor(Math.random() * 1000),

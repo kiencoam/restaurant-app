@@ -1,5 +1,5 @@
 /*
-  Gọi API tạo mới phòng/bàn ở dòng 27
+  Gọi API tạo mới menuitems ở dòng 33
 */
 
 import { useState } from "react";
@@ -31,7 +31,7 @@ export default function CreateMenuItemForm({
 
   const handleSaveCreate = async () => {
     /* Gọi API */
-    //
+    // createMenuItem(newMenuItem);
     // if (ok) {
     const menuItem: MenuItemEntity = {
       id: Math.floor(Math.random() * 1000),
