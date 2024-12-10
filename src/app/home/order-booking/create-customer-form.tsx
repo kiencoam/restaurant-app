@@ -3,6 +3,7 @@
 */
 
 import {
+  createCustomer,
   CreateCustomerRequest,
   CustomerEntity,
 } from "@/app/api-client/CustomerService";
@@ -23,17 +24,18 @@ export default function CreateCustomerForm({
     address: "",
     email: "",
     dob: "",
-    gender: "male",
+    gender: "MALE",
   });
 
   const handleSaveCustomer = async () => {
     /* Gọi API */
     //const newCustomerEntity = await createCustomer(newCustomer);
-    const newCustomerEntity: CustomerEntity = {
-      id: customers.length + 1,
-      ...newCustomer,
-    };
-    setCustomers([...customers, newCustomerEntity]);
+    console.log(newCustomer);
+    
+    await createCustomer(newCustomer).then((res) => {
+      console.log(res);
+    })
+
     setIsNewCustomer(false);
   };
 
@@ -123,8 +125,8 @@ export default function CreateCustomerForm({
                   })
                 }
               >
-                <option value={"male"}>Nam</option>
-                <option value={"female"}>Nữ</option>
+                <option value={"MALE"}>Nam</option>
+                <option value={"FEMALE"}>Nữ</option>
               </select>
             </div>
           </div>

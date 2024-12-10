@@ -1,3 +1,5 @@
+import { CustomerEntity } from "@/app/api-client/CustomerService";
+
 export type OrderEntity = {
     id?: number;
     customerId?: number;
@@ -9,10 +11,8 @@ export type OrderEntity = {
     checkInTime?: string;
     checkOutTime?: string;
     paymentId?: number;
-    totalPrice?: number;
-    promotion?: number;
-    needToPay?: number;
     paymentMethod?: string;
+    customer?: CustomerEntity;
     orderItems: OrderItemEntity[];
     orderTables: OrderTableEntity[];
 }

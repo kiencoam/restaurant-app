@@ -7,13 +7,16 @@
 import { default as ReactSelect, components } from "react-select";
 import { Tooltip } from "react-tooltip";
 import CreateCustomerForm from "./create-customer-form";
-import { TableEntity } from "../order-taking/entity";
-import { OrderEntity } from "./data";
+import { CreateOrderRequest, TableEntity } from "../order-taking/entity";
+import { OrderEntity } from "../order-taking/entity";
 import { useContext, useEffect, useState } from "react";
 import { CustomerEntity } from "./data";
-import { formatTimeToYYYYMMDDTHHMM } from "@/utils/timeUtils";
-import { UserEntity } from "@/app/api-client/UserService";
+import { formatDateToString, formatTimeToYYYYMMDDTHHMM } from "@/utils/timeUtils";
+import { getDetailUser, UserEntity } from "@/app/api-client/UserService";
 import { loginUserContext } from "@/components/LoginUserProvider";
+import { getAllCustomers } from "@/app/api-client/CustomerService";
+import { getAllTablesAvailable } from "@/app/api-client/TableService";
+import { createOrder } from "@/app/api-client/OrderService";
 
 const DropdownIndicator = null;
 
@@ -87,147 +90,31 @@ const Option = (props) => {
   );
 };
 
-// CheckinTime và CheckoutTime có thể sử dụng kiểu Date thay vì string
-// tableIds có thể sử dụng kiểu number[] thay vì Set<number>
-type CreateOrderRequest = {
-  customerId: number;
-  userId: number;
-  checkInTime: Date;
-  checkOutTime: Date;
-  numberOfPeople: number;
-  tableIds: number[];
-  note?: string;
-};
-
-const sampleUsers: UserEntity = {
-  id: 4,
-  name: "Alexander Kiên Phạm",
-  email: "alexander.kien.pham@example.com",
-  phoneNumber: "321321321",
-  gender: "Male",
-  dateOfBirth: new Date("1993-03-03"),
-  roleId: 4,
-  cccd: "321321321",
-  cvImg: "path/to/cvImg.jpg",
-  position: "Bartender",
-  salaryType: "Hourly",
-  salaryPerHour: 18,
-  salaryPerMonth: 0,
-  role: {
-    id: 5,
-    name: "Receptionist",
-    description: "Lễ tân",
-  },
-};
-
-const sampleTables: TableEntity[] = [
-  {
-    id: 1,
-    name: "Bàn 1",
-    capacity: 4,
-    type: "NORMAL",
-    location: "Tầng 1",
-    isActive: true,
-  },
-  {
-    id: 2,
-    name: "Bàn 2",
-    capacity: 4,
-    type: "NORMAL",
-    location: "Tầng 2",
-    isActive: true,
-  },
-  {
-    id: 3,
-    name: "Bàn 3",
-    capacity: 4,
-    type: "NORMAL",
-    location: "Tầng 3",
-    isActive: true,
-  },
-  {
-    id: 4,
-    name: "Bàn 4",
-    capacity: 4,
-    type: "NORMAL",
-    location: "Tầng 1",
-    isActive: true,
-  },
-  {
-    id: 5,
-    name: "Bàn 5",
-    capacity: 4,
-    type: "NORMAL",
-    location: "Tầng 2",
-    isActive: true,
-  },
-  {
-    id: 6,
-    name: "Bàn 6",
-    capacity: 4,
-    type: "NORMAL",
-    location: "Tầng 3",
-    isActive: true,
-  },
-  {
-    id: 7,
-    name: "Phòng VIP 1",
-    capacity: 4,
-    type: "NORMAL",
-    location: "VIP 1",
-    isActive: true,
-  },
-  {
-    id: 8,
-    name: "Phòng VIP 2",
-    capacity: 4,
-    type: "NORMAL",
-    location: "VIP 2",
-    isActive: true,
-  },
-  {
-    id: 9,
-    name: "Bàn 9",
-    capacity: 4,
-    type: "NORMAL",
-    location: "Tầng 1",
-    isActive: true,
-  },
-  {
-    id: 10,
-    name: "Bàn 10",
-    capacity: 4,
-    type: "NORMAL",
-    location: "Tầng 2",
-    isActive: true,
-  },
-];
 
 export default function CreateOrderForm({
   setOrders,
-  customers,
-  setCustomers,
   setIsNewOrder,
 }: {
   setOrders: React.Dispatch<React.SetStateAction<OrderEntity[]>>;
-  customers: CustomerEntity[];
-  setCustomers: React.Dispatch<React.SetStateAction<CustomerEntity[]>>;
   setIsNewOrder: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
   const loginUserId = useContext(loginUserContext).id;
 
   const [startDate, setStartDate] = useState(new Date());
+
   const [endDate, setEndDate] = useState(
     new Date(new Date().getTime() + 60 * 60 * 1000)
   );
 
+  const [customers, setCustomers] = useState<CustomerEntity[]>([]);
+
   const [newOrder, setNewOrder] = useState<CreateOrderRequest>({
-    customerId: loginUserId,
-    userId: 1,
-    checkInTime: startDate,
-    checkOutTime: endDate,
+    customerId: null,
+    userId: loginUserId,
+    checkInTime: formatDateToString(startDate),
+    checkOutTime: formatDateToString(endDate),
     numberOfPeople: 1,
-    tableIds: [],
+    tableIds: new Set<number>(),
     note: "",
   });
 
@@ -240,17 +127,18 @@ export default function CreateOrderForm({
 
   const [isNewCustomer, setIsNewCustomer] = useState(false);
 
-  // customers search @.@ **********************************
+  // customerss search @.@ **********************************
   const [searchCustomer, setSearchCustomer] = useState("");
 
-  const filterCustomer: CustomerEntity[] =
-    searchCustomer.trim() === ""
-      ? []
-      : customers.filter((customer) =>
-          customer.name.toLowerCase().includes(searchCustomer.toLowerCase())
-        );
+  useEffect(() => {
+    const query = `page=0&page_size=5&name=${searchCustomer}`;
+    getAllCustomers(query).then((res) => {
+      setCustomers(res.second);
+    })
+  }, [searchCustomer]);
 
-  const customerOptions = filterCustomer.map((customer) => ({
+
+  const customerOptions = customers.map((customer) => ({
     value: customer.id,
     label: customer.name,
   }));
@@ -269,14 +157,17 @@ export default function CreateOrderForm({
 
   useEffect(() => {
     /* Gọi API lay thong tin user dang nhap */
-    // getDetailUser(loginUserId)
-    setLoginUser(sampleUsers);
-  }, []);
+    getDetailUser(loginUserId).then((res) => {
+      setLoginUser(res);
+    })
+
+  }, [loginUserId]);
 
   useEffect(() => {
-    /* Gọi API lay danh sach ban trong */
-    // getAllTablesAvailable(startDate.toISOString(), endDate.toISOString())
-    setTables(sampleTables);
+    getAllTablesAvailable(formatDateToString(startDate), formatDateToString(endDate)).then((res) => {
+      setTables(res);
+    })
+
   }, [startDate, endDate]);
 
   const handleSelectedTablesChange = (selectedOptions) => {
@@ -292,33 +183,18 @@ export default function CreateOrderForm({
     setSelectedTables([]);
     setNewOrder((prev) => ({
       ...prev,
-      tableIds: [],
+      tableIds: new Set<number>(),
     }));
   }, [startDate, endDate]);
 
   const handleCreateOrder = async () => {
     /* Gọi API tao order */
-    // const newOrderEntity = await createOrder(newOrder)
-    const newOrderEntity: OrderEntity = {
-      id: 1000,
-      customerId: newOrder.customerId,
-      userId: newOrder.userId,
-      orderStatus: "CONFIRMED",
-      checkInTime: newOrder.checkInTime,
-      checkOutTime: newOrder.checkOutTime,
-      totalCost: 0,
-      numberOfPeople: newOrder.numberOfPeople,
-      note: newOrder.note,
-      orderItems: [],
-      orderTables: selectedTables.map((table) => ({
-        id: 1,
-        orderId: 1000,
-        tableId: table.value,
-        status: "CONFIRMED",
-        table: tables.find((t) => t.id === table.value),
-      })),
-    };
-    setOrders((prev) => [...prev, newOrderEntity]);
+    await createOrder(newOrder).then((res) => {
+      console.log(res);
+      setOrders((prev) => [...prev, res]);
+    });
+
+    // setOrders((prev) => [...prev, newOrderEntity]);
     setIsNewOrder(false);
   };
 
@@ -452,11 +328,11 @@ export default function CreateOrderForm({
                   styles={customStyles}
                   noOptionsMessage={() => "Bàn/Phòng không có sẵn"}
                   required
-                  // Hide dropdown list  when select any item
-                  // closeMenuOnSelect={true}
+                // Hide dropdown list  when select any item
+                // closeMenuOnSelect={true}
 
-                  //Selected Item Remove in dropdown list
-                  // hideSelectedOptions={true}
+                //Selected Item Remove in dropdown list
+                // hideSelectedOptions={true}
                 />
               </div>
             </div>
@@ -474,7 +350,7 @@ export default function CreateOrderForm({
                     setStartDate(selectedDate);
                     setNewOrder({
                       ...newOrder,
-                      checkInTime: selectedDate,
+                      checkInTime: formatDateToString(selectedDate),
                     });
                   }}
                   required
@@ -504,12 +380,12 @@ export default function CreateOrderForm({
                 onChange={(e) => {
                   const selectedDate = new Date(
                     startDate.getTime() +
-                      Number(e.target.value) * 60 * 60 * 1000
+                    Number(e.target.value) * 60 * 60 * 1000
                   );
                   setEndDate(selectedDate);
                   setNewOrder((prev) => ({
                     ...prev,
-                    checkOutTime: selectedDate,
+                    checkOutTime: formatDateToString(selectedDate),
                   }));
                 }}
                 min={0.5}
@@ -551,7 +427,12 @@ export default function CreateOrderForm({
               >
                 <path d="M840-680v480q0 33-23.5 56.5T760-120H200q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h480l160 160Zm-80 34L646-760H200v560h560v-446ZM480-240q50 0 85-35t35-85q0-50-35-85t-85-35q-50 0-85 35t-35 85q0 50 35 85t85 35ZM240-560h360v-160H240v160Zm-40-86v446-560 114Z" />
               </svg>
-              <div className="p-2 text-white  rounded right-0">Lưu</div>
+              <div
+                onClick={() => handleCreateOrder}
+                className="p-2 text-white  rounded right-0"
+              >
+                Lưu
+              </div>
             </button>
             <button
               className="p-2 rounded right-0"
