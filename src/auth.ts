@@ -20,6 +20,7 @@ const ROLES = {
     "/home/purchase-order/new",
     "/home/purchase-order/open",
     "/home/purchase-order/return",
+    "/home/menu",
   ],
   [MANAGER]: [
     "/home/staff-management",
@@ -62,6 +63,7 @@ const ROLES = {
     "/home/calendar",
     "/home/bill",
     "/home/tableandroom",
+    "/home/menu",
   ],
 };
 

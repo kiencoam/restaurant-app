@@ -80,6 +80,7 @@ export default function CreateTableForm({
                 <input
                   className="bg-[#f7fafc] w-full outline-none focus:border-b-black border-b-2 "
                   type="text"
+                  value={newTable.name}
                   onChange={(e) =>
                     setNewTable({
                       ...newTable,
