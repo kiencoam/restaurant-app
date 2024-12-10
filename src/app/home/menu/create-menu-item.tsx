@@ -1,50 +1,65 @@
 /*
-  Gọi API tạo mới menuitems ở dòng 33
+  Gọi API tạo mới menuitems ở dòng 33 done
 */
 
 import { useState } from "react";
 import { MenuItemEntity, MenuSectionEntity } from "../order-taking/entity";
-import { CreateMenuItemRequest } from "@/app/api-client/MenuItemService";
+import { createMenuItem, CreateMenuItemRequest } from "@/app/api-client/MenuItemService";
 import CreateMenuSectionForm from "./create-menu-section";
+import { ParamsRequest } from "./page";
+import Image from "next/image";
 
 export default function CreateMenuItemForm({
   setMenuItems,
   setIsNewMenuItem,
   menuSections,
   setMenuSections,
+  setParamsRequest,
 }: {
   setMenuItems: React.Dispatch<React.SetStateAction<MenuItemEntity[]>>;
   setIsNewMenuItem: React.Dispatch<React.SetStateAction<boolean>>;
   menuSections: MenuSectionEntity[];
   setMenuSections: React.Dispatch<React.SetStateAction<MenuSectionEntity[]>>;
+  setParamsRequest: React.Dispatch<React.SetStateAction<ParamsRequest>>
 }) {
   const [newMenuItem, setNewMenuItem] = useState<CreateMenuItemRequest>({
     title: "",
     description: "",
     costPrice: 0,
     sellingPrice: 0,
-    thumbnailUrl: "/menu-item/default.jpg",
+    thumbnailImg: "/menu-item/default.jpg",
     menuSectionId: undefined,
   });
 
   const [isNewMenuSection, setIsNewMenuSection] = useState<boolean>(false);
 
-  const handleSaveCreate = async () => {
+  const handleSaveCreate = async (e) => {
     /* Gọi API */
     // createMenuItem(newMenuItem);
     // if (ok) {
-    const menuItem: MenuItemEntity = {
-      id: Math.floor(Math.random() * 1000),
-      ...newMenuItem,
-    };
-    setMenuItems((prev) => [...prev, menuItem]);
-    setIsNewMenuItem((prev) => !prev);
+    console.log(newMenuItem)
+    e.preventDefault()
+    try {
+      createMenuItem(newMenuItem).then((res) => {
+        console.log("menuitem created:", res);
+        setParamsRequest(prev => ({ ...prev })); // Kích hoạt useEffect
+        setIsNewMenuItem((prev) => !prev);
+      });
+    } catch (error) {
+      console.log("Error creating menuitem:", error);
+    }
+    // const menuItem: MenuItemEntity = {
+    //   id: Math.floor(Math.random() * 1000),
+    //   ...newMenuItem,
+    // };
+    // setMenuItems((prev) => [...prev, menuItem]);
+    // setIsNewMenuItem((prev) => !prev);
   };
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
       <div className="bg-[#f7fafc] p-6 rounded-lg shadow-lg w-3/5 h-6/10">
-        <form onSubmit={() => handleSaveCreate()}>
+        <form onSubmit={(e) => handleSaveCreate(e)}>
           <div className="text-xl font-bold mb-12">Thêm món ăn</div>
           <div className="flex justify-between">
             <div>
@@ -84,7 +99,7 @@ export default function CreateMenuItemForm({
                   <input
                     className="bg-[#f7fafc] w-full outline-none focus:border-b-black border-b-2 "
                     type="number"
-                    value={newMenuItem.costPrice}
+                    // value={newMenuItem.costPrice}
                     onChange={(e) =>
                       setNewMenuItem((prev) => ({
                         ...prev,
@@ -103,7 +118,7 @@ export default function CreateMenuItemForm({
                   <input
                     className="bg-[#f7fafc] w-full outline-none focus:border-b-black border-b-2 "
                     type="number"
-                    value={newMenuItem.sellingPrice}
+                    //value={newMenuItem.sellingPrice}
                     onChange={(e) =>
                       setNewMenuItem((prev) => ({
                         ...prev,
@@ -124,11 +139,14 @@ export default function CreateMenuItemForm({
                     onChange={(e) =>
                       setNewMenuItem((prev) => ({
                         ...prev,
-                        menuSectionId: Number(e.target.value),
+                        menuSectionId: e.target.value ? Number(e.target.value) : undefined, // Chuyển về undefined nếu không chọn nhóm
                       }))
                     }
                     className="bg-[#f7fafc] w-full outline-none focus:border-b-black border-b-2"
                   >
+                    {/* Thêm option mặc định */}
+                    <option value={undefined}>Chọn nhóm</option>
+
                     {menuSections.map((section) => (
                       <option key={section.id} value={section.id}>
                         {section.title}
@@ -169,11 +187,11 @@ export default function CreateMenuItemForm({
                   <input
                     className="bg-[#f7fafc] w-full outline-none focus:border-b-black border-b-2 "
                     type="text"
-                    value={newMenuItem.thumbnailUrl}
+                    value={newMenuItem.thumbnailImg}
                     onChange={(e) =>
                       setNewMenuItem((prev) => ({
                         ...prev,
-                        thumbnailUrl: e.target.value,
+                        thumbnailImg: e.target.value,
                       }))
                     }
                     required
@@ -181,8 +199,15 @@ export default function CreateMenuItemForm({
                 </div>
               </div>
               <div className="flex justify-center items-center">
+                {/* <Image
+                  src={newMenuItem.thumbnailImg}
+                  alt="thumbnail"
+                  width={160} // 40 x 4 (Tailwind rem to pixel conversion)
+                  height={160} // 40 x 4
+                  className="object-cover"
+                /> */}
                 <img
-                  src={newMenuItem.thumbnailUrl}
+                  src={newMenuItem.thumbnailImg}
                   alt="thumbnail"
                   className="w-40 h-40 object-cover"
                 />

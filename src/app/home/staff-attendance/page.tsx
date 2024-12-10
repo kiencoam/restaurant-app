@@ -2,6 +2,8 @@
   Gọi API lấy tất cả shift ở dòng 339
   Gọi API lấy tất cả work attendance ở dòng 349
   Gọi API update work attendance ở dòng 413
+  lỗi: Chuyển absent sang các trạng thái khác phải nhập thời gian, không thì không chuyển
+  khi  đang có status mà xóa hết thời gian thì không chuyển thành not started được
 */
 
 "use client";
@@ -12,14 +14,15 @@ import {
   getFirstDayOfWeek,
   formatDateToReactComponent,
   formatDateToYYYYMMDD,
+  formatToDDMMYYYY,
 } from "@/utils/timeUtils";
 
 import "./Attendance.css";
 import "react-datepicker/dist/react-datepicker.css";
 
-import { WorkAttendanceEntity } from "@/app/api-client/WorkAttendanceService";
+import { getAllWorkAttendances, updateWorkAttendance, WorkAttendanceEntity } from "@/app/api-client/WorkAttendanceService";
 import { UpdateWorkAttendanceRequest } from "@/app/api-client/WorkAttendanceService";
-import { ShiftEntity } from "@/app/api-client/ShiftService";
+import { getAll, ShiftEntity } from "@/app/api-client/ShiftService";
 
 const daysOfWeek = [
   { id: 0, name: "SUN" },
@@ -81,7 +84,7 @@ const sampleWorkAttendances: WorkAttendanceEntity[] = [
         email: "johny.dang@example.com",
         phoneNumber: "123456789",
         gender: "Male",
-        dateOfBirth: new Date("1990-01-01"),
+        dateOfBirth: "1990-01-01",
         roleId: 1,
         cccd: "123456789",
         cvImg: "path/to/cvImg.jpg",
@@ -94,6 +97,7 @@ const sampleWorkAttendances: WorkAttendanceEntity[] = [
           name: "Chef",
           description: "Đầu bếp",
         },
+        password: ""
       },
       shift: {
         id: 101,
@@ -122,7 +126,7 @@ const sampleWorkAttendances: WorkAttendanceEntity[] = [
         email: "johny.dang@example.com",
         phoneNumber: "123456789",
         gender: "Male",
-        dateOfBirth: new Date("1990-01-01"),
+        dateOfBirth: "1990-01-01",
         roleId: 1,
         cccd: "123456789",
         cvImg: "path/to/cvImg.jpg",
@@ -135,6 +139,7 @@ const sampleWorkAttendances: WorkAttendanceEntity[] = [
           name: "Chef",
           description: "Đầu bếp",
         },
+        password: ""
       },
       shift: {
         id: 101,
@@ -163,7 +168,7 @@ const sampleWorkAttendances: WorkAttendanceEntity[] = [
         email: "cong.phuong@example.com",
         phoneNumber: "987654321",
         gender: "Male",
-        dateOfBirth: new Date("1992-05-15"),
+        dateOfBirth: "1992-05-15",
         roleId: 2,
         cccd: "987654321",
         cvImg: "path/to/cvImg.jpg",
@@ -176,6 +181,7 @@ const sampleWorkAttendances: WorkAttendanceEntity[] = [
           name: "Waiter",
           description: "Phục vụ",
         },
+        password: ""
       },
       shift: {
         id: 102,
@@ -204,7 +210,7 @@ const sampleWorkAttendances: WorkAttendanceEntity[] = [
         email: "alexander.kien@example.com",
         phoneNumber: "456123789",
         gender: "Male",
-        dateOfBirth: new Date("1988-07-22"),
+        dateOfBirth: "1988-07-22",
         roleId: 4,
         cccd: "456123789",
         cvImg: "path/to/cvImg.jpg",
@@ -217,6 +223,7 @@ const sampleWorkAttendances: WorkAttendanceEntity[] = [
           name: "Bartender",
           description: "Pha chế",
         },
+        password: ""
       },
       shift: {
         id: 104,
@@ -245,7 +252,7 @@ const sampleWorkAttendances: WorkAttendanceEntity[] = [
         email: "nguyen.van.a@example.com",
         phoneNumber: "321654987",
         gender: "Male",
-        dateOfBirth: new Date("1995-03-10"),
+        dateOfBirth: "1995-03-10",
         roleId: 5,
         cccd: "321654987",
         cvImg: "path/to/cvImg.jpg",
@@ -258,6 +265,7 @@ const sampleWorkAttendances: WorkAttendanceEntity[] = [
           name: "Cleaner",
           description: "Dọn dẹp",
         },
+        password: ""
       },
       shift: {
         id: 104,
@@ -272,6 +280,8 @@ const sampleWorkAttendances: WorkAttendanceEntity[] = [
 
 const mapStatus = (status: string) => {
   switch (status) {
+    case "PRESENT":
+      return "Có làm"
     case "ABSENT":
       return "Nghỉ làm";
     case "NOT_STARTED_YET":
@@ -309,7 +319,7 @@ const mapStatusToClassName = (status: string) => {
 export default function AttendancePage() {
   const [workAttendances, setWorkAttendances] = useState<
     WorkAttendanceEntity[]
-  >(sampleWorkAttendances);
+  >([]);
 
   const [isOpenDatePicker, setIsOpenDatePicker] = useState<boolean>(false); // Mở lịch chọn ngày
 
@@ -330,20 +340,24 @@ export default function AttendancePage() {
 
   const [note, setNote] = useState<string>("");
 
-  const [shifts, setShifts] = useState<ShiftEntity[]>(sampleShifts);
+  const [shifts, setShifts] = useState<ShiftEntity[]>([]);
 
   const [displayShifts, setDisplayShifts] =
-    useState<ShiftEntity[]>(sampleShifts);
+    useState<ShiftEntity[]>([]);
 
   const [searchInput, setSearchInput] = useState<string>("");
 
   useEffect(() => {
-    /* gọi API **/
-    // const response = getAllShifts();
-    // if (response.ok) {
-    //   setShifts(response.data);
-    //   setDisplayShifts(response.data);
-    // }
+    getAll().then((res) => {
+      console.log(res)
+      const formattedShifts: ShiftEntity[] = res.map((shift) => ({
+        ...shift,
+        startTime: shift.startTime.slice(0, 5),
+        endTime: shift.endTime.slice(0, 5),
+      }));
+      setShifts(formattedShifts);
+      setDisplayShifts(formattedShifts);
+    });
   }, []);
 
   useEffect(() => {
@@ -357,7 +371,11 @@ export default function AttendancePage() {
     // if (response.ok) {
     //   setWorkAttendances(response.data);
     // }
-  }, [displayDate]);
+    getAllWorkAttendances(query).then((res) => {
+      console.log(res)
+      setWorkAttendances(res);
+    });
+  }, [displayDate, shifts]);
 
   const handleDateChange = (date: Date) => {
     setDisplayDate(getFirstDayOfWeek(date));
@@ -393,10 +411,11 @@ export default function AttendancePage() {
   const openModal = (attendance: WorkAttendanceEntity) => {
     setSelectedAttendance(attendance);
     setGotoWork(
-      attendance.checkInTime !== "" || attendance.checkOutTime !== ""
+      !(attendance.status === "ABSENT")
     );
     setCheckInTime(attendance.checkInTime);
     setCheckOutTime(attendance.checkOutTime);
+    setNote(attendance.note);
     setIsOpenModal(true);
   };
 
@@ -409,29 +428,42 @@ export default function AttendancePage() {
     setGotoWork(false);
   };
 
-  const saveModal = () => {
+  const saveModal = (e) => {
+    e.preventDefault();
+    setIsOpenModal(false)
+    setNote("");
     /* gọi API **/
     const payload: UpdateWorkAttendanceRequest = {
-      checkInTime: checkInTime ? checkInTime : undefined,
-      checkOutTime: checkOutTime ? checkOutTime : undefined,
-      status: selectedAttendance.status,
+      checkInTime: gotoWork ? (checkInTime ? checkInTime : undefined) : undefined,
+      checkOutTime: gotoWork ? (checkOutTime ? checkOutTime : undefined) : undefined,
+      status: gotoWork ? "NOT_STARTED_YET" : "ABSENT",
+      //status: gotoWork ? selectedAttendance.status : "ABSENT",
       note: note ? note : undefined,
     };
     // const reponse = updateWorkAttendance (selectedAttendance.id, payload);
     // ìf (response.ok) {
+    try {
+      updateWorkAttendance(selectedAttendance.id, payload).then((res) => {
+        console.log("update: ", res)
+        // console.log("updated");
+        // const newAttendance = {
+        //   ...selectedAttendance,
+        //   checkInTime,
+        //   checkOutTime,
+        //   note,
+        //   status: "ON_TIME",
+        // };
+        // const newWorkAttendances = workAttendances.map((attendance) =>
+        //   attendance.id === newAttendance.id ? newAttendance : attendance
+        // );
+        // setWorkAttendances(newWorkAttendances);
+        // closeModal();
+        setShifts((prev) => [...prev]); //re useEffect to fetch workAttendances
+      });
+    } catch (error) {
+      console.error(error);
+    }
 
-    const newAttendance = {
-      ...selectedAttendance,
-      checkInTime,
-      checkOutTime,
-      note,
-      status: "ON_TIME",
-    };
-    const newWorkAttendances = workAttendances.map((attendance) =>
-      attendance.id === newAttendance.id ? newAttendance : attendance
-    );
-    setWorkAttendances(newWorkAttendances);
-    closeModal();
   };
 
   const displayWeek = useMemo(() => {
@@ -457,7 +489,7 @@ export default function AttendancePage() {
   };
 
   const searchByShiftIdAndDate = (shiftId: number, date: string) => {
-    return workAttendances
+    return workAttendances && workAttendances
       .filter(
         (attendance) =>
           attendance.workSchedule.shiftId === shiftId &&
@@ -523,9 +555,8 @@ export default function AttendancePage() {
               <div className="relative">
                 <button
                   onClick={() => setIsOpenDatePicker(!isOpenDatePicker)}
-                  className={`w-[200px] h-8 rounded-2xl text-sm ${
-                    isOpenDatePicker ? "bg-[#fefefe] shadow-md" : ""
-                  }`}
+                  className={`w-[200px] h-8 rounded-2xl text-sm ${isOpenDatePicker ? "bg-[#fefefe] shadow-md" : ""
+                    }`}
                 >
                   {displayWeek}
                 </button>
@@ -587,7 +618,7 @@ export default function AttendancePage() {
               <div className="shift-cell">
                 <div>{shift.name}</div>
                 <div className="text-[#8c8c8c] text-sm font-light">
-                  {shift.startTime} - {shift.endTime}
+                  {shift.startTime.slice(0, 5)} - {shift.endTime.slice(0, 5)}
                 </div>
               </div>
               {daysOfWeek.map((day) => (
@@ -607,12 +638,12 @@ export default function AttendancePage() {
                           {attendance.workSchedule.user.name}
                         </div>
                         <div className="overflow-hidden text-nowrap text-[#8c8c8c] text-sm font-light">
-                          {attendance.workSchedule.user.role.name}
+                          {attendance.workSchedule.user.position}
                         </div>
                       </div>
                       {(attendance.checkInTime || attendance.checkOutTime) && (
                         <div className="mb-0.5">
-                          {attendance.checkInTime} - {attendance.checkOutTime}
+                          {attendance.checkInTime && attendance.checkInTime.slice(0, 5)} - {attendance.checkOutTime && attendance.checkOutTime.slice(0, 5)}
                         </div>
                       )}
                       <div>
@@ -675,27 +706,27 @@ export default function AttendancePage() {
                         )}
                         {(attendance.status === "NOT_YET_CLOCKED_OUT" ||
                           attendance.status === "NOT_YET_CLOCKED_IN") && (
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="24"
-                            height="24"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            className="icon icon-tabler icons-tabler-outline icon-tabler-progress-check text-sm text-[#37AFE1]"
-                          >
-                            <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-                            <path d="M10 20.777a8.942 8.942 0 0 1 -2.48 -.969" />
-                            <path d="M14 3.223a9.003 9.003 0 0 1 0 17.554" />
-                            <path d="M4.579 17.093a8.961 8.961 0 0 1 -1.227 -2.592" />
-                            <path d="M3.124 10.5c.16 -.95 .468 -1.85 .9 -2.675l.169 -.305" />
-                            <path d="M6.907 4.579a8.954 8.954 0 0 1 3.093 -1.356" />
-                            <path d="M9 12l2 2l4 -4" />
-                          </svg>
-                        )}
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              width="24"
+                              height="24"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              className="icon icon-tabler icons-tabler-outline icon-tabler-progress-check text-sm text-[#37AFE1]"
+                            >
+                              <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                              <path d="M10 20.777a8.942 8.942 0 0 1 -2.48 -.969" />
+                              <path d="M14 3.223a9.003 9.003 0 0 1 0 17.554" />
+                              <path d="M4.579 17.093a8.961 8.961 0 0 1 -1.227 -2.592" />
+                              <path d="M3.124 10.5c.16 -.95 .468 -1.85 .9 -2.675l.169 -.305" />
+                              <path d="M6.907 4.579a8.954 8.954 0 0 1 3.093 -1.356" />
+                              <path d="M9 12l2 2l4 -4" />
+                            </svg>
+                          )}
                       </div>
                     </button>
                   ))}
@@ -717,7 +748,7 @@ export default function AttendancePage() {
                 </span>
               </div>
               <div className="font-light text-sm text-[#8c8c8c]">
-                {selectedAttendance.workSchedule.user.role.name}
+                {selectedAttendance.workSchedule.user.position}
               </div>
             </div>
             <div className="flex items-center mb-4">
@@ -729,20 +760,20 @@ export default function AttendancePage() {
             <div className="flex items-center mb-4">
               <div className="w-32">Giờ làm việc</div>
               <div className="font-bold w-20">
-                {selectedAttendance.workSchedule.shift.startTime}
+                {selectedAttendance.workSchedule.shift.startTime.slice(0, 5)}
               </div>
               <div className="w-16">Đến</div>
               <div className="font-bold w-28">
-                {selectedAttendance.workSchedule.shift.endTime}
+                {selectedAttendance.workSchedule.shift.endTime.slice(0, 5)}
               </div>
             </div>
             <div className="flex items-center mb-4">
               <div className="w-32">Ngày làm việc</div>
               <div className="font-bold">
-                {selectedAttendance.workSchedule.date}
+                {formatToDDMMYYYY(selectedAttendance.workSchedule.date)}
               </div>
             </div>
-            <form onSubmit={saveModal}>
+            <form onSubmit={(e) => saveModal(e)}>
               <div className="border text-sm rounded-md bg-[#f7fafc] px-2 shadow-sm w-[400px] h-24 mb-4">
                 <input
                   className="p-2 bg-transparent w-full outline-none"
@@ -773,7 +804,7 @@ export default function AttendancePage() {
                         className="p-2 bg-transparent w-full outline-none"
                         type="text"
                         placeholder="hh:mm"
-                        value={checkInTime}
+                        value={checkInTime && checkInTime.slice(0, 5)}
                         pattern="([01][0-9]|2[0-3]):[0-5][0-9]"
                         onChange={(e) => setCheckInTime(e.target.value)}
                       />
@@ -786,7 +817,7 @@ export default function AttendancePage() {
                         className="p-2 bg-transparent w-full outline-none"
                         type="text"
                         placeholder="hh:mm"
-                        value={checkOutTime}
+                        value={checkOutTime && checkOutTime.slice(0, 5)}
                         pattern="([01][0-9]|2[0-3]):[0-5][0-9]"
                         onChange={(e) => setCheckOutTime(e.target.value)}
                       />

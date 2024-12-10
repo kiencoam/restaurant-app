@@ -18,7 +18,7 @@ export type CreateMenuItemRequest = {
   description: string;
   costPrice: number;
   sellingPrice: number;
-  thumbnailUrl: string;
+  thumbnailImg: string;
   menuSectionId: number;
 };
 
@@ -27,7 +27,7 @@ export type UpdateMenuItemRequest = {
   description: string;
   costPrice: number;
   sellingPrice: number;
-  thumbnailUrl: string;
+  thumbnailImg: string;
   menuSectionId: number;
 };
 

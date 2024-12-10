@@ -248,8 +248,10 @@ const TableAndRoomPage = () => {
                       className="form-radio"
                       name="status"
                       checked={filter.isActive === undefined}
-                      onChange={() =>
-                        setFilter({ ...filter, isActive: undefined})
+                      onChange={() => {
+                        setFilter({ ...filter, isActive: undefined });
+                        setCurrentPage(1);
+                      }
                       }
                     />
                     <span>Tất cả</span>
@@ -300,7 +302,7 @@ const TableAndRoomPage = () => {
             <CreateTableForm
               setTables={setTables}
               setIsNewTable={setIsNewTable}
-              setFilter = {setFilter}
+              setFilter={setFilter}
             />
           )}
         </div>
@@ -308,59 +310,72 @@ const TableAndRoomPage = () => {
       <div className="px-6">
         <TableList tables={tables} setTables={setTables} setFilter={setFilter} />
         <div className="flex items-center space-x-8 mt-4">
-        <div className="flex">
-          <div>Số bản ghi: </div>
-          <select
-            className="bg-[#f7f7f7] outline-none"
-            value={rowsPerPage}
-            onChange={(e) => {
-              changeRowsPerPage(Number(e.target.value));
-              setCurrentPage(1);
+          <div className="flex">
+            <div>Số bản ghi: </div>
+            <select
+              className="bg-[#f7f7f7] outline-none"
+              value={rowsPerPage}
+              onChange={(e) => {
+                changeRowsPerPage(Number(e.target.value));
+                setCurrentPage(1);
 
-            }}
-          >
-            {/* <option defaultValue={rowsPerPage}>{rowsPerPage}</option> */}
-            <option value={1}>1</option>
-            <option value={5}>5</option>
-            <option value={10}>10</option>
-            <option value={15}>15</option>
-            <option value={20}>20</option>
-          </select>
-        </div>
-        <div className="flex space-x-2">
-          <button
-            onClick={() => changePage(currentPage - 1)}
-            disabled={currentPage === 1}
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              height="24px"
-              viewBox="0 -960 960 960"
-              width="24px"
-              fill="#000000"
+              }}
             >
-              <path d="m313-440 224 224-57 56-320-320 320-320 57 56-224 224h487v80H313Z" />
-            </svg>
-          </button>
-          {tables.length > 0 &&
-            <span>
-              Page {Math.min(currentPage, pageInfo.totalPage)} of {pageInfo.totalPage}
-            </span>
-          }
-          <button
-            onClick={() => changePage(currentPage + 1)}
-            disabled={currentPage === pageInfo.totalPage}
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              height="24px"
-              viewBox="0 -960 960 960"
-              width="24px"
-              fill="#000000"
+              {/* <option defaultValue={rowsPerPage}>{rowsPerPage}</option> */}
+              {/* <option value={1}>1</option> */}
+              <option value={5}>5</option>
+              <option value={10}>10</option>
+              <option value={15}>15</option>
+              <option value={20}>20</option>
+            </select>
+          </div>
+          <div className="flex space-x-2">
+            <button
+              onClick={() => {
+                changePage(currentPage - 1); // Cập nhật số trang
+                setFilter(prevParams => ({
+                  ...prevParams, // Giữ lại các tham số cũ
+                  page: currentPage - 2, // Cập nhật page theo currentPage - 1
+                }));
+              }}
+              disabled={currentPage === 1}
             >
-              <path d="M647-440H160v-80h487L423-744l57-56 320 320-320 320-57-56 224-224Z" />
-            </svg>
-          </button>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                height="24px"
+                viewBox="0 -960 960 960"
+                width="24px"
+                fill="#000000"
+              >
+                <path d="m313-440 224 224-57 56-320-320 320-320 57 56-224 224h487v80H313Z" />
+              </svg>
+            </button>
+            {tables.length > 0 &&
+              <span>
+                Page {Math.min(currentPage, pageInfo.totalPage)} of {pageInfo.totalPage}
+              </span>
+            }
+            <button
+              onClick={() => {
+                changePage(currentPage + 1); // Cập nhật số trang
+                setFilter(prevParams => ({
+                  ...prevParams, // Giữ lại các tham số cũ
+                  page: currentPage, // Cập nhật page theo currentPage + 1
+                }));
+              }}
+              disabled={currentPage === pageInfo.totalPage}
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                height="24px"
+                viewBox="0 -960 960 960"
+                width="24px"
+                fill="#000000"
+              >
+                <path d="M647-440H160v-80h487L423-744l57-56 320 320-320 320-57-56 224-224Z" />
+              </svg>
+            </button>
+
           </div>
         </div>
       </div>

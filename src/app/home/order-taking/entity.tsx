@@ -52,7 +52,7 @@ export type MenuItemEntity = {
     description: string;
     costPrice: number;
     sellingPrice: number;
-    thumbnailUrl: string;
+    thumbnailImg: string;
     menuSectionId: number;
 }
 
