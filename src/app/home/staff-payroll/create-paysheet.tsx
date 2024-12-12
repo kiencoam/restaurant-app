@@ -2,18 +2,47 @@ import React, { useState } from "react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import ReactSelect from "react-select";
+import { GetSalaryPeriodRequest } from "./page";
+import { CreateSalaryPeriodRequest } from "@/app/api-client/SalaryPeriodService";
+
+// export default function CreatePaysheet({
+//   toggleNewPaysheet,
+//   filterUser,
+//   searchUser,
+//   setSearchUser,
+//   newPaysheet,
+//   setNewPaysheet,
+// }) 
+type Props = {
+  toggleNewPaysheet: () => void;
+  setPeriodFilter: React.Dispatch<React.SetStateAction<GetSalaryPeriodRequest>>;
+}
 
 export default function CreatePaysheet({
   toggleNewPaysheet,
-  filterUser,
-  searchUser,
-  setSearchUser,
-  newPaysheet,
-  setNewPaysheet,
+  setPeriodFilter,
 }) {
+
+  const [newSalaryPeriod, setNewSalaryPeriod] = useState<CreateSalaryPeriodRequest>({
+    title: null,
+    fromDate: null,
+    toDate: null,
+  });
+
+  //Không có chỗ gửi user đi ??
+  const [newSalaryDetail, setNewSalaryDetail] = useState<Create>
+  const [searchUser, setSearchUser] = useState("");
   const [dateRange, setDateRange] = useState([null, null]);
   const [startDate, endDate] = dateRange;
   const [scalePay, changeScalePay] = useState("ALL");
+
+
+  const filterUser: UserEntity[] =
+    searchUser.trim() === ""
+      ? []
+      : users.filter((staff) =>
+        staff.name.toLowerCase().includes(searchUser.toLowerCase())
+      );
 
   const changeScalePayFunction = (value) => {
     changeScalePay(value); // Update the scalePay state

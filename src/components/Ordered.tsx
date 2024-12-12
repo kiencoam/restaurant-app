@@ -2,11 +2,9 @@
 
 import { OrderItemKitchenEntity } from "@/app/api-client/OrderItemKitchenService";
 import { MenuItemEntity, TableEntity } from "@/app/home/order-taking/entity";
-import { formatDateToTimeString } from "@/utils/timeUtils";
+import { formatDateToTimeString, formatToHHColonMM } from "@/utils/timeUtils";
 import { useMemo, useState } from "react";
 
-// giống type trong OrderItemKitchenService.ts nhưng receiveTime là Date
-// nên sửa lại entity trong OrderItemKitchenService.ts rồi import ở đây
 
 export function Ordered({
   pendingKitchenItems,
@@ -91,7 +89,7 @@ export function Ordered({
                     {item.menuItem.title}
                   </div>
                   <div className="text-[#999999] text-sm font-normal font-flux">
-                    {formatDateToTimeString(item.receivedTime)}
+                    {formatToHHColonMM(item.receivedTime)}
                   </div>
                 </div>
                 <div className="basis-[20%] text-center">{item.quantity}</div>
@@ -217,7 +215,7 @@ export function Ordered({
                         {item.menuItem.title}
                       </div>
                       <div className="text-[#999999] text-sm font-normal font-flux">
-                        {formatDateToTimeString(item.receivedTime)}
+                        {formatToHHColonMM(item.receivedTime)}
                       </div>
                     </div>
                     <div className="basis-[30%] text-center">

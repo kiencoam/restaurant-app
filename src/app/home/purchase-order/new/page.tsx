@@ -3,14 +3,21 @@ import React, { useState, useEffect, useRef, useCallback, useContext } from "rea
 import { Tooltip } from "react-tooltip";
 import Link from "next/link";
 import ProductTable from "./ProductTable";
-import { CreateProductRequest, getAllProducts, GetProductRequest, ProductEntity, updateProduct, UpdateProductRequest } from "@/app/api-client/ProductService";
+import { CreateProductRequest, getAllProducts, ProductEntity, updateProduct, UpdateProductRequest } from "@/app/api-client/ProductService";
 import { createStockHistory, CreateStockHistoryItemRequest, CreateStockHistoryRequest, StockHistoryEntity } from "@/app/api-client/StockHistoryService";
 import ProductForm from "../../products/ProductForm";
 import { getAllSuppliers, SupplierEntity } from "@/app/api-client/SupplierService";
-import SupplierForm from "./SupplierForm";
 import { useRouter } from "next/navigation";
 import { loginUserContext } from "@/components/LoginUserProvider";
+import CreateSupplierForm from "../../supplier-management/create-supplier-form";
+import { GetSupplierRequest } from "../../supplier-management/page";
 // Mock data for table rows
+
+enum StockHistoryStatusEnum {
+  Pending = "PENDING",
+  Processing = "PROCESSING",
+  Done = "DONE"
+}
 
 export type CreateStockHistoryItemRequestv2 = {
   productId: number;
@@ -30,77 +37,89 @@ const initialStockHistory: CreateStockHistoryRequest = {
   stockHistoryItems: [] as CreateStockHistoryItemRequest[],
 }
 
-
+type GetProductRequest = {
+  page: number,
+  page_size: number,
+  name?: string,
+  status?: string,
+  price_from?: number,
+  price_to?: number,
+  sort_by?: string,
+  sort_type?: string,
+}
 
 const NewPage = () => {
 
-  const [stockHistory, setStockHistory] = useState<CreateStockHistoryRequest>(initialStockHistory);
+  const [newStockHistory, setNewStockHistory] = useState<CreateStockHistoryRequest>(initialStockHistory);
   const [tableData, setTableData] = useState<CreateStockHistoryItemRequestv2[]>(initialTableData);
   // TO FETCH PRODUCTS AND SUPPLIERS
   const [products, setProducts] = useState<ProductEntity[]>([]);
   const [suppliers, setSuppliers] = useState<SupplierEntity[]>([]);
+  const [selectedSupplier, setSelectedSupplier] = useState<SupplierEntity>(null);
   // OPEN FORM
   const [isAddingNewSupplier, setIsAddingNewSupplier] = useState(false);
   const [isAddingNewOpen, setIsAddingNewOpen] = useState(false);
   // FIND 
-  const [getProductRequest, setGetProductRequest] = useState("")
-  const [getSupplierRequest, setGetSupplierRequest] = useState("")
+  const [getProductRequest, setGetProductRequest] = useState<GetProductRequest>({
+    page: 0,
+    page_size: 5
+  })
+  const [getSupplierRequest, setGetSupplierRequest] = useState<GetSupplierRequest>({
+    page: 0,
+    page_size: 5
+  })
+
 
   const router = useRouter()
 
   //lấy id làm userid
-  const id = useContext(loginUserContext).id
+  const id = Number(useContext(loginUserContext).id)
 
-
-  // QUERYPARAMS FOR PRODUCT
-  const buildQueryProduct = useCallback(() => {
-    let queryParams = `page=0&page_size=5`
-    if (getProductRequest.trim() !== "") {
-      queryParams = queryParams.concat(`&name=${getProductRequest}`)
-    }
-    return queryParams;
-  }, [getProductRequest])
-
-  // QUERYPARAMS FOR SUPPLIER
-  const buildQuerySupplier = useCallback(() => {
-    let queryParams = `page=0&page_size=5`
-    if (getSupplierRequest.trim() !== "") {
-      queryParams = queryParams.concat(`&name=${getSupplierRequest}`)
-    }
-    return queryParams;
-  }, [getSupplierRequest])
 
   useEffect(() => {
-    const fecthProducts = (queryParams) => {
-      getAllProducts(queryParams).then(res => setProducts(res.second))
-    }
+    const query = Object.entries(getProductRequest)
+      .map(([key, value]) => {
+        if (value || key === "page") {
+          return `${key}=${value}`;
+        }
+      })
+      .join("&");
 
-    fecthProducts(buildQueryProduct())
+    getAllProducts(query).then((data) => {
+      setProducts(data.second);
+    })
+  }, [getProductRequest]);
 
-    const fecthSuppliers = (queryParams) => {
-      getAllSuppliers(queryParams).then(res => setSuppliers(res.second))
-    }
+  useEffect(() => {
+    const query = Object.entries(getSupplierRequest)
+      .map(([key, value]) => {
+        if (value || key === "page") {
+          return `${key}=${value}`;
+        }
+      })
+      .join("&");
 
-    fecthSuppliers(buildQuerySupplier())
-
-  }, [buildQueryProduct, buildQuerySupplier])
-
-
-
-  console.log("products", products);
-  console.log("suppliers", suppliers)
+    getAllSuppliers(query).then((data) => {
+      setSuppliers(data.second);
+    })
+  }, [getSupplierRequest]);
 
   const handlePickSupplier = (supplier: SupplierEntity) => {
-    setGetSupplierRequest(supplier.name);
-    setStockHistory({
-      ...stockHistory,
+    setGetSupplierRequest((prev) => ({ ...prev, name: "" }));
+    setSelectedSupplier(supplier)
+    setNewStockHistory({
+      ...newStockHistory,
       supplierId: supplier.id
     })
 
   }
   const handlePickProduct = (product: ProductEntity) => {
     // setGetProductRequest(product.name);
-    setGetProductRequest("");
+    setGetProductRequest({
+      page: 0,
+      page_size: 5,
+      name: "",
+    });
     setTableData((prev: CreateStockHistoryItemRequestv2[]) => [...prev, {
       productId: product.id,
       quantity: 1,
@@ -110,38 +129,35 @@ const NewPage = () => {
   }
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>, key: string) => {
-    setStockHistory({ ...stockHistory, [key]: e.target.value });
+    setNewStockHistory({ ...newStockHistory, [key]: e.target.value });
   }
 
   const handleSubmit = (status: string) => {
-    if (stockHistory.code == "" || tableData.length == 0 || stockHistory.supplierId == 0) {
+    if (tableData.length == 0 || newStockHistory.supplierId == 0) {
       alert("Chưa nhập đủ thông tin")
     }
-    setStockHistory({
-      ...stockHistory,
+    const updatedStockHistory = {
+      ...newStockHistory,
       status: status,
-      stockHistoryItems: tableData.map(data => {
-        return {
-          productId: data.productId,
-          quantity: data.quantity,
-          pricePerUnit: data.pricePerUnit,
-        };
-      }),
-      userId: id
+      stockHistoryItems: tableData.map(data => ({
+        productId: data.productId,
+        quantity: data.quantity,
+        pricePerUnit: data.pricePerUnit,
+      })),
+      userId: id,
+    };
 
-    })
-    createStockHistory(stockHistory).then((res: StockHistoryEntity) => {
+    console.log(updatedStockHistory)
+
+    createStockHistory(updatedStockHistory).then((res: StockHistoryEntity) => {
       console.log(res);
-      //setStockHistories((prev: CreateStockHistoryRequest[]) => [res, ...prev]);
-      //Fetchdata xuong setStockHistories
+      if (status == StockHistoryStatusEnum.Pending) {
+        router.push(`./home/purchase-order/${newStockHistory.code}`)
+      }
+      else if (status == StockHistoryStatusEnum.Done){
+        router.push(`./home/purchase-order`)
+      }
     })
-    console.log(stockHistory)
-    if (status == "pending") {
-      router.push(`./home/purchase-order/${stockHistory.code}`)
-    }
-    else {
-      router.push(`./home/purchase-order`)
-    }
   }
 
   const toggleNewSupplier = () => {
@@ -221,7 +237,7 @@ const NewPage = () => {
             </button>
           </Link>
           <div className="text-2xl font-bold w-[180px]">Nhập hàng</div>
-          <div className="flex items-center border text-sm rounded-md bg-[#f7fafc] px-2 shadow-sm w-[450px]">
+          <div className="relative flex items-center border text-sm rounded-md bg-[#f7fafc] px-2 shadow-sm w-[450px]">
             <svg
               className="w-5 h-5"
               xmlns="http://www.w3.org/2000/svg"
@@ -236,31 +252,43 @@ const NewPage = () => {
                 d="M21 21l-4.35-4.35M17 11A6 6 0 1011 17a6 6 0 006-6z"
               />
             </svg>
-            <input
-              className="p-2 bg-transparent outline-none w-full"
-              type="text"
-              placeholder="Tìm hàng hóa theo mã hoặc theo tên"
-              value={getProductRequest}
-              onChange={(e) => setGetProductRequest(e.target.value)}
-            />
-            {/* Hiển thị gợi ý */}
-            {products.length > 0 && (
-              <div className="absolute bg-white border border-gray-300 mt-1 max-h-40 overflow-y-auto w-full z-10">
-                {products.map((product) => (
-                  <div
-                    key={product.id}
-                    className="p-2 hover:bg-gray-100 cursor-pointer"
-                    onClick={() => {
-                      handlePickProduct(product); // Điền tên vào input
-                    }}
-                  >
-                    {product.name}
-                  </div>
-                ))}
-              </div>
-            )}
-            {getProductRequest.length == 0 ?
+            <div className="w-full">
+              <input
+                className="p-2 bg-gray-50 outline-none w-full focus:ring-1 focus:ring-blue-500 focus:border-blue-300"
+                type="text"
+                placeholder="Tìm hàng hóa theo mã hoặc theo tên"
+                value={getProductRequest.name}
+                onChange={(e) => setGetProductRequest({ ...getProductRequest, name: e.target.value })}
+              />
+              {/* Hiển thị gợi ý */}
+              {getProductRequest.name && (
+                <div className="absolute top-full left-0 bg-white border border-gray-300 mt-1 max-h-40 overflow-y-auto w-full z-20 shadow-lg rounded-lg">
+                  {products.map((product) => (
+                    <div
+                      key={product.id}
+                      className="p-3 hover:bg-blue-50 cursor-pointer text-gray-700 text-sm font-medium transition-all duration-200"
+                      onClick={() => {
+                        handlePickProduct(product); // Điền tên vào input
+                      }}
+                    >
+                      {product.name}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+            {getProductRequest.name ?
               (<button
+                data-tooltip-id="delete-tooltip"
+                data-tooltip-content="Xóa hàng hóa"
+                onClick={() => { setGetProductRequest({ ...getProductRequest, name: "" }) }}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" className="w-6 h-6">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+
+              </button>
+              ) : (<button
                 data-tooltip-id="my-tooltip"
                 data-tooltip-content="Thêm hàng hóa mới"
                 onClick={toggleAddingNewOpen}
@@ -274,18 +302,11 @@ const NewPage = () => {
                 >
                   <path d="M440-440H200v-80h240v-240h80v240h240v80H520v240h-80v-240Z" />
                 </svg>
-              </button>) :
-              (<button
-                data-tooltip-id="delete-tooltip"
-                data-tooltip-content="Xóa hàng hóa"
-                onClick={() => { setGetProductRequest("") }}
-              >
-                X
-              </button>
-              )}
+              </button>)}
             {isAddingNewOpen &&
               <ProductForm
                 toggleAddingNewOpen={toggleAddingNewOpen}
+                setProducts={setProducts}
               />}
           </div>
         </div>
@@ -314,29 +335,60 @@ const NewPage = () => {
                 d="M21 21l-4.35-4.35M17 11A6 6 0 1011 17a6 6 0 006-6z"
               />
             </svg>
-            <input
-              className="p-2 bg-transparent outline-none w-full"
-              type="text"
-              placeholder="Tìm nhà cung cấp"
-              value={getSupplierRequest}
-              onChange={(e) => setGetSupplierRequest(e.target.value)}
-            />
-            {/* Hiển thị gợi ý */}
-            {suppliers.length > 0 && (
-              <div className="absolute bg-white border border-gray-300 mt-1 max-h-40 overflow-y-auto w-full z-10">
-                {suppliers.map((supplier) => (
-                  <div
-                    key={supplier.id}
-                    className="p-2 hover:bg-gray-100 cursor-pointer"
-                    onClick={() => handlePickSupplier(supplier)}
-                  >
-                    {supplier.name}
-                  </div>
-                ))}
-              </div>
-            )}
-            {getSupplierRequest.length == 0 ?
-              <button
+            <div className="relative w-full">
+              {selectedSupplier ? (
+                <div className="flex items-center justify-between p-2 rounded-lg">
+                  <span className="text-gray-700 text-sm font-medium">
+                    {selectedSupplier.name}
+                  </span>
+                </div>
+              ) : (
+                <div>
+                  <input
+                    className="p-2 rounded-lg outline-none w-full focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    type="text"
+                    placeholder="Tìm nhà cung cấp"
+                    value={getSupplierRequest.name}
+                    onChange={(e) =>
+                      setGetSupplierRequest((prev) => ({ ...prev, name: e.target.value }))
+                    }
+                  />
+                  {getSupplierRequest.name && (
+                    <div className="absolute top-full left-0 bg-white border border-gray-300 mt-1 max-h-40 overflow-y-auto w-full z-20 shadow-lg rounded-lg">
+                      {suppliers.map((supplier) => (
+                        <div
+                          key={supplier.id}
+                          className="p-3 hover:bg-blue-50 cursor-pointer text-gray-700 text-sm font-medium transition-all duration-200"
+                          onClick={() => handlePickSupplier(supplier)}
+                        >
+                          {supplier.name}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+            {getSupplierRequest.name || selectedSupplier ?
+              (<button
+                data-tooltip-id="delete-tooltip"
+                data-tooltip-content="Xóa nhà cung cấp"
+                onClick={() => {
+                  if (selectedSupplier) {
+                    setSelectedSupplier(null); // Xóa nhà cung cấp đã chọn
+                  }
+                  else {
+                    setGetSupplierRequest({ ...getSupplierRequest, name: "" })
+                  }
+                  setNewStockHistory((prev) => ({ ...prev, supplierId: null })); // Xóa supplierId
+                }}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" className="w-6 h-6">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+
+              </button>
+              ) : <button
                 onClick={() => setIsAddingNewSupplier(!isAddingNewSupplier)}
                 data-tooltip-id="my-tooltip"
                 data-tooltip-content="Thêm nhà cung cấp mới"
@@ -350,24 +402,13 @@ const NewPage = () => {
                 >
                   <path d="M440-440H200v-80h240v-240h80v240h240v80H520v240h-80v-240Z" />
                 </svg>
-              </button> :
-              (<button
-                data-tooltip-id="delete-tooltip"
-                data-tooltip-content="Xóa nhà cung cấp"
-                onClick={() => {
-                  setGetSupplierRequest("");
-                  setStockHistory({
-                    ...stockHistory,
-                    supplierId: 0
-                  })
-                }}
-              >
-                X
               </button>
-              )}
+            }
             {isAddingNewSupplier &&
-              <SupplierForm
+              <CreateSupplierForm
                 toggleNewSupplier={toggleNewSupplier}
+                setFilter={setGetSupplierRequest}
+                pageSize={0}
                 setSuppliers={setSuppliers}
               />}
           </div>
@@ -405,10 +446,10 @@ const NewPage = () => {
           />
         </div>
         <div className="flex justify-between mt-20">
-          <button className="bg-blue-500 text-white px-4 py-2 rounded w-[130px]" onClick={() => handleSubmit("pending")}>
+          <button className="bg-blue-500 text-white px-4 py-2 rounded w-[130px]" onClick={() => handleSubmit(StockHistoryStatusEnum.Pending)}>
             Lưu tạm
           </button>
-          <button className="bg-green-500 text-white px-4 py-2 rounded w-[130px] " onClick={() => handleSubmit("completed")}>
+          <button className="bg-green-500 text-white px-4 py-2 rounded w-[130px] " onClick={() => handleSubmit(StockHistoryStatusEnum.Done)}>
             Hoàn thành
           </button>
         </div>

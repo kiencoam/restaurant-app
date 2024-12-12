@@ -59,7 +59,7 @@ export function Menu
               >
                 <div className="object-contain overflow-hidden">
                   <Image
-                    src={item.thumbnailUrl}
+                    src={item.thumbnailImg}
                     alt={item.title}
                     width={96}
                     height={96}

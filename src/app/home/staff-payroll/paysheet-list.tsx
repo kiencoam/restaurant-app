@@ -1,29 +1,80 @@
-import React, { useState } from "react";
+import { PageInfo } from "@/app/api-client/PageInfo";
+import { SalaryPeriodEntity, UpdateSalaryPeriodStatusRequest } from "@/app/api-client/SalaryPeriodService";
+import React, { useEffect, useState } from "react";
 import { Tooltip } from "react-tooltip";
+import { GetSalaryDetailRequest, GetSalaryPeriodRequest } from "./page";
+import { getAllSalaryDetails } from "@/app/api-client/SalaryDetailService";
+
+type PaysheetListProps = {
+  salaryPeriods: SalaryPeriodEntity[];
+  setSalaryPeriods: React.Dispatch<React.SetStateAction<SalaryPeriodEntity[]>>;
+  masterChecked: boolean;
+  checkedRows: Record<number, boolean>;
+  pageInfo: PageInfo;
+  handleMasterCheckboxChange: () => void;
+  handleRowCheckboxChange: (id: number) => void;
+  handleRowClick: (id: number) => void;
+  expandedRow: number | null;
+  handlePageSizeChange: (pageSize: number) => void;
+  handlePageNumberChange: (page: number) => void;
+  setPeriodFilter: React.Dispatch<React.SetStateAction<GetSalaryPeriodRequest>>;
+};
 
 export default function PaysheetList({
-  paysheets,
+  salaryPeriods,
+  setSalaryPeriods,
   masterChecked,
   checkedRows,
+  pageInfo,
   handleMasterCheckboxChange,
   handleRowCheckboxChange,
   handleRowClick,
   expandedRow,
-}) {
-  const [updatedPaysheets, setUpdatedPaysheets] = useState(paysheets);
+  handlePageSizeChange,
+  handlePageNumberChange,
+  setPeriodFilter
+}: PaysheetListProps) {
+
+  //update chỉ có string ?
+  const [updatedSalaryPeriod, setUpdatedSalaryPeriod] = useState<UpdateSalaryPeriodStatusRequest | null>(null);
+
+  const [salaryDetails, setSalaryDetails] = useState<SalaryPeriodEntity[]>([])
+
+  const [detailFilter, setDetailFilter] = useState<GetSalaryDetailRequest>({
+    page: 0,
+    page_size: 5,
+  });
+
+  console.log("salaryDetail:", salaryDetails);
+
+  //Lấy tất cả SalaryDetails
+  useEffect(() => {
+    const query = Object.entries(detailFilter)
+      .map(([key, value]) => {
+        if (value) {
+          return `${key}=${value}`;
+        }
+      })
+      .join("&");
+    console.log(query)
+    getAllSalaryDetails(query).then((data) => {
+      setSalaryDetails(data.second);
+    })
+    // console.log(query)
+  }, [detailFilter]);
 
   const handlePaidSalaryChange = (paysheetId, salaryDetailId, newValue) => {
-    setUpdatedPaysheets((prevPaysheets) =>
+    setUpdatedSalaryPeriod((prevPaysheets) =>
       prevPaysheets.map((paysheet) =>
         paysheet.id === paysheetId
           ? {
-              ...paysheet,
-              salaryDetails: paysheet.salaryDetails.map((detail) =>
-                detail.id === salaryDetailId
-                  ? { ...detail, paidSalary: newValue }
-                  : detail
-              ),
-            }
+            ...paysheet,
+            salaryDetails: paysheet.salaryDetails.map((detail) =>
+              detail.id === salaryDetailId
+                ? { ...detail, paidSalary: newValue }
+                : detail
+            ),
+          }
           : paysheet
       )
     );
@@ -61,16 +112,17 @@ export default function PaysheetList({
     startIndex + rowsPerPage
   );
 
-  // Handle page change
   const changePage = (newPage) => {
-    if (newPage >= 1 && newPage <= totalPages) {
+    if (newPage >= 1 && newPage <= pageInfo.totalPage) {
       setCurrentPage(newPage);
+      handlePageNumberChange(newPage - 1);
     }
   };
 
   //Handle rowsPerPage change
-  const changeRowsPerPage = (rows) => {
-    setRowsPerPage(rows);
+  const changeRowsPerPage = (pageSize) => {
+    setRowsPerPage(pageSize);
+    handlePageSizeChange(pageSize);
   };
 
   return (
@@ -98,9 +150,8 @@ export default function PaysheetList({
             <React.Fragment key={paysheet.id}>
               <tr
                 key={paysheet.id}
-                className={` border-b-2 cursor-pointer ${
-                  checkedRows[paysheet.id] ? "bg-gray-100" : ""
-                }`}
+                className={` border-b-2 cursor-pointer ${checkedRows[paysheet.id] ? "bg-gray-100" : ""
+                  }`}
                 onClick={(e) => {
                   const target = e.target as HTMLElement; // Cast to HTMLElement
 
@@ -351,9 +402,14 @@ export default function PaysheetList({
           <select
             className="bg-[#f7f7f7] outline-none"
             value={rowsPerPage}
-            onChange={(e) => changeRowsPerPage(Number(e.target.value))}
+            onChange={(e) => {
+              changeRowsPerPage(Number(e.target.value));
+              setCurrentPage(1);
+
+            }}
           >
-            <option defaultValue={rowsPerPage}>{rowsPerPage}</option>
+            {/* <option defaultValue={rowsPerPage}>{rowsPerPage}</option> */}
+            {/* <option value={1}>1</option> */}
             <option value={5}>5</option>
             <option value={10}>10</option>
             <option value={15}>15</option>
@@ -362,7 +418,13 @@ export default function PaysheetList({
         </div>
         <div className="flex space-x-2">
           <button
-            onClick={() => changePage(currentPage - 1)}
+            onClick={() => {
+              changePage(currentPage - 1); // Cập nhật số trang
+              setPeriodFilter(prevParams => ({
+                ...prevParams, // Giữ lại các tham số cũ
+                page: currentPage - 2, // Cập nhật page theo currentPage - 1
+              }));
+            }}
             disabled={currentPage === 1}
           >
             <svg
@@ -375,12 +437,20 @@ export default function PaysheetList({
               <path d="m313-440 224 224-57 56-320-320 320-320 57 56-224 224h487v80H313Z" />
             </svg>
           </button>
-          <span>
-            Page {currentPage} of {totalPages}
-          </span>
+          {salaryPeriods.length > 0 &&
+            <span>
+              Page {Math.min(currentPage, pageInfo.totalPage)} of {pageInfo.totalPage}
+            </span>
+          }
           <button
-            onClick={() => changePage(currentPage + 1)}
-            disabled={currentPage === totalPages}
+            onClick={() => {
+              changePage(currentPage + 1); // Cập nhật số trang
+              setPeriodFilter(prevParams => ({
+                ...prevParams, // Giữ lại các tham số cũ
+                page: currentPage, // Cập nhật page theo currentPage + 1
+              }));
+            }}
+            disabled={currentPage === pageInfo.totalPage}
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -392,6 +462,7 @@ export default function PaysheetList({
               <path d="M647-440H160v-80h487L423-744l57-56 320 320-320 320-57-56 224-224Z" />
             </svg>
           </button>
+
         </div>
       </div>
     </div>

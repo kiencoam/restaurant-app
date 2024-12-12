@@ -23,7 +23,8 @@ export function convertToISODateTime(input: string): string {
   return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
 }
 
-// convert from yyyy-MM-dd HH:mm:ss to HH:mm:ss dd-MM-yyyy
+// convert from yyyy-MM-dd HH:mm:ss to HH:mm:ss dd-MM-yyyy x
+// convert date to yyyy-MM-dd HH:mm:ss 
 export function formatDateToString(date: Date): string {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -142,4 +143,18 @@ export function formatToDDMMYYYY(dateInput) {
   const year = date.getFullYear(); // Lấy năm
 
   return `${day}/${month}/${year}`;
+}
+
+//"yyyy-MM-dd HH:mm:ss" => "HH:mm"
+export function formatToHHColonMM(datetime: string): string {
+  // Kiểm tra định dạng chuỗi (nếu cần)
+  if (!/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/.test(datetime)) {
+    throw new Error("Invalid datetime format. Expected 'yyyy-MM-dd HH:mm:ss'.");
+  }
+
+  // Tách phần thời gian từ chuỗi
+  const timePart = datetime.split(" ")[1]; // Lấy phần 'HH:mm:ss'
+  const hhmm = timePart.slice(0, 5); // Lấy 'HH:mm'
+
+  return hhmm;
 }

@@ -50,6 +50,7 @@ export type UpdateStockHistoryRequest = {
   note: string;
   stockHistoryItems: UpdateStockHistoryItemRequest[];
 }
+
 export type UpdateStockHistoryItemRequest = {
   productId: number;
   quantity: number;

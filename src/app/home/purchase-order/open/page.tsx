@@ -1,3 +1,4 @@
+//LÀM LẠI TỪ ĐẦU
 "use client";
 import React, { useRef, useState, useEffect, useCallback } from "react";
 import { Tooltip } from "react-tooltip";
@@ -7,6 +8,7 @@ import { getAllStockHistories, StockHistoryEntity, UpdateStockHistoryRequest, Up
 import ProductForm from "../../products/ProductForm";
 import { getAllProducts, ProductEntity } from "@/app/api-client/ProductService";
 import StockHistoryInfo from "./StockHistoryInfo";
+
 
 
 const OpenPage = ({ params }: { params: { open: string } }) => {
