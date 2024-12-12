@@ -23,6 +23,11 @@ const nextConfig = {
                 protocol: 'https',
                 hostname: 'jollibee.com.vn',
                 pathname: '/media/**',
+            },
+            {
+                protocol: 'https',
+                hostname: 'images.pexels.com',
+                pathname: '/photos/**',
             }
         ]
     }

@@ -2,7 +2,8 @@
 
 import { OrderItemKitchenEntity } from "@/app/api-client/OrderItemKitchenService";
 import { MenuItemEntity, TableEntity } from "@/app/home/order-taking/entity";
-import { formatDateToTimeString, formatToHHColonMM } from "@/utils/timeUtils";
+import { formatDateToTimeString,  } from "@/utils/timeUtils";
+import { formatTimestamp } from "./Ordered";
 
 export function Prepared({
   readyKitchenItems,
@@ -28,7 +29,7 @@ export function Prepared({
                   {item.menuItem.title}
                 </div>
                 <div className="text-[#999999] text-sm font-normal font-flux">
-                  {formatToHHColonMM(item.receivedTime)}
+                  {formatTimestamp(item.receivedTime)}
                 </div>
               </div>
               <div className="basis-[20%] text-center">{item.quantity}</div>

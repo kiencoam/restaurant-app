@@ -15,6 +15,7 @@ const ROLES = {
     "/home/customer-management",
     "/home/supplier-management",
     "/home/order-taking",
+    "/home/order-booking",
     "/home/products",
     "/home/purchase-order",
     "/home/purchase-order/new",

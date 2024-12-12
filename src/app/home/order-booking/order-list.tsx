@@ -1,8 +1,8 @@
 import { Tooltip } from "react-tooltip";
 import { formatDateToString } from "@/utils/timeUtils";
 import { useMemo } from "react";
-import { OrderEntity } from "./data";
 import { CustomerEntity } from "./data";
+import { OrderEntity } from "../order-taking/entity";
 
 const mapOrderStatus = (status: string) => {
   switch (status) {
@@ -23,27 +23,17 @@ const mapOrderStatus = (status: string) => {
 
 export default function OrderList({
   orders,
-  customers,
   checkedOrders,
   handleCheck,
   handleCheckAll,
   handleUpdateStatus,
 }: {
   orders: OrderEntity[];
-  customers: CustomerEntity[];
   checkedOrders: OrderEntity[];
   handleCheck: (order: OrderEntity, check: boolean) => void;
   handleCheckAll: (check: boolean) => void;
   handleUpdateStatus: (order: OrderEntity, status: string) => void;
 }) {
-  const fullOrders = useMemo(
-    () =>
-      orders.map((order) => ({
-        ...order,
-        customer: customers.find((c) => c.id === order.customerId),
-      })),
-    [orders, customers]
-  );
 
   return (
     <table className="min-w-full bg-white border border-gray-200 mt-6">
@@ -52,7 +42,7 @@ export default function OrderList({
           <th className="px-4 py-2 border-b text-left">
             <input
               type="checkbox"
-              checked={checkedOrders.length === fullOrders.length}
+              checked={checkedOrders.length === orders.length}
               onChange={(e) => handleCheckAll(e.target.checked)}
             />
           </th>
@@ -67,7 +57,7 @@ export default function OrderList({
         </tr>
       </thead>
       <tbody>
-        {fullOrders.map((order) => (
+        {orders.map((order) => (
           <tr key={order.id} className="group hover:bg-gray-50">
             <td className="px-4 py-2 border-b">
               <input
@@ -80,7 +70,7 @@ export default function OrderList({
               <div>{order.id}</div>
             </td>
             <td className="px-4 py-2 border-b">
-              {formatDateToString(order.checkInTime)}
+              {order.checkInTime}
             </td>
             <td className="px-4 py-2 border-b max-w-[142px] truncate">
               {order.customer.name}

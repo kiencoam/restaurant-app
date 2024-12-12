@@ -9,15 +9,16 @@
 import React, { useState, useEffect, useRef } from "react";
 import "react-tooltip/dist/react-tooltip.css";
 import { CustomerEntity } from "./data";
-import { formatDateToISOString } from "@/utils/timeUtils";
+import { formatDateToString } from "@/utils/timeUtils";
 import { default as ReactSelect, components } from "react-select";
 import OrderList from "./order-list";
 import CreateOrderForm from "./create-order-form";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { TableEntity } from "../order-taking/entity";
-import { OrderEntity } from "./data";
+import { OrderEntity } from "../order-taking/entity";
 import { PageInfo } from "@/app/api-client/PageInfo";
+import { getAllOrders, updateOrderStatus } from "@/app/api-client/OrderService";
 
 type ParamsRequest = {
   page: number;
@@ -123,8 +124,8 @@ const sampleOrders: OrderEntity[] = [
     totalCost: 125000,
     numberOfPeople: 2,
     note: "Không ớt",
-    checkInTime: new Date("2024-04-01T12:00:00"),
-    checkOutTime: new Date("2024-04-01T13:00:00"),
+    checkInTime: formatDateToString(new Date("2024-04-01T12:00:00")),
+    checkOutTime: formatDateToString(new Date("2024-04-01T13:00:00")),
     paymentId: 1,
     paymentMethod: "CASH",
     orderItems: [
@@ -180,8 +181,8 @@ const sampleOrders: OrderEntity[] = [
     totalCost: 125000,
     numberOfPeople: 2,
     note: "Không ớt",
-    checkInTime: new Date("2024-04-01T12:00:00"),
-    checkOutTime: new Date("2024-04-01T13:00:00"),
+    checkInTime: formatDateToString(new Date("2024-04-01T12:00:00")),
+    checkOutTime: formatDateToString(new Date("2024-04-01T13:00:00")),
     paymentId: 1,
     paymentMethod: "CASH",
     orderItems: [
@@ -237,8 +238,8 @@ const sampleOrders: OrderEntity[] = [
     totalCost: 125000,
     numberOfPeople: 2,
     note: "Không ớt",
-    checkInTime: new Date("2024-04-01T12:00:00"),
-    checkOutTime: new Date("2024-04-01T13:00:00"),
+    checkInTime: formatDateToString(new Date("2024-04-01T12:00:00")),
+    checkOutTime: formatDateToString(new Date("2024-04-01T13:00:00")),
     paymentId: 1,
     paymentMethod: "CASH",
     orderItems: [
@@ -294,8 +295,8 @@ const sampleOrders: OrderEntity[] = [
     totalCost: 125000,
     numberOfPeople: 2,
     note: "Không ớt",
-    checkInTime: new Date("2024-04-01T12:00:00"),
-    checkOutTime: new Date("2024-04-01T13:00:00"),
+    checkInTime: formatDateToString(new Date("2024-04-01T12:00:00")),
+    checkOutTime: formatDateToString(new Date("2024-04-01T13:00:00")),
     paymentId: 1,
     paymentMethod: "CASH",
     orderItems: [
@@ -351,8 +352,8 @@ const sampleOrders: OrderEntity[] = [
     totalCost: 125000,
     numberOfPeople: 2,
     note: "Không ớt",
-    checkInTime: new Date("2024-04-01T12:00:00"),
-    checkOutTime: new Date("2024-04-01T13:00:00"),
+    checkInTime: formatDateToString(new Date("2024-04-01T12:00:00")),
+    checkOutTime: formatDateToString(new Date("2024-04-01T13:00:00")),
     paymentId: 1,
     paymentMethod: "CASH",
     orderItems: [
@@ -532,14 +533,18 @@ const customStyles = {
 const OrderBookingPage = () => {
   const filterRef = useRef(null);
 
-  const [tables, setTables] = useState<TableEntity[]>(sampleTables);
-  const [orders, setOrders] = useState<OrderEntity[]>(sampleOrders);
-  const [customers, setCustomers] = useState<CustomerEntity[]>(sampleCustomers);
+  // const [tables, setTables] = useState<TableEntity[]>(sampleTables);
+
+  const [orders, setOrders] = useState<OrderEntity[]>([]);
+
+  // const [customers, setCustomers] = useState<CustomerEntity[]>(sampleCustomers);
 
   const [checkedOrders, setCheckedOrders] = useState<OrderEntity[]>([]);
 
   const [searchOptionsOpen, setSearchOptionsOpen] = useState(false);
+
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+
   const [isNewOrder, setIsNewOrder] = useState(false);
 
   const [selectedTables, setSelectedTables] = useState<
@@ -550,17 +555,16 @@ const OrderBookingPage = () => {
   >([]); //choose tables and rooms next to search
 
   const [searchCustomerText, setSearchCustomerText] = useState("");
+
   const [searchStaffText, setSearchStaffText] = useState("");
+
   const [searchNoteText, setSearchNoteText] = useState("");
 
   const [displayMode, setDisplayMode] = useState("all");
 
-  const [startDate, setStartDate] = useState(
-    new Date(new Date().setDate(new Date().getDate() - 7))
-  );
-  const [endDate, setEndDate] = useState(
-    new Date(new Date().setDate(new Date().getDate() + 7))
-  );
+  const [startDate, setStartDate] = useState(new Date(new Date().setHours(0, 0, 0, 0)));
+
+  const [endDate, setEndDate] = useState(new Date(new Date().setHours(23, 59, 59, 999)));
 
   const [pageInfo, setPageInfo] = useState<PageInfo>({
     totalPage: null,
@@ -571,7 +575,7 @@ const OrderBookingPage = () => {
   });
 
   const [paramsRequest, setParamsRequest] = useState<ParamsRequest>({
-    page: 1,
+    page: 0,
     page_size: 10,
     order_status: [],
     start_time: startDate,
@@ -583,6 +587,29 @@ const OrderBookingPage = () => {
   });
 
   useEffect(() => {
+    // const now = new Date();
+    // const start = new Date(now);
+    // start.setHours(0, 0, 0, 0);
+
+    // const end = new Date(now);
+    // end.setHours(23, 59, 59, 999);
+
+    // console.log(start);
+    // console.log(end);
+    // const start = new Date("2024-10-01T00:00:00");
+    // const end = new Date("2024-12-30T23:59:59");
+
+    // setStartDate(start);
+    // setEndDate(end);
+
+    setParamsRequest((prev) => ({
+      ...prev,
+      start_time: startDate,
+      end_time: endDate,
+    }))
+  }, [isNewOrder])
+
+  useEffect(() => {
     /* Gọi API */
     const query = Object.entries(paramsRequest)
       .filter(
@@ -591,27 +618,32 @@ const OrderBookingPage = () => {
       )
       .map(([key, value]) => {
         if (value instanceof Date) {
-          return `${key}=${formatDateToISOString(value)}`;
+          return `${key}=${formatDateToString(value)}`;
         } else if (Array.isArray(value)) {
-          return value.map((val: string | number) => `${key}=${val}`).join("&");
+          return `${key}=${value.join(",")}`;
         } else {
           return `${key}=${value}`;
         }
       })
       .join("&");
     console.log(query);
-    // getAllOrders(query).then((data) => {
-    //   setPageInfo(data.first);
-    //   setOrders(data.second);
-    // });
-    setOrders(sampleOrders);
+
+    getAllOrders(query).then((data) => {
+      setPageInfo(data.first);
+      setOrders(data.second);
+    });
+
   }, [paramsRequest]);
 
-  useEffect(() => {
-    /* Gọi API */
-    setTables(sampleTables);
-    setCustomers(sampleCustomers);
-  }, []);
+  useEffect(()=>{
+    setParamsRequest(prev=>({...prev, page:0}))
+  }, [paramsRequest.order_status, paramsRequest.customer_name, paramsRequest.user_name, paramsRequest.note, paramsRequest.start_time, paramsRequest.end_time])
+
+  // useEffect(() => {
+  //   /* Gọi API */
+  //   setTables(sampleTables);
+  //   setCustomers(sampleCustomers);
+  // }, []);
 
   const handleSelectedTablesChange = (selectedOptions) => {
     setSelectedTables(selectedOptions);
@@ -709,6 +741,10 @@ const OrderBookingPage = () => {
     /* Gọi API */
     // updateOrderStatus(orderId, { status });
     // if (ok) {
+    updateOrderStatus(order.id, { status }).then((res) => {
+      console.log(res);
+    })
+
     setOrders((prev) =>
       prev.map((ord) =>
         ord.id === order.id ? { ...ord, orderStatus: status } : ord
@@ -819,7 +855,7 @@ const OrderBookingPage = () => {
               </div>
             </div>
           )}
-          <div className="ml-2 ">
+          {/* <div className="ml-2 ">
             <ReactSelect
               options={tables.map((table) => ({
                 value: table.id,
@@ -843,7 +879,7 @@ const OrderBookingPage = () => {
               //Selected Item Remove in dropdown list
               // hideSelectedOptions={true}
             />
-          </div>
+          </div> */}
         </div>
         <div className="flex gap-4 justify-end">
           {checkedOrders.length > 0 && (
@@ -1004,7 +1040,6 @@ const OrderBookingPage = () => {
                       }}
                       selectsStart
                       startDate={startDate}
-                      endDate={endDate}
                     />
                   </label>
                   <label className="flex items-center space-x-4 mt-2">
@@ -1029,7 +1064,6 @@ const OrderBookingPage = () => {
                         }
                       }}
                       selectsEnd
-                      startDate={startDate}
                       endDate={endDate}
                       minDate={startDate}
                     />
@@ -1056,8 +1090,6 @@ const OrderBookingPage = () => {
           {isNewOrder && (
             <CreateOrderForm
               setOrders={setOrders}
-              customers={customers}
-              setCustomers={setCustomers}
               setIsNewOrder={setIsNewOrder}
             />
           )}
@@ -1065,7 +1097,6 @@ const OrderBookingPage = () => {
       </div>
       <OrderList
         orders={orders}
-        customers={customers}
         checkedOrders={checkedOrders}
         handleCheck={handleCheck}
         handleCheckAll={handleCheckAll}
@@ -1084,6 +1115,7 @@ const OrderBookingPage = () => {
               })
             }
           >
+            <option value={1}>1</option>
             <option value={5}>5</option>
             <option value={10}>10</option>
             <option value={15}>15</option>
@@ -1098,7 +1130,7 @@ const OrderBookingPage = () => {
                 page: paramsRequest.page - 1,
               })
             }
-            disabled={paramsRequest.page === 1}
+            disabled={paramsRequest.page === 0}
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -1111,7 +1143,7 @@ const OrderBookingPage = () => {
             </svg>
           </button>
           <span>
-            Page {paramsRequest.page} of {pageInfo.totalPage}
+            Page {paramsRequest.page + 1} of {pageInfo.totalPage}
           </span>
           <button
             onClick={() =>
@@ -1120,7 +1152,7 @@ const OrderBookingPage = () => {
                 page: paramsRequest.page + 1,
               })
             }
-            disabled={paramsRequest.page === pageInfo.totalPage}
+            disabled={paramsRequest.page + 1 === pageInfo.totalPage}
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"

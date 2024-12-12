@@ -11,7 +11,7 @@ import { Ordered } from "@/components/Ordered";
 import { Prepared } from "@/components/Prepared";
 import { MenuItemEntity, TableEntity } from "../order-taking/entity";
 import { useEffect, useState, useCallback } from "react";
-import { OrderItemKitchenEntity, updateOrderItemKitchen, UpdateOrderItemKitchenStatusRequest } from "@/app/api-client/OrderItemKitchenService";
+import { getAll, OrderItemKitchenEntity, updateOrderItemKitchen, UpdateOrderItemKitchenStatusRequest } from "@/app/api-client/OrderItemKitchenService";
 import { getAllOrders } from "@/app/api-client/OrderService";
 import { newDate } from "react-datepicker/dist/date_utils";
 import { formatDateToString } from "@/utils/timeUtils";
@@ -212,16 +212,19 @@ const KitchenPage = () => {
   >([]);
 
   const startDate = "2000-01-01 00:00:00";
-  const endDate = formatDateToString(new Date());
+  const endDate = "2100-01-01 00:00:00";
+
+  console.log(pendingKitchenItems)
 
   useEffect(() => {
     /* Gọi API để lấy các món trong bếp với trạng thái PENDING */
     const fetchPendingKitchenItems = async () => {
-      const query = `page=0&page_size=10&start_time=${startDate}&end_time=${endDate}&status=PENDING`;
-
+      const query = `status=PENDING`;
       try {
-        getAllOrders(query).then((data) => {
-          setPendingKitchenItems(data.second);
+        getAll(query).then((data) => {
+          setPendingKitchenItems(data);
+          console.log("pending:", data)
+
         }); // Gọi API
         
       } catch (error) {
@@ -239,11 +242,12 @@ const KitchenPage = () => {
   useEffect(() => {
     /* Gọi API để lấy các món trong bếp với trạng thái READY */
     const fetchReadyKitchenItems = async () => {
-      const query = `page=0&page_size=10&start_time=${startDate}&end_time=${endDate}&status=READY`;
+      const query = `status=READY`;
 
       try {
-        getAllOrders(query).then((data) => {
-          setReadyKitchenItems(data.second);
+        getAll(query).then((data) => {
+          console.log("ready", data)
+          setReadyKitchenItems(data);
         }); // Gọi API
 
       } catch (error) {
@@ -252,13 +256,14 @@ const KitchenPage = () => {
     };
 
     fetchReadyKitchenItems(); 
-  }, [endDate]);
+  }, [pendingKitchenItems]);
 
   const handlePendingKitchenItems = (kitchenItemIds: number[]) => {
     const payload: UpdateOrderItemKitchenStatusRequest = {
       orderItemKitchenIds: kitchenItemIds,
-      status: "PENDING",
+      status: "READY",
     };
+    console.log(payload)
   
     try {
       updateOrderItemKitchen(payload).then((response) => {
@@ -278,6 +283,15 @@ const KitchenPage = () => {
         //   setPendingKitchenItems(newPendingKitchenItems);
         // } 
         // Do  dùng useEffect tự fetch lại data nên không cần set bằng tay ở FE
+        try {
+          getAll(`status=PENDING`).then((data) => {
+            console.log("PENDING", data)
+            setPendingKitchenItems(data);
+          }); // Gọi API
+  
+        } catch (error) {
+          console.error("Error fetching pending kitchen items:", error);
+        }
         console.log(response);
       });
     } catch (error) {
@@ -289,9 +303,10 @@ const KitchenPage = () => {
   const handleReadyKitchenItems = (kitchenItemIds: number[]) => {
     const payload: UpdateOrderItemKitchenStatusRequest = {
       orderItemKitchenIds: kitchenItemIds,
-      status: "READY",
+      status: "DELIVERED",
     };
-  
+    console.log("payload: ", payload)
+    //fix here
     try {
       updateOrderItemKitchen(payload).then((response) => {
         // if (response) {
@@ -303,6 +318,15 @@ const KitchenPage = () => {
         // }
         // Do  dùng useEffect tự fetch lại data nên không cần set bằng tay ở FE
         console.log(response);
+        try {
+          getAll(`status=READY`).then((data) => {
+            console.log("ready", data)
+            setReadyKitchenItems(data);
+          }); // Gọi API
+  
+        } catch (error) {
+          console.error("Error fetching ready kitchen items:", error);
+        }
       });
     } catch (error) {
       console.error("Error updating kitchen item status to READY", error);

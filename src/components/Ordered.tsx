@@ -2,8 +2,25 @@
 
 import { OrderItemKitchenEntity } from "@/app/api-client/OrderItemKitchenService";
 import { MenuItemEntity, TableEntity } from "@/app/home/order-taking/entity";
-import { formatDateToTimeString, formatToHHColonMM } from "@/utils/timeUtils";
+import { formatDateToTimeString,  } from "@/utils/timeUtils";
 import { useMemo, useState } from "react";
+
+export function formatTimestamp(timestamp: string): string {
+  const date = new Date(timestamp);
+
+  const day = date.getDate().toString().padStart(2, '0');
+  const month = (date.getMonth() + 1).toString().padStart(2, '0'); // Months are 0-indexed
+  const year = date.getFullYear().toString().slice(-2);
+  const hours = date.getHours().toString().padStart(2, '0');
+  const minutes = date.getMinutes().toString().padStart(2, '0');
+  const seconds = date.getSeconds().toString().padStart(2, '0');
+
+  return `${day}/${month}/${year} ${hours}:${minutes}:${seconds}`;
+}
+
+// Example usage
+const timestamp = "2024-12-12T13:00:18.946591";
+console.log(formatTimestamp(timestamp)); // Output: 12/12/24 13:00:18
 
 
 export function Ordered({
@@ -89,7 +106,7 @@ export function Ordered({
                     {item.menuItem.title}
                   </div>
                   <div className="text-[#999999] text-sm font-normal font-flux">
-                    {formatToHHColonMM(item.receivedTime)}
+                    {formatTimestamp(item.receivedTime)}
                   </div>
                 </div>
                 <div className="basis-[20%] text-center">{item.quantity}</div>
@@ -215,7 +232,7 @@ export function Ordered({
                         {item.menuItem.title}
                       </div>
                       <div className="text-[#999999] text-sm font-normal font-flux">
-                        {formatToHHColonMM(item.receivedTime)}
+                        {formatTimestamp(item.receivedTime)}
                       </div>
                     </div>
                     <div className="basis-[30%] text-center">

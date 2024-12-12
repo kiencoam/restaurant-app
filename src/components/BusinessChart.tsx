@@ -13,7 +13,7 @@ import {
   formatDateToVietnameseFormat,
   formatDateToYYYYMMDD,
 } from "@/utils/timeUtils";
-import { getStatisticByRevenueAndDate, getStatisticByRevenueAndHour } from "@/app/api-client/StatisticService";
+import { getStatisticByRevenueAndDate, getStatisticByRevenueAndHour, RevenueStatisticPerDate, RevenueStatisticPerHour } from "@/app/api-client/StatisticService";
 
 const sampleRevenuePerDate = [
   { date: new Date("12-03-2024"), revenue: 1000000 },
@@ -36,43 +36,48 @@ const sampleRevenuePerHours = [
 
 export function BusinessChart() {
   const [selectedMode, setSelectedMode] = useState("daily");
-  const [revenuePerDate, setRevenuePerDate] = useState(sampleRevenuePerDate);
-  const [revenuePerHours, setRevenuePerHours] = useState(sampleRevenuePerHours);
+  const [revenuePerDate, setRevenuePerDate] = useState<RevenueStatisticPerDate[]>([]);
+  const [revenuePerHours, setRevenuePerHours] = useState<RevenueStatisticPerHour[]>([]);
 
   useEffect(() => {
     const fetchRevenueData = async () => {
       const endTime = new Date();
-      
+
       // Lấy dữ liệu theo ngày
       const startDate = new Date(new Date().setDate(endTime.getDate() - 4));
       const queryForDate = `start_date=${formatDateToYYYYMMDD(
         startDate
       )}&end_date=${formatDateToYYYYMMDD(endTime)}`;
+      console.log("queryForDate", queryForDate);
       try {
-        const dateData = await getStatisticByRevenueAndDate(queryForDate);
-        setRevenuePerDate(
-          dateData.revenueStatistics.map((item) => ({
-            date: new Date(item.date),
-            revenue: item.revenue,
-          }))
-        );
+        getStatisticByRevenueAndDate(queryForDate).then((dateData) => {
+          setRevenuePerDate(
+            dateData.revenueStatistics.map((item) => ({
+              date: new Date(item.date),
+              revenue: item.revenue,
+            }))
+          );
+        });
       } catch (error) {
         console.error("Error fetching revenue by date:", error);
       }
 
       // Lấy dữ liệu theo giờ
       const startTime = new Date(new Date().setHours(endTime.getHours() - 7));
-      const queryForHours = `start_date=${formatDateToString(
+      const queryForHours = `start_date=${formatDateToYYYYMMDD(
         startTime
-      )}&end_date=${formatDateToString(endTime)}`;
+      )}&end_date=${formatDateToYYYYMMDD(endTime)}`;
+      console.log("queryForHours", queryForHours)
       try {
-        const hourData = await getStatisticByRevenueAndHour(queryForHours);
-        setRevenuePerHours(
-          hourData.revenueStatistics.map((item) => ({
-            hour: new Date(item.hour),
-            revenue: item.revenue,
-          }))
-        );
+        getStatisticByRevenueAndHour(queryForHours).then((hourData) => {
+          setRevenuePerHours(
+            hourData.revenueStatistics.map((item) => ({
+              hour: new Date(item.hour),
+              revenue: item.revenue,
+            }))
+          );
+        });
+
       } catch (error) {
         console.error("Error fetching revenue by hours:", error);
       }
@@ -213,21 +218,19 @@ export function BusinessChart() {
         <div className="font-extrabold text-xl">Doanh số (VND)</div>
         <div className="flex m-3 h-10 w-48 text-[#898a84] text-sm bg-[#f7f7f7] font-semibold rounded-md p-1 gap-2">
           <button
-            className={`basis-1/2 rounded-md transition-all duration-500 ${
-              selectedMode == "daily"
-                ? "text-[#fafafa] bg-[#2b2b2b] shadow-sm"
-                : ""
-            }`}
+            className={`basis-1/2 rounded-md transition-all duration-500 ${selectedMode == "daily"
+              ? "text-[#fafafa] bg-[#2b2b2b] shadow-sm"
+              : ""
+              }`}
             onClick={() => setSelectedMode("daily")}
           >
             Theo ngày
           </button>
           <button
-            className={`basis-1/2 rounded-md transition-all duration-500 ${
-              selectedMode == "hourly"
-                ? "text-[#fafafa] bg-[#2b2b2b] shadow-sm"
-                : ""
-            }`}
+            className={`basis-1/2 rounded-md transition-all duration-500 ${selectedMode == "hourly"
+              ? "text-[#fafafa] bg-[#2b2b2b] shadow-sm"
+              : ""
+              }`}
             onClick={() => setSelectedMode("hourly")}
           >
             Theo giờ

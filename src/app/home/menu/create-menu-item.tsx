@@ -143,9 +143,10 @@ export default function CreateMenuItemForm({
                       }))
                     }
                     className="bg-[#f7fafc] w-full outline-none focus:border-b-black border-b-2"
+                    required
                   >
                     {/* Thêm option mặc định */}
-                    <option value={undefined}>Chọn nhóm</option>
+                    <option value={""}>Chọn nhóm</option>
 
                     {menuSections.map((section) => (
                       <option key={section.id} value={section.id}>
