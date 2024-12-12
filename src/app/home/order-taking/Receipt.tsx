@@ -1,9 +1,15 @@
-'use client';
+"use client";
 
-import { addMenuItemsToOrder, AddMenuItemsToOrderRequest } from "@/app/api-client/OrderService";
+import {
+  addMenuItemsToOrder,
+  AddMenuItemsToOrderRequest,
+} from "@/app/api-client/OrderService";
 import { TableEntity } from "@/app/api-client/TableService";
-import { MenuItemEntity, OrderItemEntity } from "@/app/home/order-taking/entity";
-
+import {
+  DisplayOrderItemEntity,
+  MenuItemEntity,
+  OrderItemEntity,
+} from "@/app/home/order-taking/entity";
 
 export function Receipt({
   menuItems,
@@ -11,85 +17,88 @@ export function Receipt({
   handleOrderItemsChange,
   currentTable,
   selectedOrderId,
-  handleCreatePayment
-}:
-  {
-    menuItems: MenuItemEntity[],
-    orderItems: OrderItemEntity[],
-    handleOrderItemsChange: (orderItems: OrderItemEntity[]) => void
-    currentTable: TableEntity,
-    selectedOrderId: number,
-    handleCreatePayment: (payload: any) => void
-  }) {
-
+  handleCreatePayment,
+}: {
+  menuItems: MenuItemEntity[];
+  orderItems: DisplayOrderItemEntity[];
+  handleOrderItemsChange: (orderItems: DisplayOrderItemEntity[]) => void;
+  currentTable: TableEntity;
+  selectedOrderId: number;
+  handleCreatePayment: (payload: any) => void;
+}) {
   console.log("table", currentTable);
 
   const totalCost = orderItems?.reduce((acc, item) => acc + item.price, 0);
 
   const handleNotifyKitchen = async () => {
     const addMenuItemToOrderRequest: AddMenuItemsToOrderRequest = {
-      menuItemsQuantity: orderItems.map((item) => ({
-        menuItemId: item.menuItemId,
-        quantity: item.orderedQuantity - item.reservedQuantity
-      })).filter((item) => item.quantity > 0)
-    }
+      menuItemsQuantity: orderItems
+        .map((item) => ({
+          menuItemId: item.menuItemId,
+          quantity: item.currentQuantity - item.orderedQuantity,
+        }))
+        .filter((item) => item.quantity > 0),
+    };
 
-    await addMenuItemsToOrder(selectedOrderId, addMenuItemToOrderRequest).then((res) => {
-      console.log("res", res);
-    })
+    await addMenuItemsToOrder(selectedOrderId, addMenuItemToOrderRequest).then(
+      (res) => {
+        console.log("res", res);
+      }
+    );
 
     console.log("addMenuItemToOrderRequest", addMenuItemToOrderRequest);
 
-    const newOrderItems = orderItems.map((item) => (
-      {
-        ...item,
-        reservedQuantity: item.orderedQuantity
-      }
-    ))
+    const newOrderItems = orderItems.map((item) => ({
+      ...item,
+      orderedQuantityQuantity: item.currentQuantity,
+    }));
 
     handleOrderItemsChange(newOrderItems);
-  }
+  };
 
   const handleInCreaseClick = (menuItemId: number) => {
     const newOrderItems = orderItems.map((item) => {
       if (item.menuItemId == menuItemId) {
         return {
           ...item,
-          orderedQuantity: item.orderedQuantity + 1,
-        }
+          currentQuantity: item.currentQuantity + 1,
+        };
       } else {
         return item;
       }
-    })
+    });
     console.log("newOrderItems", newOrderItems);
     handleOrderItemsChange(newOrderItems);
-  }
+  };
 
   const handleDecreaseClick = (menuItemId: number) => {
-    const targetItem = orderItems.find(item => item.menuItemId === menuItemId);
-    if (targetItem.orderedQuantity === 1 && targetItem.reservedQuantity === 0) {
-      const newOrderItems = orderItems.filter(item => item.menuItemId !== menuItemId);
+    const targetItem = orderItems.find(
+      (item) => item.menuItemId === menuItemId
+    );
+    if (targetItem.currentQuantity === 1 && targetItem.orderedQuantity === 0) {
+      const newOrderItems = orderItems.filter(
+        (item) => item.menuItemId !== menuItemId
+      );
       handleOrderItemsChange(newOrderItems);
       return;
     }
 
     const newOrderItems = orderItems.map((item) => {
       if (item.menuItemId == menuItemId) {
-        if (item.orderedQuantity <= item.reservedQuantity) {
+        if (item.currentQuantity <= item.orderedQuantity) {
           return item;
         }
 
         return {
           ...item,
-          orderedQuantity: item.orderedQuantity - 1
-        }
+          currentQuantity: item.currentQuantity - 1,
+        };
       } else {
         return item;
       }
-    })
+    });
     handleOrderItemsChange(newOrderItems);
-  }
-
+  };
 
   return (
     <section className="basis-1/2 h-full w-full p-4">
@@ -112,10 +121,17 @@ export function Receipt({
                 className="group flex items-center h-10 w-full my-2"
               >
                 <div className="overflow-hidden text-nowrap basis-2/3">
-                  {menuItems.find(menuItem => menuItem.id === item.menuItemId).title}
+                  {
+                    menuItems.find(
+                      (menuItem) => menuItem.id === item.menuItemId
+                    ).title
+                  }
                 </div>
                 <div className="flex justify-evenly items-center font-bold basis-1/6 rounded-full group-hover:border hover:bg-[#f0f0f0]">
-                  <button onClick={() => handleDecreaseClick(item.menuItemId)} className="invisible group-hover:visible active:-translate-x-0.5">
+                  <button
+                    onClick={() => handleDecreaseClick(item.menuItemId)}
+                    className="invisible group-hover:visible active:-translate-x-0.5"
+                  >
                     <svg
                       className="w-5 h-5"
                       aria-hidden="true"
@@ -134,8 +150,11 @@ export function Receipt({
                       />
                     </svg>
                   </button>
-                  <div>{item.orderedQuantity}</div>
-                  <button onClick={() => handleInCreaseClick(item.menuItemId)} className="invisible group-hover:visible active:translate-x-0.5">
+                  <div>{item.currentQuantity}</div>
+                  <button
+                    onClick={() => handleInCreaseClick(item.menuItemId)}
+                    className="invisible group-hover:visible active:translate-x-0.5"
+                  >
                     <svg
                       className="w-5 h-5"
                       aria-hidden="true"
@@ -168,7 +187,8 @@ export function Receipt({
         <div className="flex items-center gap-3 w-full h-10">
           <button
             onClick={handleNotifyKitchen}
-            className="basis-1/2 h-full rounded-md shadow-sm bg-[#f7f7f7] border border-[#333333] text-[#333333] active:bg-[#333333] active:text-[#f7f7f7]">
+            className="basis-1/2 h-full rounded-md shadow-sm bg-[#f7f7f7] border border-[#333333] text-[#333333] active:bg-[#333333] active:text-[#f7f7f7]"
+          >
             Báo nhà bếp
           </button>
           <button
