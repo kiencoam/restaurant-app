@@ -1,20 +1,24 @@
 /*
   Gọi API update thông tin bàn ở dòng 35
   GỌi API xóa bàn ở dòng 47
+  Xóa = Đổi status
 */
 
-import { TableEntity, UpdateTableRequest } from "@/app/api-client/TableService";
+import { deleteTable, TableEntity, updateTable, UpdateTableRequest } from "@/app/api-client/TableService";
 import React, { useState } from "react";
 import { sampleLocations } from "@/app/api-client/Locations";
+import { GetTableRequest } from "./page";
 
 const sampleTypes = ["TABLE", "ROOM"];
 
 export default function TableList({
   tables,
   setTables,
+  setFilter,
 }: {
   tables: TableEntity[];
   setTables: React.Dispatch<React.SetStateAction<TableEntity[]>>;
+  setFilter: React.Dispatch<React.SetStateAction<GetTableRequest>>;
 }) {
   const [updatingTableId, setUpdatingTableId] = useState<number | null>(null);
   const [updatingTable, setUpdatingTable] = useState<UpdateTableRequest | null>(
@@ -32,26 +36,48 @@ export default function TableList({
   };
 
   const handleSaveUpdate = async () => {
+    try {
+      updateTable(updatingTableId, updatingTable).then((res) => {
+        setTables((prev) =>
+          prev.map((table) =>
+            table.id === updatingTableId ? { ...table, ...res } : table
+          )
+        );
+      });
+    } catch (error) {
+      console.error(error);
+    }
     /* Gọi API */
     // await updateTable(updatingTableId, updatingTable);
     // if (ok) {
-    setTables((prev) =>
-      prev.map((table) =>
-        table.id === updatingTableId ? { ...table, ...updatingTable } : table
-      )
-    );
+    // setTables((prev) =>
+    //   prev.map((table) =>
+    //     table.id === updatingTableId ? { ...table, ...updatingTable } : table
+    //   )
+    // );
     handleRowClick(updatingTableId);
   };
 
-  const handleDelete = async () => {
+  
+  const handleDelete = () => {
     /* Gọi API */
     const hasConfirmed = confirm("Bạn có chắc muốn xóa phòng/bàn này không?");
     if (!hasConfirmed) return;
-
+    console.log(updatingTableId);
+    deleteTable(updatingTableId)
+      .then(() => {
+        console.log("deleted")
+        handleRowClick(updatingTableId);
+        setFilter(prev => ({ ...prev })); // Kích hoạt useEffect    
+      })
+      .catch((error) => {
+        alert("Có lỗi khi xóa phòng/bàn.");
+        console.error(error);
+      });
     // await deleteTable(updatingTableId);
     // if (ok) {
-    handleRowClick(updatingTableId);
-    setTables((prev) => prev.filter((table) => table.id !== updatingTableId));
+    // handleRowClick(updatingTableId);
+    // setTables((prev) => prev.filter((table) => table.id !== updatingTableId));
   };
 
   return (

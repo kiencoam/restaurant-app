@@ -1,6 +1,6 @@
 /*
-  Gọi API lấy tất cả menu items ở dòng 113
-  Gọi API lấy tất cả menu sections ở dòng 127
+  Gọi API lấy tất cả menu items ở dòng 113 done
+  Gọi API lấy tất cả menu sections ở dòng 127 done
 */
 
 "use client";
@@ -9,12 +9,14 @@ import { MenuItemEntity, MenuSectionEntity } from "../order-taking/entity";
 import { PageInfo } from "@/app/api-client/PageInfo";
 import MenuItemList from "./menu-item-list";
 import CreateMenuItemForm from "./create-menu-item";
+import { getAllMenuItems } from "@/app/api-client/MenuItemService";
+import { getAllMenuSections } from "@/app/api-client/MenuSectionService";
 
-type ParamsRequest = {
+export type ParamsRequest = {
   page: number;
   page_size: number;
   title?: string;
-  menuSectionId?: number;
+  menu_section_id?: number;
 };
 
 const sampleMenuItems: MenuItemEntity[] = [
@@ -23,7 +25,7 @@ const sampleMenuItems: MenuItemEntity[] = [
     title: "Bánh mì",
     costPrice: 15000,
     sellingPrice: 5000,
-    thumbnailUrl: "https://via.placeholder.com/150",
+    thumbnailImg: "https://via.placeholder.com/150",
     description: "Bánh mì thịt nguội",
     menuSectionId: 1,
   },
@@ -32,7 +34,7 @@ const sampleMenuItems: MenuItemEntity[] = [
     title: "Cà phê sữa",
     costPrice: 20000,
     sellingPrice: 5000,
-    thumbnailUrl: "https://via.placeholder.com/150",
+    thumbnailImg: "https://via.placeholder.com/150",
     description: "Cà phê sữa đá",
     menuSectionId: 2,
   },
@@ -41,7 +43,7 @@ const sampleMenuItems: MenuItemEntity[] = [
     title: "Bún đậu mắm tôm",
     costPrice: 30000,
     sellingPrice: 5000,
-    thumbnailUrl: "https://via.placeholder.com/150",
+    thumbnailImg: "https://via.placeholder.com/150",
     description: "Bún đậu mắm tôm",
     menuSectionId: 3,
   },
@@ -50,7 +52,7 @@ const sampleMenuItems: MenuItemEntity[] = [
     title: "Bún riêu",
     costPrice: 25000,
     sellingPrice: 5000,
-    thumbnailUrl: "https://via.placeholder.com/150",
+    thumbnailImg: "https://via.placeholder.com/150",
     description: "Bún riêu cua",
     menuSectionId: 3,
   },
@@ -59,7 +61,7 @@ const sampleMenuItems: MenuItemEntity[] = [
     title: "Bún riêu",
     costPrice: 25000,
     sellingPrice: 5000,
-    thumbnailUrl: "https://via.placeholder.com/150",
+    thumbnailImg: "https://via.placeholder.com/150",
     description: "Bún riêu cua",
     menuSectionId: 3,
   },
@@ -93,6 +95,8 @@ const MenuPage = () => {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [isNewMenuItem, setIsNewMenuItem] = useState(false);
   const [searchText, setSearchText] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [rowsPerPage, setRowsPerPage] = useState(5);
 
   const [pageInfo, setPageInfo] = useState<PageInfo>({
     totalPage: null,
@@ -103,30 +107,66 @@ const MenuPage = () => {
   });
 
   const [paramsRequest, setParamsRequest] = useState<ParamsRequest>({
-    page: 1,
+    page: 0,
     page_size: 5,
     title: "",
-    menuSectionId: null,
+    menu_section_id: null,
   });
+
+  const changePage = (newPage) => {
+    if (newPage >= 1 && newPage <= pageInfo.totalPage) {
+      setCurrentPage(newPage);
+      handlePageNumberChange(newPage - 1);
+    }
+  };
+
+  //Handle rowsPerPage change
+  const changeRowsPerPage = (pageSize) => {
+    setRowsPerPage(pageSize);
+    handlePageSizeChange(pageSize);
+  };
+
+  const handlePageSizeChange = (value: number) => {
+    setParamsRequest({
+      ...paramsRequest,
+      page_size: value,
+      page: 0
+    })
+  }
+
+  const handlePageNumberChange = (value: number) => {
+    setParamsRequest({
+      ...paramsRequest,
+      page: value
+    })
+  }
 
   useEffect(() => {
     /* Gọi API */
+    // Tạo query string từ paramsRequest
     const query = Object.entries(paramsRequest)
       .filter(([key, value]) => value !== null && value !== "")
       .map(([key, value]) => `${key}=${value}`)
       .join("&");
     console.log(query);
-    // getAllMenuItems(query).then((data) => {
-    //   setPageInfo(data.first);
-    //   setTable(data.second);
-    // });
-    setMenuItems(sampleMenuItems);
+    getAllMenuItems(query).then((data) => {
+      setPageInfo(data.first);
+      setMenuItems(data.second);
+      //testapi
+      console.log(data.second)
+    });
+    // setMenuItems(sampleMenuItems);
   }, [paramsRequest]);
 
   useEffect(() => {
     /* Gọi API lấy tất cả nhóm thực đơn */
     // getAllMenuSections()
-    setMenuSections(sampleMenuSections);
+    getAllMenuSections().then((data) => {
+      setMenuSections(data)
+      //testapi
+      console.log(data)
+    })
+    //setMenuSections(sampleMenuSections);
   }, []);
 
   const handleSearchKeydown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -206,17 +246,20 @@ const MenuPage = () => {
                       type="radio"
                       className="form-radio"
                       name="status"
-                      checked={paramsRequest.menuSectionId === null}
-                      onChange={() =>
+                      checked={paramsRequest.menu_section_id === null}
+                      onChange={() => {
                         setParamsRequest((prev) => ({
                           ...prev,
-                          menuSectionId: null,
-                        }))
+                          menu_section_id: null,
+                          page: 0,
+                        }));
+                        setCurrentPage(1);
+                      }
                       }
                     />
                     <span>Tất cả</span>
                   </label>
-                  {sampleMenuSections.map((section) => (
+                  {menuSections && menuSections.map((section) => (
                     <label
                       key={section.id}
                       className="flex items-center space-x-2 mt-2"
@@ -225,11 +268,12 @@ const MenuPage = () => {
                         type="radio"
                         className="form-radio"
                         name="status"
-                        checked={paramsRequest.menuSectionId === section.id}
+                        checked={paramsRequest.menu_section_id === section.id}
                         onChange={() =>
                           setParamsRequest((prev) => ({
                             ...prev,
-                            menuSectionId: section.id,
+                            menu_section_id: section.id,
+                            page: 0
                           }))
                         }
                       />
@@ -258,6 +302,15 @@ const MenuPage = () => {
             </svg>
             <div className="p-2 text-sm font-bold text-white">Thêm món</div>
           </button>
+          {isNewMenuItem && (
+            <CreateMenuItemForm
+              setMenuItems={setMenuItems}
+              setIsNewMenuItem={setIsNewMenuItem}
+              menuSections={menuSections}
+              setMenuSections={setMenuSections}
+              setParamsRequest={setParamsRequest}
+            />
+          )}
         </div>
       </div>
       <div className="px-6">
@@ -271,14 +324,15 @@ const MenuPage = () => {
             <div>Số bản ghi: </div>
             <select
               className="bg-[#f7f7f7] outline-none"
-              value={paramsRequest.page_size}
-              onChange={(e) =>
-                setParamsRequest((prev) => ({
-                  ...prev,
-                  page_size: Number(e.target.value),
-                }))
-              }
+              value={rowsPerPage}
+              onChange={(e) => {
+                changeRowsPerPage(Number(e.target.value));
+                setCurrentPage(1);
+
+              }}
             >
+              {/* <option defaultValue={rowsPerPage}>{rowsPerPage}</option> */}
+              {/* <option value={1}>1</option> */}
               <option value={5}>5</option>
               <option value={10}>10</option>
               <option value={15}>15</option>
@@ -287,14 +341,14 @@ const MenuPage = () => {
           </div>
           <div className="flex space-x-2">
             <button
-              onClick={() =>
-                paramsRequest.page > 1 &&
-                setParamsRequest((prev) => ({
-                  ...prev,
-                  page: paramsRequest.page - 1,
-                }))
-              }
-              disabled={paramsRequest.page === 1}
+              onClick={() => {
+                changePage(currentPage - 1); // Cập nhật số trang
+                setParamsRequest(prevParams => ({
+                  ...prevParams, // Giữ lại các tham số cũ
+                  page: currentPage - 2, // Cập nhật page theo currentPage - 1
+                }));
+              }}
+              disabled={currentPage === 1}
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -306,18 +360,20 @@ const MenuPage = () => {
                 <path d="m313-440 224 224-57 56-320-320 320-320 57 56-224 224h487v80H313Z" />
               </svg>
             </button>
-            <span>
-              Page {paramsRequest.page} of {pageInfo.totalPage}
-            </span>
+            {menuItems.length > 0 &&
+              <span>
+                Page {Math.min(currentPage, pageInfo.totalPage)} of {pageInfo.totalPage}
+              </span>
+            }
             <button
-              onClick={() =>
-                paramsRequest.page < pageInfo.totalPage &&
-                setParamsRequest((prev) => ({
-                  ...prev,
-                  page: paramsRequest.page + 1,
-                }))
-              }
-              disabled={paramsRequest.page === pageInfo.totalPage}
+              onClick={() => {
+                changePage(currentPage + 1); // Cập nhật số trang
+                setParamsRequest(prevParams => ({
+                  ...prevParams, // Giữ lại các tham số cũ
+                  page: currentPage, // Cập nhật page theo currentPage + 1
+                }));
+              }}
+              disabled={currentPage === pageInfo.totalPage}
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -329,17 +385,10 @@ const MenuPage = () => {
                 <path d="M647-440H160v-80h487L423-744l57-56 320 320-320 320-57-56 224-224Z" />
               </svg>
             </button>
+
           </div>
         </div>
       </div>
-      {isNewMenuItem && (
-        <CreateMenuItemForm
-          setMenuItems={setMenuItems}
-          setIsNewMenuItem={setIsNewMenuItem}
-          menuSections={menuSections}
-          setMenuSections={setMenuSections}
-        />
-      )}
     </div>
   );
 };

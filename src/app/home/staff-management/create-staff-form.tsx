@@ -1,118 +1,161 @@
+//Phải comment một số tsx input vì backend chưa có !
+//Fix roleId, uncomment toggleNewStaff
+import { createUser, CreateUserRequest, UserEntity } from "@/app/api-client/UserService";
 import { useState } from "react";
+import { GetStaffRequest } from "./page";
+
+type Props = {
+  setStaffs: React.Dispatch<React.SetStateAction<UserEntity[]>>;
+  toggleNewStaff: () => void;
+  pageSize: number;
+  setFilter: React.Dispatch<React.SetStateAction<GetStaffRequest>>;
+}
+
+const RoleEnum = {
+  Admin: "ADMIN",
+  Manager: "MANAGER",
+  Waiter: "WAITER",
+  Chef: "CHEF",
+  Cashier: "CASHIER",
+};
+
+// Đối tượng ánh xạ bản dịch (hiển thị cho người dùng)
+const RoleDisplay = {
+  ADMIN: "Admin",
+  MANAGER: "Manager",
+  WAITER: "Waiter",
+  CHEF: "Chef",
+  CASHIER: "Cashier",
+};
+
+const RoleIdDisplay = {
+  ADMIN: 1,
+  MANAGER: 3,
+  WAITER: 4,
+  CHEF: 2,
+  CASHIER: 6,
+};
 
 export default function CreateStaffForm({
-  toggleNewStaff,
-}) {
+  toggleNewStaff, setStaffs, pageSize, setFilter
+}: Props) {
   const [isCharsVisible, changeCharsVisibility] = useState(false);
 
   const toggleCharsVisibility = () => {
     changeCharsVisibility(!isCharsVisible);
   };
+
+  const [newStaff, setNewStaff] = useState<CreateUserRequest>({
+    id: 0,
+    email: "",
+    password: "",
+    name: "",
+    phoneNumber: "",
+    gender: "",
+    dateOfBirth: "",
+    roleId: 0,
+    cccd: "",
+    cvImg: "",
+    position: "",
+    salaryType: "",
+    salaryPerHour: 0,
+    salaryPerMonth: 0,
+  });
+
+  function convertDateToISOFormat(input: string): string {
+    const [day, month, year] = input.split("/");
+  
+    // Đảm bảo rằng tháng và ngày đều có 2 chữ số
+    const formattedMonth = String(month).padStart(2, "0");
+    const formattedDay = String(day).padStart(2, "0");
+  
+    return `${year}-${formattedMonth}-${formattedDay}`;
+  }
+  
+  const handleNewStaffChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>, field: string) => {
+    let newValue = e.target.value;
+    setNewStaff({
+      ...newStaff,
+      [field]: newValue,
+    });
+  };
+
+  //lỗi khi lưu bị refresh lại và có lỗi
+  const handleCreateStaff = async () => {
+    const finalNewStaff = {
+      ...newStaff,
+      dateOfBirth: convertDateToISOFormat(newStaff.dateOfBirth),
+      roleId: RoleIdDisplay[newStaff.position],
+    }
+    console.log("Payload sent to API:", finalNewStaff);
+    console.log("Staff create");
+    try {
+      createUser(finalNewStaff).then((res) => {
+        // res.status = StaffStatusEnum.Active; 
+        console.log("Staff created:", res);
+        setFilter(prev => ({ ...prev })); // Kích hoạt useEffect
+        //toggleNewStaff();
+      });
+    } catch (error) {
+      console.log("Error creating staff:", error);
+    }
+  };
+
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
       <div className="bg-[#f7fafc] p-6 rounded-lg shadow-lg w-3/5 h-6/10">
         <div className="text-xl font-bold mb-4">Thêm nhân viên</div>
         <form className="space-y-4">
-          <div className="flex space-x-12">
-            <label className="w-64">
+          {/* Hàng 1: Mã nhân viên và Tên nhân viên */}
+          <div className="flex space-x-4">
+            <label className="w-1/2">
               Mã nhân viên
               <input
                 type="text"
-                placeholder="Mã nhân viên tự động"
                 className="w-full border-b-2 bg-gray-50 mt-2 outline-none focus:border-b-black"
+                // value={newStaff.id}
+                onChange={(e) => handleNewStaffChange(e, "id")}
+                placeholder="Mã nhân viên tự động"
               />
             </label>
-            <label className="w-64">
+            <label className="w-1/2">
+              Tên nhân viên
+              <input
+                type="text"
+                className="w-full border-b-2 bg-gray-50 mt-2 outline-none focus:border-b-black"
+                value={newStaff.name}
+                onChange={(e) => handleNewStaffChange(e, "name")}
+                placeholder="Nguyễn Văn A"
+              />
+            </label>
+          </div>
+
+          {/* Hàng 2: Mật khẩu và Email */}
+          <div className="flex space-x-4">
+            <label className="w-1/2">
               Email
               <input
                 type="text"
                 className="w-full border-b-2 bg-gray-50 mt-2 outline-none focus:border-b-black"
+                value={newStaff.email}
+                onChange={(e) => handleNewStaffChange(e, "email")}
+                placeholder="abc@gmail.com"
               />
             </label>
-          </div>
-          <div className="flex justify-between items-center">
-            <div className="flex space-x-12">
-              <label className="w-64">
-                Tên nhân viên
-                <input
-                  type="text"
-                  className="w-full border-b-2 bg-gray-50 mt-2 outline-none focus:border-b-black"
-                />
-              </label>
-              <label className="w-64">
-                Điện thoại
-                <input
-                  type="text"
-                  className="w-full border-b-2 bg-gray-50 mt-2 outline-none focus:border-b-black"
-                />
-              </label>
-            </div>
-          </div>
-          <div className="flex justify-between items-center">
-            <div className="flex space-x-12">
-              <label className="w-64">
-                Ngày sinh
-                <input
-                  placeholder="dd/mm/yyyy"
-                  type="text"
-                  className="w-full border-b-2 bg-gray-50 mt-2 outline-none focus:border-b-black"
-                />
-              </label>
-              <label className="w-64">
-                Địa chỉ
-                <input
-                  type="text"
-                  className="w-full border-b-2 bg-gray-50 mt-2 outline-none focus:border-b-black"
-                />
-              </label>
-            </div>
-          </div>
-          <div className="flex justify-between items-center">
-            <div className="flex space-x-12">
-              <label className="w-64">
-                Loại lương
-                <select className="w-full border-b-2 bg-gray-50 mt-2 outline-none focus:border-b-black">
-                  <option value="HOURLY">Theo giờ</option>
-                  <option value="DAYLY">Theo ngày</option>
-                </select>
-              </label>
-              <label className="w-64">
-                Lương theo giờ
-                <input
-                  type="text"
-                  className="w-full border-b-2 bg-gray-50 mt-2 outline-none focus:border-b-black"
-                />
-              </label>
-            </div>
-          </div>
-          <div className="flex justify-between items-center">
-            <div className="flex space-x-12">
-              <label className="w-64">
-                Ghi chú
-                <input
-                  type="text"
-                  className="w-full border-b-2 bg-gray-50 mt-2 outline-none focus:border-b-black"
-                />
-              </label>
-              <label className="w-64">
-                Lương theo tháng
-                <input
-                  type="text"
-                  className="w-full border-b-2 bg-gray-50 mt-2 outline-none focus:border-b-black"
-                />
-              </label>
-            </div>
-          </div>
-          <div className="flex justify-between items-center">
-            <div className="flex space-x-12">
-              <label className="w-64 focus:border-b-black">
-                Mật khẩu
-                <div className="flex">
+            <label className="w-1/2">
+              Mật khẩu
+              <div className="flex">
                 <input
                   type={isCharsVisible ? "text" : "password"}
                   className="w-full border-b-2 bg-[#f7fafc] mt-2 outline-none"
+                  value={newStaff.password}
+                  onChange={(e) => handleNewStaffChange(e, "password")}
                 />
-                <button type="button" className="border-b-2" onClick={toggleCharsVisibility}>
+                <button
+                  type="button"
+                  className="border-b-2"
+                  onClick={toggleCharsVisibility}
+                >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     height="24px"
@@ -124,34 +167,174 @@ export default function CreateStaffForm({
                   </svg>
                 </button>
               </div>
-              </label>
-
-              <label className="w-64">
-                Trạng thái
-                <select className="w-full border-b-2 bg-gray-50 mt-2 outline-none focus:border-b-black">
-                  <option value="IN">Đang làm việc</option>
-                  <option value="OUT">Đã nghỉ</option>
-                </select>
-              </label>
-            </div>
+            </label>
           </div>
+
+          {/* Hàng 3: Điện thoại và Ngày sinh */}
+          <div className="flex space-x-4">
+            <label className="w-1/2">
+              Điện thoại
+              <input
+                type="text"
+                className="w-full border-b-2 bg-gray-50 mt-2 outline-none focus:border-b-black"
+                value={newStaff.phoneNumber}
+                onChange={(e) => handleNewStaffChange(e, "phoneNumber")}
+                placeholder="0987654321"
+              />
+            </label>
+            <label className="w-1/2">
+              Ngày sinh
+              <input
+                placeholder="dd/mm/yyyy"
+                type="text"
+                className="w-full border-b-2 bg-gray-50 mt-2 outline-none focus:border-b-black"
+                value={newStaff.dateOfBirth}
+                onChange={(e) => handleNewStaffChange(e, "dateOfBirth")}
+              />
+            </label>
+          </div>
+
+          {/* Hàng 4: CCCD và Giới tính */}
+          <div className="flex space-x-4">
+            <label className="w-1/2">
+              CCCD
+              <input
+                type="text"
+                className="w-full border-b-2 bg-gray-50 mt-2 outline-none focus:border-b-black"
+                value={newStaff.cccd}
+                onChange={(e) => handleNewStaffChange(e, "cccd")}
+                placeholder="001xxxxxxxxx"
+              />
+            </label>
+            <label className="w-1/2">
+              Giới tính
+              <select
+                className="w-full border-b-2 bg-gray-50 mt-2 outline-none focus:border-b-black"
+                value={newStaff.gender}
+                onChange={(e) => handleNewStaffChange(e, "gender")}
+              >
+                <option value="">Chọn giới tính</option>
+                <option value="MALE">Nam</option>
+                <option value="FEMALE">Nữ</option>
+              </select>
+            </label>
+          </div>
+
+          {/* Hàng 5: Vị trí và Địa chỉ */}
+          <div className="flex space-x-4">
+            <label className="w-1/2">
+              Vị trí
+              <select
+                className="w-full border-b-2 bg-gray-50 mt-2 outline-none focus:border-b-black"
+                value={newStaff.position}
+                onChange={(e) => handleNewStaffChange(e, "position")}
+              >
+                <option value="">Chọn vị trí</option>
+                {Object.entries(RoleEnum).map(([key, value]) => (
+                  <option key={value} value={value}>
+                    {RoleDisplay[value]}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="w-1/2">
+              Địa chỉ
+              <input
+                type="text"
+                className="w-full border-b-2 bg-gray-50 mt-2 outline-none focus:border-b-black"
+                // value={newStaff.address}
+                onChange={(e) => handleNewStaffChange(e, "address")}
+                placeholder="Địa chỉ"
+              />
+            </label>
+          </div>
+
+          {/* Hàng 6: Trạng thái và Loại lương */}
+          <div className="flex space-x-4">
+            <label className="w-1/2">
+              Trạng thái
+              <select
+                className="w-full border-b-2 bg-gray-50 mt-2 outline-none focus:border-b-black"
+                onChange={(e) => handleNewStaffChange(e, "status")}
+                // value={newStaff.status || "IN"}
+
+              >
+                <option value="">Chọn trạng thái</option>
+                <option value="IN">Đang làm việc</option>
+                <option value="OUT">Đã nghỉ</option>
+              </select>
+            </label>
+            <label className="w-1/2">
+              Loại lương
+              <select
+                className="w-full border-b-2 bg-gray-50 mt-2 outline-none focus:border-b-black"
+                value={newStaff.salaryType}
+                onChange={(e) => handleNewStaffChange(e, "salaryType")}
+              >
+                <option value="">Chọn loại lương</option>
+                <option value="HOURLY">Theo giờ</option>
+                <option value="DAYLY">Theo ngày</option>
+              </select>
+            </label>
+          </div>
+
+          {/* Hàng 7: Lương theo giờ và Lương theo tháng */}
+          <div className="flex space-x-4">
+            <label className="w-1/2">
+              Lương theo giờ
+              <input
+                type="text"
+                className="w-full border-b-2 bg-gray-50 mt-2 outline-none focus:border-b-black"
+                value={newStaff.salaryPerHour}
+                onChange={(e) => handleNewStaffChange(e, "salaryPerHour")}
+              />
+            </label>
+            <label className="w-1/2">
+              Lương theo tháng
+              <input
+                type="text"
+                className="w-full border-b-2 bg-gray-50 mt-2 outline-none focus:border-b-black"
+                value={newStaff.salaryPerMonth}
+                onChange={(e) => handleNewStaffChange(e, "salaryPerMonth")}
+              />
+            </label>
+          </div>
+
+          {/* Hàng 8: Ghi chú */}
+          <div className="flex space-x-4">
+            <label className="w-full">
+              Ghi chú
+              <input
+                className="w-full h-10 border-b-2 bg-gray-50 mt-2 outline-none focus:border-b-black resize-none"
+                onChange={(e) => handleNewStaffChange(e, "note")}
+                placeholder="Nhập ghi chú"
+              />
+            </label>
+          </div>
+          {/* Nút Lưu và Hủy */}
           <div className="flex justify-end gap-4 items-center mt-4">
             <button
-              className="flex pl-2 items-center border rounded-md bg-black "
-              onClick={toggleNewStaff}
+              className="flex items-center gap-2 px-4 py-2 bg-black text-white rounded-md hover:bg-gray-800 transition"
+              onClick={handleCreateStaff}
+              type="button"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 height="24px"
                 viewBox="0 -960 960 960"
                 width="24px"
-                fill="#FFFFFF"
+                fill="currentColor"
               >
                 <path d="M840-680v480q0 33-23.5 56.5T760-120H200q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h480l160 160Zm-80 34L646-760H200v560h560v-446ZM480-240q50 0 85-35t35-85q0-50-35-85t-85-35q-50 0-85 35t-35 85q0 50 35 85t85 35ZM240-560h360v-160H240v160Zm-40-86v446-560 114Z" />
               </svg>
-              <div className="p-2 text-white  rounded right-0">Lưu</div>
+              Lưu
             </button>
-            <button className="p-2 rounded right-0" onClick={toggleNewStaff}>
+
+            {/* Hủy */}
+            <button
+              className="px-4 py-2 border rounded-md hover:bg-gray-100 transition"
+              onClick={toggleNewStaff}
+            >
               Hủy
             </button>
           </div>
@@ -160,3 +343,4 @@ export default function CreateStaffForm({
     </div>
   );
 }
+

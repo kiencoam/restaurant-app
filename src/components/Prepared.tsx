@@ -1,22 +1,11 @@
 "use client";
 
+import { OrderItemKitchenEntity } from "@/app/api-client/OrderItemKitchenService";
 import { MenuItemEntity, TableEntity } from "@/app/home/order-taking/entity";
 import { formatDateToTimeString } from "@/utils/timeUtils";
 
 // giống type trong OrderItemKitchenService.ts nhưng receiveTime là Date
 // nên sửa lại entity trong OrderItemKitchenService.ts rồi import ở đây
-type OrderItemKitchenEntity = {
-  id: number;
-  orderId: number;
-  tableId: number;
-  menuItemId: number;
-  quantity: number;
-  status: string;
-  note?: string;
-  receivedTime: Date;
-  menuItem: MenuItemEntity;
-  table: TableEntity;
-};
 
 export function Prepared({
   readyKitchenItems,

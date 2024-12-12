@@ -61,7 +61,7 @@ export const updateTable = async (
     .then((res) => res.data);
 };
 
-export const deleteTable = async (id: number): Promise<void> => {
+export const deleteTable = async (id: number) => {
   return await apiClientService
     .delete(`${baseUrl}/${id}`)
     .then((res) => res.data);

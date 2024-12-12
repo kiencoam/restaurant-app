@@ -7,6 +7,7 @@
   Gọi API xóa Shift ở dòng 547
   Gọi API xóa WorkSchedule ở dòng 572
   (Số dòng có thể không đúng vì đã thêm code mới)
+  Trong page này chỉ gọi api và cập nhật ở FE, còn page khác gọi api và getAll lại từ đầu
  */
 
 "use client";
@@ -22,9 +23,9 @@ import {
 import "./StaffSchedule.css";
 import "react-datepicker/dist/react-datepicker.css";
 
-import { WorkScheduleEntity } from "@/app/api-client/WorkScheduleService";
-import { UserEntity } from "@/app/api-client/UserService";
-import { ShiftEntity } from "@/app/api-client/ShiftService";
+import { createWorkSchedule, deleteWorkSchedule, getAllWorkSchedules, WorkScheduleEntity } from "@/app/api-client/WorkScheduleService";
+import { getAllUsers, UserEntity } from "@/app/api-client/UserService";
+import { createShift, deleteShift, getAll, ShiftEntity, updateShift } from "@/app/api-client/ShiftService";
 import { CreateWorkScheduleRequest } from "@/app/api-client/WorkScheduleService";
 
 const daysOfWeek = [
@@ -37,230 +38,230 @@ const daysOfWeek = [
   { id: 6, name: "SAT" },
 ];
 
-const sampleWorkSchedules: WorkScheduleEntity[] = [
-  {
-    id: 1,
-    userId: 1,
-    shiftId: 101,
-    date: "2024-11-17",
-    user: {
-      id: 1,
-      name: "Johny Đặng",
-      email: "johny.dang@example.com",
-      phoneNumber: "123456789",
-      gender: "Male",
-      dateOfBirth: new Date("1990-01-01"),
-      roleId: 1,
-      cccd: "123456789",
-      cvImg: "path/to/cvImg.jpg",
-      position: "Chef",
-      salaryType: "Hourly",
-      salaryPerHour: 15,
-      salaryPerMonth: 0,
-      role: {
-        id: 3,
-        name: "Chef",
-        description: "Đầu bếp",
-      },
-    },
-    shift: {
-      id: 101,
-      name: "Day",
-      startTime: "08:00",
-      endTime: "16:00",
-      status: "active",
-    },
-  },
-  {
-    id: 2,
-    userId: 2,
-    shiftId: 102,
-    date: "2024-11-18",
-    user: {
-      id: 2,
-      name: "Mary Janes",
-      email: "mary.janes@example.com",
-      phoneNumber: "987654321",
-      gender: "Female",
-      dateOfBirth: new Date("1992-02-02"),
-      roleId: 1,
-      cccd: "123456789",
-      cvImg: "path/to/cvImg.jpg",
-      position: "Chef",
-      salaryType: "Hourly",
-      salaryPerHour: 15,
-      salaryPerMonth: 0,
-      role: {
-        id: 4,
-        name: "Waiter",
-        description: "Phục vụ",
-      },
-    },
-    shift: {
-      id: 102,
-      name: "Night",
-      startTime: "16:00",
-      endTime: "00:00",
-      status: "active",
-    },
-  },
-  {
-    id: 3,
-    userId: 1,
-    shiftId: 101,
-    date: "2024-11-19",
-    user: {
-      id: 1,
-      name: "Johny Đặng",
-      email: "johny.dang@example.com",
-      phoneNumber: "123456789",
-      gender: "Male",
-      dateOfBirth: new Date("1990-01-01"),
-      roleId: 1,
-      cccd: "123456789",
-      cvImg: "path/to/cvImg.jpg",
-      position: "Chef",
-      salaryType: "Hourly",
-      salaryPerHour: 15,
-      salaryPerMonth: 0,
-      role: {
-        id: 3,
-        name: "Chef",
-        description: "Đầu bếp",
-      },
-    },
-    shift: {
-      id: 101,
-      name: "Day",
-      startTime: "08:00",
-      endTime: "16:00",
-      status: "active",
-    },
-  },
-];
+// const sampleWorkSchedules: WorkScheduleEntity[] = [
+//   {
+//     id: 1,
+//     userId: 1,
+//     shiftId: 101,
+//     date: "2024-11-17",
+//     user: {
+//       id: 1,
+//       name: "Johny Đặng",
+//       email: "johny.dang@example.com",
+//       phoneNumber: "123456789",
+//       gender: "Male",
+//       dateOfBirth: new Date("1990-01-01"),
+//       roleId: 1,
+//       cccd: "123456789",
+//       cvImg: "path/to/cvImg.jpg",
+//       position: "Chef",
+//       salaryType: "Hourly",
+//       salaryPerHour: 15,
+//       salaryPerMonth: 0,
+//       role: {
+//         id: 3,
+//         name: "Chef",
+//         description: "Đầu bếp",
+//       },
+//     },
+//     shift: {
+//       id: 101,
+//       name: "Day",
+//       startTime: "08:00",
+//       endTime: "16:00",
+//       status: "active",
+//     },
+//   },
+//   {
+//     id: 2,
+//     userId: 2,
+//     shiftId: 102,
+//     date: "2024-11-18",
+//     user: {
+//       id: 2,
+//       name: "Mary Janes",
+//       email: "mary.janes@example.com",
+//       phoneNumber: "987654321",
+//       gender: "Female",
+//       dateOfBirth: new Date("1992-02-02"),
+//       roleId: 1,
+//       cccd: "123456789",
+//       cvImg: "path/to/cvImg.jpg",
+//       position: "Chef",
+//       salaryType: "Hourly",
+//       salaryPerHour: 15,
+//       salaryPerMonth: 0,
+//       role: {
+//         id: 4,
+//         name: "Waiter",
+//         description: "Phục vụ",
+//       },
+//     },
+//     shift: {
+//       id: 102,
+//       name: "Night",
+//       startTime: "16:00",
+//       endTime: "00:00",
+//       status: "active",
+//     },
+//   },
+//   {
+//     id: 3,
+//     userId: 1,
+//     shiftId: 101,
+//     date: "2024-11-19",
+//     user: {
+//       id: 1,
+//       name: "Johny Đặng",
+//       email: "johny.dang@example.com",
+//       phoneNumber: "123456789",
+//       gender: "Male",
+//       dateOfBirth: new Date("1990-01-01"),
+//       roleId: 1,
+//       cccd: "123456789",
+//       cvImg: "path/to/cvImg.jpg",
+//       position: "Chef",
+//       salaryType: "Hourly",
+//       salaryPerHour: 15,
+//       salaryPerMonth: 0,
+//       role: {
+//         id: 3,
+//         name: "Chef",
+//         description: "Đầu bếp",
+//       },
+//     },
+//     shift: {
+//       id: 101,
+//       name: "Day",
+//       startTime: "08:00",
+//       endTime: "16:00",
+//       status: "active",
+//     },
+//   },
+// ];
 
-const users: UserEntity[] = [
-  {
-    id: 1,
-    name: "Johny Đặng",
-    email: "johny.dang@example.com",
-    phoneNumber: "123456789",
-    gender: "Male",
-    dateOfBirth: new Date("1990-01-01"),
-    roleId: 1,
-    cccd: "123456789",
-    cvImg: "path/to/cvImg.jpg",
-    position: "Chef",
-    salaryType: "Hourly",
-    salaryPerHour: 15,
-    salaryPerMonth: 0,
-    role: {
-      id: 3,
-      name: "Chef",
-      description: "Đầu bếp",
-    },
-  },
-  {
-    id: 2,
-    name: "Mary Janes",
-    email: "mary.janes@example.com",
-    phoneNumber: "987654321",
-    gender: "Female",
-    dateOfBirth: new Date("1992-02-02"),
-    roleId: 2,
-    cccd: "987654321",
-    cvImg: "path/to/cvImg.jpg",
-    position: "Waiter",
-    salaryType: "Hourly",
-    salaryPerHour: 12,
-    salaryPerMonth: 0,
-    role: {
-      id: 4,
-      name: "Waiter",
-      description: "Phục vụ",
-    },
-  },
-  {
-    id: 3,
-    name: "Cristiano Ronaldo",
-    email: "cristiano.ronaldo@example.com",
-    phoneNumber: "123123123",
-    gender: "Male",
-    dateOfBirth: new Date("1985-02-05"),
-    roleId: 3,
-    cccd: "123123123",
-    cvImg: "path/to/cvImg.jpg",
-    position: "Receptionist",
-    salaryType: "Hourly",
-    salaryPerHour: 20,
-    salaryPerMonth: 0,
-    role: {
-      id: 5,
-      name: "Receptionist",
-      description: "Tiếp tân",
-    },
-  },
-  {
-    id: 4,
-    name: "Alexander Kiên Phạm",
-    email: "alexander.kien.pham@example.com",
-    phoneNumber: "321321321",
-    gender: "Male",
-    dateOfBirth: new Date("1993-03-03"),
-    roleId: 4,
-    cccd: "321321321",
-    cvImg: "path/to/cvImg.jpg",
-    position: "Bartender",
-    salaryType: "Hourly",
-    salaryPerHour: 18,
-    salaryPerMonth: 0,
-    role: {
-      id: 6,
-      name: "Bartender",
-      description: "Pha chế",
-    },
-  },
-  {
-    id: 5,
-    name: "Cong Phuong Nguyen",
-    email: "cong.phuong.nguyen@example.com",
-    phoneNumber: "456456456",
-    gender: "Male",
-    dateOfBirth: new Date("1995-05-05"),
-    roleId: 1,
-    cccd: "456456456",
-    cvImg: "path/to/cvImg.jpg",
-    position: "Chef",
-    salaryType: "Hourly",
-    salaryPerHour: 15,
-    salaryPerMonth: 0,
-    role: {
-      id: 3,
-      name: "Chef",
-      description: "Đầu bếp",
-    },
-  },
-  {
-    id: 6,
-    name: "Antony Nguyễn",
-    email: "antony.nguyen@example.com",
-    phoneNumber: "789789789",
-    gender: "Male",
-    dateOfBirth: new Date("1996-06-06"),
-    roleId: 2,
-    cccd: "789789789",
-    cvImg: "path/to/cvImg.jpg",
-    position: "Waiter",
-    salaryType: "Hourly",
-    salaryPerHour: 12,
-    salaryPerMonth: 0,
-    role: {
-      id: 4,
-      name: "Waiter",
-      description: "Phục vụ",
-    },
-  },
-];
+// const users: UserEntity[] = [
+//   {
+//     id: 1,
+//     name: "Johny Đặng",
+//     email: "johny.dang@example.com",
+//     phoneNumber: "123456789",
+//     gender: "Male",
+//     dateOfBirth: new Date("1990-01-01"),
+//     roleId: 1,
+//     cccd: "123456789",
+//     cvImg: "path/to/cvImg.jpg",
+//     position: "Chef",
+//     salaryType: "Hourly",
+//     salaryPerHour: 15,
+//     salaryPerMonth: 0,
+//     role: {
+//       id: 3,
+//       name: "Chef",
+//       description: "Đầu bếp",
+//     },
+//   },
+//   {
+//     id: 2,
+//     name: "Mary Janes",
+//     email: "mary.janes@example.com",
+//     phoneNumber: "987654321",
+//     gender: "Female",
+//     dateOfBirth: new Date("1992-02-02"),
+//     roleId: 2,
+//     cccd: "987654321",
+//     cvImg: "path/to/cvImg.jpg",
+//     position: "Waiter",
+//     salaryType: "Hourly",
+//     salaryPerHour: 12,
+//     salaryPerMonth: 0,
+//     role: {
+//       id: 4,
+//       name: "Waiter",
+//       description: "Phục vụ",
+//     },
+//   },
+//   {
+//     id: 3,
+//     name: "Cristiano Ronaldo",
+//     email: "cristiano.ronaldo@example.com",
+//     phoneNumber: "123123123",
+//     gender: "Male",
+//     dateOfBirth: new Date("1985-02-05"),
+//     roleId: 3,
+//     cccd: "123123123",
+//     cvImg: "path/to/cvImg.jpg",
+//     position: "Receptionist",
+//     salaryType: "Hourly",
+//     salaryPerHour: 20,
+//     salaryPerMonth: 0,
+//     role: {
+//       id: 5,
+//       name: "Receptionist",
+//       description: "Tiếp tân",
+//     },
+//   },
+//   {
+//     id: 4,
+//     name: "Alexander Kiên Phạm",
+//     email: "alexander.kien.pham@example.com",
+//     phoneNumber: "321321321",
+//     gender: "Male",
+//     dateOfBirth: new Date("1993-03-03"),
+//     roleId: 4,
+//     cccd: "321321321",
+//     cvImg: "path/to/cvImg.jpg",
+//     position: "Bartender",
+//     salaryType: "Hourly",
+//     salaryPerHour: 18,
+//     salaryPerMonth: 0,
+//     role: {
+//       id: 6,
+//       name: "Bartender",
+//       description: "Pha chế",
+//     },
+//   },
+//   {
+//     id: 5,
+//     name: "Cong Phuong Nguyen",
+//     email: "cong.phuong.nguyen@example.com",
+//     phoneNumber: "456456456",
+//     gender: "Male",
+//     dateOfBirth: new Date("1995-05-05"),
+//     roleId: 1,
+//     cccd: "456456456",
+//     cvImg: "path/to/cvImg.jpg",
+//     position: "Chef",
+//     salaryType: "Hourly",
+//     salaryPerHour: 15,
+//     salaryPerMonth: 0,
+//     role: {
+//       id: 3,
+//       name: "Chef",
+//       description: "Đầu bếp",
+//     },
+//   },
+//   {
+//     id: 6,
+//     name: "Antony Nguyễn",
+//     email: "antony.nguyen@example.com",
+//     phoneNumber: "789789789",
+//     gender: "Male",
+//     dateOfBirth: new Date("1996-06-06"),
+//     roleId: 2,
+//     cccd: "789789789",
+//     cvImg: "path/to/cvImg.jpg",
+//     position: "Waiter",
+//     salaryType: "Hourly",
+//     salaryPerHour: 12,
+//     salaryPerMonth: 0,
+//     role: {
+//       id: 4,
+//       name: "Waiter",
+//       description: "Phục vụ",
+//     },
+//   },
+// ];
 
 const sampleShifts: ShiftEntity[] = [
   {
@@ -295,9 +296,9 @@ const sampleShifts: ShiftEntity[] = [
 
 export default function StaffSchedulePage() {
   const [workSchedules, setWorkSchedules] =
-    useState<WorkScheduleEntity[]>(sampleWorkSchedules);
+    useState<WorkScheduleEntity[]>([]);
 
-  const [shifts, setShifts] = useState<ShiftEntity[]>(sampleShifts);
+  const [shifts, setShifts] = useState<ShiftEntity[]>([]);
 
   const [isOpenDatePicker, setIsOpenDatePicker] = useState<boolean>(false); // Mở lịch chọn ngày
 
@@ -334,17 +335,51 @@ export default function StaffSchedulePage() {
 
   const [searchInput, setSearchInput] = useState<string>("");
 
-  const [displayUsers, setDisplayUsers] = useState<UserEntity[]>(users);
+  const [displayUsers, setDisplayUsers] = useState<UserEntity[]>([]);
+
+  const [allUsers, setAllUsers] = useState<UserEntity[]>([]); // Lưu trữ tất cả người dùng
+
+  // console.log("shift:", shifts);
+  //console.log("workSche: ",workSchedules);
 
   useEffect(() => {
     /* Gọi API lấy nhân viên và shifts */
-    // getAllUsers
-    // setUsers( response.data )
-    // setDisplayUsers( users )
-    //
-    // getAllShifts
-    // setShifts( response.data )
+    //Tạm thời chỉ giới hạn ở 100 nv
+    getAllUsers("page=0&page_size=100").then((res) => {
+      setDisplayUsers(res.second);
+      setAllUsers(res.second)
+    });
+    getAll().then((res) => {
+      const formattedShifts: ShiftEntity[] = res.map((shift) => ({
+        ...shift,
+        startTime: shift.startTime.slice(0, 5),
+        endTime: shift.endTime.slice(0, 5),
+      }));
+      setShifts(formattedShifts);
+    });    
   }, []);
+
+  // useEffect(() => {
+  //   const deleteShifts = () => {
+  //     const deletee = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+  //     const deletePromises = deletee.map(num =>
+  //       deleteShift(num)
+  //         .then(() => console.log(`Shift ${num} deleted`))
+  //         .catch((error) => console.error(`Error deleting shift ${num}:`, error))
+  //     );
+
+  //     // Chờ tất cả các Promise hoàn thành
+  //     Promise.all(deletePromises)
+  //       .then(() => {
+  //         console.log("All shifts deleted.");
+  //       })
+  //       .catch(() => {
+  //         console.log("Some shifts failed to delete.");
+  //       });
+  //   };
+
+  //   deleteShifts(); // Gọi hàm xóa trong useEffect
+  // }, []); // Chỉ chạy 1 lần khi component mount
 
   useEffect(() => {
     /* Gọi API lấy work schedules*/
@@ -353,11 +388,20 @@ export default function StaffSchedulePage() {
       new Date(new Date(displayDate).setDate(displayDate.getDate() + 6))
     );
     const query = `start_date=${startDate}&end_date=${endDate}`;
-    // const response = getWorkSchedules ( query )
-    // if (response.ok) {
-    //   setWorkSchedules( response.data )
-    // }
-  }, [displayDate]);
+    getAllWorkSchedules(query).then((res) => {
+      const formattedSchedules: WorkScheduleEntity[] = res.map((sche) => ({
+        ...sche,
+        shift: {
+          ...sche.shift,
+          startTime: sche.shift.startTime.slice(0, 5),
+          endTime: sche.shift.endTime.slice(0, 5), 
+        },
+      }));
+
+      setWorkSchedules(formattedSchedules);
+    });
+
+  }, [displayDate, shifts]);
 
   const handleDateChange = (date: Date) => {
     setDisplayDate(getFirstDayOfWeek(date));
@@ -379,11 +423,13 @@ export default function StaffSchedulePage() {
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
       if (searchInput) {
+        // Nếu có input tìm kiếm, lọc dữ liệu
         const regex = new RegExp(searchInput, "i");
-        const newDisplayUsers = users.filter((user) => regex.test(user.name));
+        const newDisplayUsers = allUsers.filter((user) => regex.test(user.name));
         setDisplayUsers(newDisplayUsers);
       } else {
-        setDisplayUsers(users);
+        // Nếu không có input tìm kiếm, khôi phục lại dữ liệu gốc
+        setDisplayUsers(allUsers);
       }
     }
   };
@@ -420,43 +466,55 @@ export default function StaffSchedulePage() {
         date: chosenDate,
       })
     );
-    // const response = createWorkSchedules ( payload )
-    // if (response.ok) {
-
-    const newWorkSchedules = chosenShiftIdsList.map((shiftId) => ({
-      id: workSchedules.length + shiftId,
-      userId: user.id,
-      shiftId: shiftId,
-      date: chosenDate,
-      user: user,
-      shift: shifts.find((shift) => shift.id === shiftId),
-    }));
-    setWorkSchedules((prevWorkSchedules) => [
-      ...prevWorkSchedules,
-      ...newWorkSchedules,
-    ]);
-    closeAddShifts();
+    try {
+      Promise.all(
+        payload.map((schedule) =>
+          createWorkSchedule(schedule).then((res) => {
+            console.log("Work Schedule created:", res);
+          })
+        )
+      )
+        .then(() => {
+          // Sau khi tất cả API hoàn thành
+          //Có thể dùng getAll
+          setShifts(shifts => [...shifts]) //gọi lại useEffect của getAllSchedule API
+          closeAddShifts();
+        })
+        .catch((error) => {
+          console.log("Error creating schedules:", error);
+        });
+    } catch (error) {
+      console.log("Error:", error);
+    }
   };
 
-  const saveCreateShift = () => {
+  const saveCreateShift = (e) => {
     /* Gọi API tạo shift mới*/
+    e.preventDefault();
+    const formattedStartTime = startTime.includes(":")
+      ? `${startTime}:00`
+      : startTime;
+
+    const formattedEndTime = endTime.includes(":")
+      ? `${endTime}:00`
+      : endTime;
     const payload = {
       name: shiftName,
-      startTime: startTime,
-      endTime: endTime,
+      startTime: formattedStartTime,
+      endTime: formattedEndTime,
     };
-    // const response = createShift ( payload )
-    // if (response.ok) {
 
-    const newShift = {
-      id: shifts.length + 1,
-      name: shiftName,
-      startTime: startTime,
-      endTime: endTime,
-      status: "active",
-    };
-    setShifts([...shifts, newShift]);
-    closeCreateShift();
+    createShift(payload).then((res) => {
+      getAll().then((res) => {
+        const formattedShifts: ShiftEntity[] = res.map((shift) => ({
+          ...shift,
+          startTime: shift.startTime.slice(0, 5),
+          endTime: shift.endTime.slice(0, 5),
+        }));
+        setShifts(formattedShifts);
+      });
+      closeCreateShift();
+    })
   };
 
   const closeCreateShift = () => {
@@ -474,46 +532,39 @@ export default function StaffSchedulePage() {
     setIsEditShift(true);
   };
 
-  const saveEditShift = () => {
+  const saveEditShift = (e) => {
+    e.preventDefault();
     /* Gọi API chỉnh sửa shift*/
-    // const payload = {
-    //   id: shiftId,
-    //   name: shiftName,
-    //   startTime: startTime,
-    //   endTime: endTime,
-    // };
-    // const response = editShift ( payload )
-    // if (response.ok) {
+    const formattedStartTime = startTime.includes(":")
+      ? `${startTime}:00`
+      : startTime;
 
-    const newShifts = shifts.map((shift) =>
-      shift.id === shiftId
-        ? {
-            id: shiftId,
-            name: shiftName,
-            startTime: startTime,
-            endTime: endTime,
-            status: "active",
-          }
-        : shift
-    );
-    setShifts(newShifts);
-
-    const newWorkSchedules = workSchedules.map((schedule) =>
-      schedule.shiftId === shiftId
-        ? {
-            ...schedule,
-            shift: {
-              id: shiftId,
-              name: shiftName,
-              startTime: startTime,
-              endTime: endTime,
-              status: "active",
-            },
-          }
-        : schedule
-    );
-    setWorkSchedules(newWorkSchedules);
-    closeEditShift();
+    const formattedEndTime = endTime.includes(":")
+      ? `${endTime}:00`
+      : endTime;
+    const payload = {
+      id: shiftId,
+      name: shiftName,
+      startTime: formattedStartTime,
+      endTime: formattedEndTime,
+    };
+    try {
+      updateShift(shiftId, payload).then((res) => {
+        console.log("updated");
+        //Gọi lại getAll API
+        getAll().then((res) => {
+          const formattedShifts: ShiftEntity[] = res.map((shift) => ({
+            ...shift,
+            startTime: shift.startTime.slice(0, 5),
+            endTime: shift.endTime.slice(0, 5),
+          }));
+          setShifts(formattedShifts);
+          closeEditShift();
+        });        
+      });
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   const closeEditShift = () => {
@@ -524,18 +575,24 @@ export default function StaffSchedulePage() {
     setEndTime("");
   };
 
-  const deleteShift = (shiftId: number) => {
+  const delShift = (shiftId: number) => {
     /* Gọi API xóa shift*/
-    // const response = await deleteShift (shiftId)
-    // if (response.ok) {
-
-    const newShifts = shifts.filter((shift) => shift.id !== shiftId);
-    setShifts(newShifts);
-
-    const newWorkSchedules = workSchedules.filter(
-      (schedule) => schedule.shiftId !== shiftId
-    );
-    setWorkSchedules(newWorkSchedules);
+    delSchedulesByShiftId(shiftId);
+    deleteShift(shiftId)
+      .then(() => {
+        console.log("deleted")
+        getAll().then((res) => {
+          const formattedShifts: ShiftEntity[] = res.map((shift) => ({
+            ...shift,
+            startTime: shift.startTime.slice(0, 5),
+            endTime: shift.endTime.slice(0, 5),
+          }));
+          setShifts(formattedShifts);
+        });
+      })
+      .catch((error) => {
+        console.error(error);
+      });
   };
 
   const openDetailSchedule = (schedule: WorkScheduleEntity) => {
@@ -548,17 +605,41 @@ export default function StaffSchedulePage() {
     setSelectedSchedule(null);
   };
 
-  const deleteSchedule = () => {
+  const delSchedule = () => {
     /* Gọi API xóa work schedule*/
-    // const response = await deleteWorkSchedule(selectedSchedule.id)
-    // if (response.ok) {
+    deleteWorkSchedule(selectedSchedule.id)
+      .then(() => {
+        console.log("deleted")
+        const newWorkSchedules = workSchedules.filter(
+          (schedule) => schedule.id !== selectedSchedule.id
+        );
+        setWorkSchedules(newWorkSchedules);
+        closeDetailShift();
+      })
+      .catch((error) => {
+        alert("Có lỗi khi xóa schedule.");
+        console.error(error);
+      });
 
-    const newWorkSchedules = workSchedules.filter(
-      (schedule) => schedule.id !== selectedSchedule.id
-    );
-    setWorkSchedules(newWorkSchedules);
-    closeDetailShift();
   };
+
+  //Xóa các schedule trước khi xóa shift
+  const delSchedulesByShiftId = (shiftIdToDelete) => {
+    const schedulesToDelete = workSchedules.filter(schedule => schedule.shiftId === shiftIdToDelete);
+    console.log(schedulesToDelete)
+    const idsToDelete = schedulesToDelete.map(schedule => schedule.id);
+    console.log(idsToDelete)
+
+    Promise.all(idsToDelete.map(id => deleteWorkSchedule(id)))
+      .then(() => {
+        console.log("Deleted schedules:", idsToDelete);
+      })
+      .catch((error) => {
+        alert("Có lỗi khi xóa các sche.");
+        console.error(error);
+      });
+  };
+  
 
   const displayWeek = useMemo(() => {
     const startDate = formatDateToReactComponent(displayDate);
@@ -583,6 +664,7 @@ export default function StaffSchedulePage() {
   };
 
   const searchByUserIdAndDate = (userId: number, date: string) => {
+    if (!workSchedules) return;
     return workSchedules
       .filter(
         (schedule) => schedule.userId === userId && schedule.date === date
@@ -683,9 +765,8 @@ export default function StaffSchedulePage() {
               <div className="relative">
                 <button
                   onClick={() => setIsOpenDatePicker(!isOpenDatePicker)}
-                  className={`w-[200px] h-8 rounded-2xl text-sm ${
-                    isOpenDatePicker ? "bg-[#fefefe] shadow-md" : ""
-                  }`}
+                  className={`w-[200px] h-8 rounded-2xl text-sm ${isOpenDatePicker ? "bg-[#fefefe] shadow-md" : ""
+                    }`}
                 >
                   {displayWeek}
                 </button>
@@ -799,7 +880,7 @@ export default function StaffSchedulePage() {
             </div>
             <div className="font-bold text-xl mb-4">Chọn ca làm việc</div>
             <div className="flex flex-wrap mb-4 gap-y-3">
-              {shifts.map((shift) => (
+              {shifts && shifts.map((shift) => (
                 <label key={shift.id} className="basis-1/2 space-x-2">
                   <input
                     type="checkbox"
@@ -887,7 +968,7 @@ export default function StaffSchedulePage() {
                 Thời gian
               </div>
             </div>
-            {shifts.map((shift) => (
+            {shifts && shifts.map((shift) => (
               <div
                 key={shift.id}
                 className="flex items-center h-10 mb-2 p-2 rounded-md border border-[#f5f5f5] hover:bg-[#fafafa]"
@@ -920,7 +1001,7 @@ export default function StaffSchedulePage() {
                   </svg>
                 </button>
                 <button
-                  onClick={() => deleteShift(shift.id)}
+                  onClick={() => delShift(shift.id)}
                   title="Xóa"
                   className="basis-[10%] flex justify-center items-center"
                 >
@@ -1130,7 +1211,7 @@ export default function StaffSchedulePage() {
             </div>
             <div className="flex items-center mb-4">
               <div className="w-32">Vị trí</div>
-              <div className="font-bold">{selectedSchedule.user.role.name}</div>
+              <div className="font-bold">{selectedSchedule.user.position}</div>
             </div>
             <div className="flex items-center mb-4">
               <div className="w-32">Tên ca làm</div>
@@ -1151,7 +1232,7 @@ export default function StaffSchedulePage() {
             <div className="flex justify-end gap-3 items-center mt-10">
               <button
                 className="flex items-center justify-center gap-1 h-10 w-20 rounded-md px-2 shadow-sm bg-red-700 text-[#f7f7f7]"
-                onClick={deleteSchedule}
+                onClick={delSchedule}
               >
                 <div className="font-semibold">Xóa</div>
               </button>

@@ -3,42 +3,49 @@
 */
 
 import { sampleLocations } from "@/app/api-client/Locations";
-import { CreateTableRequest, TableEntity } from "@/app/api-client/TableService";
+import { createTable, CreateTableRequest, TableEntity } from "@/app/api-client/TableService";
 import { useState } from "react";
+import { GetTableRequest } from "./page";
 
 const sampleTypes = ["TABLE", "ROOM"];
 
 export default function CreateTableForm({
   setTables,
   setIsNewTable,
+  setFilter
 }: {
   setTables: React.Dispatch<React.SetStateAction<TableEntity[]>>;
   setIsNewTable: React.Dispatch<React.SetStateAction<boolean>>;
+  setFilter: React.Dispatch<React.SetStateAction<GetTableRequest>>;
 }) {
   const [newTable, setNewTable] = useState<CreateTableRequest>({
     name: "",
     capacity: 4,
-    type: "",
-    location: "",
+    type: "TABLE",
+    location: "Tầng 1",
     isActive: true,
   });
 
-  const handleSaveCreate = async () => {
+  const handleSaveCreate = async (e) => {
     /* Gọi API */
     // const table = await createTable(newTable);
     // if (ok) {
-    const table: TableEntity = {
-      id: 100,
-      ...newTable,
-    };
-    setTables((prev) => [...prev, table]);
-    setIsNewTable((prev) => !prev);
+    e.preventDefault()
+    try {
+      createTable(newTable).then((res) => {
+        console.log("Table created:", res);
+        setFilter(prev => ({ ...prev })); // Kích hoạt useEffect
+        setIsNewTable((prev) => !prev);
+      });
+    } catch (error) {
+      console.log("Error creating table:", error);
+    }
   };
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
       <div className="bg-[#f7fafc] p-6 rounded-lg shadow-lg w-3/5 h-6/10">
-        <form onSubmit={() => handleSaveCreate()}>
+        <form onSubmit={(e) => handleSaveCreate(e)}>
           <div className="text-xl font-bold mb-12">Thêm phòng/bàn</div>
           <div className="flex justify-between">
             <div className="flex items-center gap-4">

@@ -1,60 +1,215 @@
 "use client";
-
+//chạy đoạn create role trước
 import React, { useState, useRef, useEffect } from "react";
-import { UserEntity } from "./data";
 import CreateStaffForm from "./create-staff-form";
 import StaffList from "./staff-list";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+import { UserEntity, CreateUserRequest, getAllUsers } from "@/app/api-client/UserService";
+import { PageInfo } from "@/app/api-client/PageInfo";
+import { createRole, CreateRoleRequest, deleteRole, getAllRoles } from "@/app/api-client/RoleService";
 
-const staffs: UserEntity[] = [
-  {
-    id: 1,
-    name: "Nguyễn Văn A",
-    phoneNumber: "0123456789",
-    email: "nguyenvana@gmail.com",
-    password: "123",
-    address: "Hà Nội",
-    dob: "01/01/1990",
-    gender: "male",
-    roleId: 1,
-    position: "ADMIN",
-    salaryType: "HOURLY",
-    salaryPerHour: 15000,
-    salaryPerMonth: 0,
-    status: "IN",
-    note: "Newbie",
-  },
-  {
-    id: 2,
-    name: "Nguyễn Văn B",
-    phoneNumber: "0123456789",
-    email: "nguyenvanb@gmail.com",
-    password: "123",
-    address: "Hà Nội",
-    dob: "01/02/1989",
-    gender: "female",
-    roleId: 1,
-    position: "CHEF",
-    salaryType: "DAYLY",
-    salaryPerHour: 0,
-    salaryPerMonth: 15000000,
-    status: "OUT",
-    note: "Con giam doc",
-  },
-];
+//User
+
+
+// const staffs: UserEntity[] = [
+//   {
+//     id: 1,
+//     name: "Nguyễn Văn A",
+//     phoneNumber: "0123456789",
+//     email: "nguyenvana@gmail.com",
+//     password: "123",
+//     address: "Hà Nội",
+//     dob: "01/01/1990",
+//     gender: "male",
+//     roleId: 1,
+//     position: "ADMIN",
+//     salaryType: "HOURLY",
+//     salaryPerHour: 15000,
+//     salaryPerMonth: 0,
+//     status: "IN",
+//     note: "Newbie",
+//   },
+//   {
+//     id: 2,
+//     name: "Nguyễn Văn B",
+//     phoneNumber: "0123456789",
+//     email: "nguyenvanb@gmail.com",
+//     password: "123",
+//     address: "Hà Nội",
+//     dob: "01/02/1989",
+//     gender: "female",
+//     roleId: 1,
+//     position: "CHEF",
+//     salaryType: "DAYLY",
+//     salaryPerHour: 0,
+//     salaryPerMonth: 15000000,
+//     status: "OUT",
+//     note: "Con giam doc",
+//   },
+// ];
+
+export type GetStaffRequest = {
+  page: number;
+  page_size: number;
+  phone_number?: string;
+  name?: string;
+  role_id?: number;
+};
+
 
 const StaffManagementPage = () => {
+
+  const [staffs, setStaffs] = useState<UserEntity[]>([]);
+
   const [masterChecked, setMasterChecked] = useState(false);
-  const [isNewStaff, setIsNewStaff] = useState(false);
-  const [checkedRows, setCheckedRows] = useState({});
+
   const [flyOutActions, setFlyOutActions] = useState(false);
+
+  const [checkedRows, setCheckedRows] = useState({});
+
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+
   const filterRef = useRef(null);
+
+  const [isNewStaff, setIsNewStaff] = useState(false);
+
   const [expandedRow, setExpandedRow] = useState(null);
 
-  const [startDate, setStartDate] = useState(new Date("2014/01/01"));
+  const [startDate, setStartDate] = useState(new Date("2004/01/01"));
+
   const [endDate, setEndDate] = useState(new Date("2025/12/31"));
+
+  const [pageInfo, setPageInfo] = useState<PageInfo>({
+    totalPage: null,
+    totalRecord: null,
+    pageSize: null,
+    nextPage: null,
+    previousPage: null,
+  });
+
+  const [filter, setFilter] = useState<GetStaffRequest>({
+    page: 0,
+    page_size: 5
+  });
+
+  // khi role rỗng, chạy các đoạn này để tạo role : id, name, description
+
+  // const handleCreateRole = async () => {
+  //   const roles: CreateRoleRequest[] = [
+  //     { name: "MANAGER", description: "MANAGER" },
+  //     { name: "WAITER", description: "WAITER" },
+  //     { name: "CHEF", description: "CHEF" },
+  //     { name: "CASHIER", description: "CASHIER" },
+  //   ];
+  
+  //   try {
+  //     const promises = roles.map((role) => createRole(role));
+  //     const results = await Promise.all(promises);
+  //     results.forEach((res, index) => {
+  //       console.log(`Role ${roles[index].name} created:`, res);
+  //     });
+  //     console.log("All roles created successfully.");
+  //   } catch (error) {
+  //     console.log("Error creating roles:", error);
+  //   }
+  // };
+
+  // const handleDeleteRole = async () => {
+  //   // Giả sử bạn có danh sách các ID role cần xóa
+  //   const roleIds: number[] = [5, 8, 9, 7]; // Thay thế bằng ID thực tế
+  
+  //   try {
+  //     const promises = roleIds.map((id) => deleteRole(id)); // Gọi hàm API xóa role
+  //     const results = await Promise.all(promises); // Đợi tất cả lời hứa hoàn thành
+  //     results.forEach((res, index) => {
+  //       console.log(`Role with ID ${roleIds[index]} deleted:`, res);
+  //     });
+  //     console.log("All roles deleted successfully.");
+  //   } catch (error) {
+  //     console.log("Error deleting roles:", error);
+  //   }
+  // };
+  
+  // const handleGetAll = async () => {
+  //   try {
+  //     const roles = await getAllRoles(); // Gọi API lấy danh sách roles
+  //     console.log("Roles fetched successfully:", roles);
+  //     return roles;
+  //   } catch (error) {
+  //     console.log("Error fetching roles:", error);
+  //     throw error;
+  //   }
+  // };
+  
+
+
+  const handlePageSizeChange = (value: number) => {
+    setFilter({
+      ...filter,
+      page_size: value,
+      page: 0
+    })
+  }
+
+  const handlePageNumberChange = (value: number) => {
+    setFilter({
+      ...filter,
+      page: value
+    })
+  }
+
+  useEffect(() => {
+    const query = Object.entries(filter)
+      .map(([key, value]) => {
+        if (value) {
+          return `${key}=${value}`;
+        }
+      })
+      .join("&");
+
+    getAllUsers(query).then((data) => {
+      setPageInfo(data.first);
+      setStaffs(data.second);
+    });
+    console.log(query)
+  }, [filter]);
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+
+    const isPhoneNumber = /^[0-9]+$/.test(value);
+
+    if (isPhoneNumber) {
+      console.log("true")
+      setFilter({
+        ...filter,
+        phone_number: value,
+        name: ""
+      });
+    } else {
+      setFilter({
+        ...filter,
+        name: value,
+        phone_number: ""
+      });
+    }
+  };
+
+  const handleFilterCostChange = (e, field) => {
+    let newValue = e.target.value;
+    if (newValue === "") {
+      newValue = null;
+    } else {
+      newValue = Number(newValue);
+    }
+
+    setFilter({
+      ...filter,
+      [field]: newValue
+    })
+  }
+
 
   const handleStartDateChange = (date) => {
     setStartDate(date);
@@ -73,6 +228,24 @@ const StaffManagementPage = () => {
       setExpandedRow(id); // Expand the clicked row
     }
   };
+
+  const toggleNewStaff = () => {
+    setIsNewStaff((prev) => !prev);
+  };
+
+  const toggleFilterDropdown = () => {
+    setIsFilterOpen((prev) => !prev);
+  };
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (filterRef.current && !filterRef.current.contains(event.target)) {
+        setIsFilterOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const handleMasterCheckboxChange = () => {
     const newMasterChecked = !masterChecked;
@@ -99,29 +272,13 @@ const StaffManagementPage = () => {
     setCheckedRows(updatedCheckedRows);
   };
 
-  const toggleNewStaff = () => {
-    setIsNewStaff((prev) => !prev);
-  };
-
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (filterRef.current && !filterRef.current.contains(event.target)) {
-        setIsFilterOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
-  const toggleFilterDropdown = () => {
-    setIsFilterOpen((prev) => !prev);
-  };
-
   return (
     <div className="w-full h-screen font-nunito bg-[#f7f7f7]">
       <div className="flex p-6 justify-between items-center">
         <div className="text-2xl font-extrabold">Nhân viên</div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2">          
+          {/* Không có deleteStaff API */}
+          {/* 
           {isAnyRowChecked && (
             <li
               className="lg:px-8 relative flex items-center space-x-1"
@@ -142,7 +299,7 @@ const StaffManagementPage = () => {
                   setFlyOutActions(!flyOutActions);
                 }}
               >
-                <span className="sr-only">Show submenu for "Flyout Menu"</span>
+                <span className="sr-only">Show submenu for Flyout Menu</span>
                 <svg
                   className="w-3 h-3 fill-slate-500"
                   xmlns="http://www.w3.org/2000/svg"
@@ -153,7 +310,6 @@ const StaffManagementPage = () => {
                 </svg>
               </button>
 
-              {/* 2nd level menu */}
               {flyOutActions && (
                 <ul className="origin-top-right absolute top-full left-1/2 -translate-x-1/2 w-[120px] bg-white border border-slate-200 p-2 rounded-lg shadow-xl">
                   <li>
@@ -162,10 +318,9 @@ const StaffManagementPage = () => {
                     </button>
                   </li>
                 </ul>
-                /* Thêm action ở đây */
               )}
             </li>
-          )}
+          )} */}
           <div className="flex items-center border text-sm rounded-md bg-[#f7fafc] px-2 shadow-sm">
             <svg
               className="w-5 h-5"
@@ -184,7 +339,9 @@ const StaffManagementPage = () => {
             <input
               className="p-2 bg-transparent outline-none"
               type="text"
-              placeholder="Tìm kiếm tên nhân viên"
+              placeholder="Tìm theo tên, điện thoại"
+              value={filter.name || filter.phone_number}
+              onChange={handleSearchChange}
             />
           </div>
 
@@ -216,6 +373,7 @@ const StaffManagementPage = () => {
                 className="absolute mt-2 w-48 bg-white border border-gray-300 rounded-md shadow-lg divide-y-2"
               >
                 <div className="p-2">
+                  {/* Filter không có sinh nhật */}
                   <p className="font-bold m-2 px-2">Sinh nhật</p>
                   <label className="flex items-center space-x-4 mt-2">
                     <div className="min-w-[30px]">Từ</div>
@@ -243,7 +401,7 @@ const StaffManagementPage = () => {
                     />
                   </label>
                 </div>
-                <div className="p-2">
+                {/* <div className="p-2">
                   <p className="font-bold m-2 px-2">Trạng thái</p>
                   <label className="flex items-center space-x-2 mt-2">
                     <input type="checkbox" className="form-checkbox" />
@@ -253,7 +411,7 @@ const StaffManagementPage = () => {
                     <input type="checkbox" className="form-checkbox" />
                     <span>Đã nghỉ</span>
                   </label>
-                </div>
+                </div> */}
               </div>
             )}
           </div>
@@ -275,18 +433,28 @@ const StaffManagementPage = () => {
             </svg>
             <div className="p-2 text-sm font-bold text-white">Tạo mới</div>
           </button>
-          {isNewStaff && <CreateStaffForm toggleNewStaff={toggleNewStaff} />}
-        </div>
+          {isNewStaff && (
+            <CreateStaffForm
+              setStaffs={setStaffs}
+              toggleNewStaff={toggleNewStaff}
+              pageSize={pageInfo.pageSize}
+              setFilter={setFilter}
+            />
+          )}        </div>
       </div>
       <div className="px-6">
         <StaffList
           staffs={staffs}
+          setStaffs={setStaffs}
           masterChecked={masterChecked}
           checkedRows={checkedRows}
+          pageInfo={pageInfo}
           handleMasterCheckboxChange={handleMasterCheckboxChange}
           handleRowCheckboxChange={handleRowCheckboxChange}
           handleRowClick={handleRowClick}
           expandedRow={expandedRow}
+          handlePageSizeChange={handlePageSizeChange}
+          handlePageNumberChange={handlePageNumberChange}
         />
       </div>
     </div>

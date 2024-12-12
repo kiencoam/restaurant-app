@@ -1,10 +1,10 @@
 /*
-  Gọi API tạo mới menu section ở dòng 23
+  Gọi API tạo mới menu section ở dòng 23 done
 */
 
 import { useState } from "react";
 import { MenuSectionEntity } from "../order-taking/entity";
-import { CreateMenuSectionRequest } from "@/app/api-client/MenuSectionService";
+import { createMenuSection, CreateMenuSectionRequest, getAllMenuSections } from "@/app/api-client/MenuSectionService";
 
 export default function CreateMenuSectionForm({
   setMenuSections,
@@ -19,22 +19,35 @@ export default function CreateMenuSectionForm({
       description: "",
     });
 
-  const handleSaveCreate = async () => {
+  const handleSaveCreate = async (e) => {
     /* Gọi API */
     // createMenuSection(newMenuSection);
     // if (ok) {
-    const menuSection: MenuSectionEntity = {
-      id: Math.floor(Math.random() * 1000),
-      ...newMenuSection,
-    };
-    setMenuSections((prev) => [...prev, menuSection]);
-    setIsNewMenuSection((prev) => !prev);
+    e.preventDefault()
+    try {
+      createMenuSection(newMenuSection).then((res) => {
+        console.log("menusection created:", res);
+        getAllMenuSections().then((data) => {
+          setMenuSections(data)
+          //testapi
+          console.log(data)
+        })
+        setIsNewMenuSection((prev) => !prev);
+      });
+    } catch (error) {
+      console.log("Error creating menusection:", error);
+    }
+    // const menuSection: MenuSectionEntity = {
+    //   id: Math.floor(Math.random() * 1000),
+    //   ...newMenuSection,
+    // };
+    //setMenuSections((prev) => [...prev, menuSection]);
   };
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
       <div className="bg-[#f7fafc] p-6 rounded-lg shadow-lg w-2/5">
-        <form onSubmit={() => handleSaveCreate()}>
+        <form onSubmit={(e) => handleSaveCreate(e)}>
           <div className="text-xl font-bold mb-12">Thêm nhóm thực đơn</div>
           <div className="flex justify-between">
             <div className="flex items-center gap-4">

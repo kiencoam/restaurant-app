@@ -13,6 +13,7 @@ import {
   formatDateToVietnameseFormat,
   formatDateToYYYYMMDD,
 } from "@/utils/timeUtils";
+import { getStatisticByRevenueAndDate, getStatisticByRevenueAndHour } from "@/app/api-client/StatisticService";
 
 const sampleRevenuePerDate = [
   { date: new Date("12-03-2024"), revenue: 1000000 },
@@ -39,21 +40,45 @@ export function BusinessChart() {
   const [revenuePerHours, setRevenuePerHours] = useState(sampleRevenuePerHours);
 
   useEffect(() => {
-    /* Gọi API **/
-    const endTime = new Date();
-    const startDate = new Date(new Date().setDate(endTime.getDate() - 4));
-    const queryForDate = `start_date=${formatDateToYYYYMMDD(
-      startDate
-    )}&end_date=${formatDateToYYYYMMDD(endTime)}`;
-    // const data = await getStatisticByRevenueAndDate(queryForDate);
-    // setRevenuePerDate(data.map((item) => ({ date: new Date(item.date), revenue: item.revenue })));
+    const fetchRevenueData = async () => {
+      const endTime = new Date();
+      
+      // Lấy dữ liệu theo ngày
+      const startDate = new Date(new Date().setDate(endTime.getDate() - 4));
+      const queryForDate = `start_date=${formatDateToYYYYMMDD(
+        startDate
+      )}&end_date=${formatDateToYYYYMMDD(endTime)}`;
+      try {
+        const dateData = await getStatisticByRevenueAndDate(queryForDate);
+        setRevenuePerDate(
+          dateData.revenueStatistics.map((item) => ({
+            date: new Date(item.date),
+            revenue: item.revenue,
+          }))
+        );
+      } catch (error) {
+        console.error("Error fetching revenue by date:", error);
+      }
 
-    const startTime = new Date(new Date().setDate(endTime.getHours() - 7));
-    const queryForHours = `start_date=${formatDateToString(
-      startTime
-    )}&end_date=${formatDateToString(endTime)}`;
-    // const data = await getStatisticByRevenueAndHour(queryForHours);
-    // setRevenuePerHours(data.map((item) => ({ hour: new Date(item.hour), revenue: item.revenue }));
+      // Lấy dữ liệu theo giờ
+      const startTime = new Date(new Date().setHours(endTime.getHours() - 7));
+      const queryForHours = `start_date=${formatDateToString(
+        startTime
+      )}&end_date=${formatDateToString(endTime)}`;
+      try {
+        const hourData = await getStatisticByRevenueAndHour(queryForHours);
+        setRevenuePerHours(
+          hourData.revenueStatistics.map((item) => ({
+            hour: new Date(item.hour),
+            revenue: item.revenue,
+          }))
+        );
+      } catch (error) {
+        console.error("Error fetching revenue by hours:", error);
+      }
+    };
+
+    fetchRevenueData();
   }, []);
 
   const dataPerDate: ChartData<"line"> = {

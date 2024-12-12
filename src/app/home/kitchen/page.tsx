@@ -11,23 +11,11 @@ import { Ordered } from "@/components/Ordered";
 import { Prepared } from "@/components/Prepared";
 import { MenuItemEntity, TableEntity } from "../order-taking/entity";
 import { useEffect, useState, useCallback } from "react";
-
-import { UpdateOrderItemKitchenStatusRequest } from "@/app/api-client/OrderItemKitchenService";
+import { OrderItemKitchenEntity, updateOrderItemKitchen, UpdateOrderItemKitchenStatusRequest } from "@/app/api-client/OrderItemKitchenService";
+import { getAllOrders } from "@/app/api-client/OrderService";
 
 // giống type trong OrderItemKitchenService.ts nhưng receiveTime là Date
 // nên sửa lại entity trong OrderItemKitchenService.ts rồi import ở đây
-type OrderItemKitchenEntity = {
-  id: number;
-  orderId: number;
-  tableId: number;
-  menuItemId: number;
-  quantity: number;
-  status: string;
-  note?: string;
-  receivedTime: Date;
-  menuItem: MenuItemEntity;
-  table: TableEntity;
-};
 
 const samplePendingKitchenItems: OrderItemKitchenEntity[] = [
   {
@@ -225,62 +213,94 @@ const KitchenPage = () => {
   >([]);
 
   useEffect(() => {
-    /* Gọi API */
-    const fetchPendingKitchenItems = () => {
-      const query = "status=PENDING";
-      // const newPendingKitchenItems = getAll (query);
-      const newPendingKitchenItems = samplePendingKitchenItems;
-      setPendingKitchenItems(newPendingKitchenItems);
+    /* Gọi API để lấy các món trong bếp với trạng thái PENDING */
+    const fetchPendingKitchenItems = async () => {
+      const query = `page=1&page_size=10&start_time=${new Date(0).toISOString().slice(0, 19).replace('T', ' ')}&end_time=${new Date().toISOString().slice(0, 19).replace('T', ' ')}&status=PENDING`;
+
+      try {
+        const newPendingKitchenItems = await getAllOrders(query); // Gọi API
+        setPendingKitchenItems(newPendingKitchenItems);
+      } catch (error) {
+        console.error("Error fetching pending kitchen items:", error);
+      }
     };
 
     fetchPendingKitchenItems();
 
-    const interval = setInterval(fetchPendingKitchenItems, 5000);
+    const interval = setInterval(fetchPendingKitchenItems, 5000); 
 
-    return () => clearInterval(interval);
+    return () => clearInterval(interval); 
   }, []);
 
   useEffect(() => {
-    /* Gọi API */
-    const query = "status=READY";
-    // const newReadyKitchenItems = getAll (query);
-    setReadyKitchenItems(sampleReadyKitchenItems);
+    /* Gọi API để lấy các món trong bếp với trạng thái READY */
+    const fetchReadyKitchenItems = async () => {
+      const query = `page=1&page_size=10&start_time=${new Date(0).toISOString().slice(0, 19).replace('T', ' ')}&end_time=${new Date().toISOString().slice(0, 19).replace('T', ' ')}&status=READY`;
+
+      try {
+        const newReadyKitchenItems = await getAllOrders(query); // Gọi API
+        setReadyKitchenItems(newReadyKitchenItems);
+      } catch (error) {
+        console.error("Error fetching ready kitchen items:", error);
+      }
+    };
+
+    fetchReadyKitchenItems(); 
   }, []);
 
   const handlePendingKitchenItems = useCallback(
-    (kitchenItemIds: number[]) => {
-      /* Gọi API */
-      const payload: UpdateOrderItemKitchenStatusRequest = {
-        orderItemKitchenIds: kitchenItemIds,
-        status: "PENDING",
-      };
-      // const response = updateOrderItemKitchen (payload);
-      // if (response.ok) {
-      setReadyKitchenItems((prev) => [
-        ...prev,
-        ...pendingKitchenItems.filter((item) =>
-          kitchenItemIds.includes(item.id)
-        ),
-      ]);
-      setPendingKitchenItems((prev) =>
-        prev.filter((item) => !kitchenItemIds.includes(item.id))
-      );
+    async (kitchenItemIds: number[]) => {
+      try {
+        const payload: UpdateOrderItemKitchenStatusRequest = {
+          orderItemKitchenIds: kitchenItemIds,
+          status: "PENDING",
+        };
+  
+        // Gọi API để cập nhật trạng thái
+        const response = await updateOrderItemKitchen(payload);
+  
+        // Nếu API trả về thành công
+        if (response) {
+          setReadyKitchenItems((prev) => [
+            ...prev,
+            ...pendingKitchenItems.filter((item) =>
+              kitchenItemIds.includes(item.id)
+            ),
+          ]);
+          setPendingKitchenItems((prev) =>
+            prev.filter((item) => !kitchenItemIds.includes(item.id))
+          );
+        }
+      } catch (error) {
+        console.error("Error updating kitchen item status to PENDING", error);
+      }
     },
     [pendingKitchenItems]
   );
 
-  const handleReadyKitchenItems = useCallback((kitchenItemIds: number[]) => {
-    /* Gọi API */
-    const payload: UpdateOrderItemKitchenStatusRequest = {
-      orderItemKitchenIds: kitchenItemIds,
-      status: "READY",
-    };
-    // const response = updateOrderItemKitchen (payload);
-    // if (response.ok) {
-    setReadyKitchenItems((prev) =>
-      prev.filter((item) => !kitchenItemIds.includes(item.id))
-    );
-  }, []);
+  const handleReadyKitchenItems = useCallback(
+    async (kitchenItemIds: number[]) => {
+      try {
+        const payload: UpdateOrderItemKitchenStatusRequest = {
+          orderItemKitchenIds: kitchenItemIds,
+          status: "READY",
+        };
+  
+        // Gọi API để cập nhật trạng thái
+        const response = await updateOrderItemKitchen(payload);
+  
+        // Nếu API trả về thành công
+        if (response) {
+          setReadyKitchenItems((prev) =>
+            prev.filter((item) => !kitchenItemIds.includes(item.id))
+          );
+        }
+      } catch (error) {
+        console.error("Error updating kitchen item status to READY", error);
+      }
+    },
+    []
+  );
 
   return (
     <section className="flex h-screen w-full bg-[#f7f7f7]">

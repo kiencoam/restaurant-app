@@ -1,15 +1,151 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef, useCallback, useContext } from "react";
 import { Tooltip } from "react-tooltip";
 import Link from "next/link";
-
+import ProductTable from "./ProductTable";
+import { CreateProductRequest, getAllProducts, GetProductRequest, ProductEntity, updateProduct, UpdateProductRequest } from "@/app/api-client/ProductService";
+import { createStockHistory, CreateStockHistoryItemRequest, CreateStockHistoryRequest, StockHistoryEntity } from "@/app/api-client/StockHistoryService";
+import ProductForm from "../../products/ProductForm";
+import { getAllSuppliers, SupplierEntity } from "@/app/api-client/SupplierService";
+import SupplierForm from "./SupplierForm";
+import { useRouter } from "next/navigation";
+import { loginUserContext } from "@/components/LoginUserProvider";
 // Mock data for table rows
-const initialTableData = [];
+
+export type CreateStockHistoryItemRequestv2 = {
+  productId: number;
+  quantity: number;
+  pricePerUnit: number;
+  product: ProductEntity; //hiện thông tin product, xóa sau khi create api
+}
+
+const initialTableData: CreateStockHistoryItemRequestv2[] = []
+
+const initialStockHistory: CreateStockHistoryRequest = {
+  supplierId: 0,
+  userId: 0,
+  code: "",
+  status: "",
+  note: "",
+  stockHistoryItems: [] as CreateStockHistoryItemRequest[],
+}
+
+
 
 const NewPage = () => {
-  const [newSupplier, setNewSupplier] = useState(false);
+
+  const [stockHistory, setStockHistory] = useState<CreateStockHistoryRequest>(initialStockHistory);
+  const [tableData, setTableData] = useState<CreateStockHistoryItemRequestv2[]>(initialTableData);
+  // TO FETCH PRODUCTS AND SUPPLIERS
+  const [products, setProducts] = useState<ProductEntity[]>([]);
+  const [suppliers, setSuppliers] = useState<SupplierEntity[]>([]);
+  // OPEN FORM
+  const [isAddingNewSupplier, setIsAddingNewSupplier] = useState(false);
+  const [isAddingNewOpen, setIsAddingNewOpen] = useState(false);
+  // FIND 
+  const [getProductRequest, setGetProductRequest] = useState("")
+  const [getSupplierRequest, setGetSupplierRequest] = useState("")
+
+  const router = useRouter()
+
+  //lấy id làm userid
+  const id = useContext(loginUserContext).id
+
+
+  // QUERYPARAMS FOR PRODUCT
+  const buildQueryProduct = useCallback(() => {
+    let queryParams = `page=0&page_size=5`
+    if (getProductRequest.trim() !== "") {
+      queryParams = queryParams.concat(`&name=${getProductRequest}`)
+    }
+    return queryParams;
+  }, [getProductRequest])
+
+  // QUERYPARAMS FOR SUPPLIER
+  const buildQuerySupplier = useCallback(() => {
+    let queryParams = `page=0&page_size=5`
+    if (getSupplierRequest.trim() !== "") {
+      queryParams = queryParams.concat(`&name=${getSupplierRequest}`)
+    }
+    return queryParams;
+  }, [getSupplierRequest])
+
+  useEffect(() => {
+    const fecthProducts = (queryParams) => {
+      getAllProducts(queryParams).then(res => setProducts(res.second))
+    }
+
+    fecthProducts(buildQueryProduct())
+
+    const fecthSuppliers = (queryParams) => {
+      getAllSuppliers(queryParams).then(res => setSuppliers(res.second))
+    }
+
+    fecthSuppliers(buildQuerySupplier())
+
+  }, [buildQueryProduct, buildQuerySupplier])
+
+
+
+  console.log("products", products);
+  console.log("suppliers", suppliers)
+
+  const handlePickSupplier = (supplier: SupplierEntity) => {
+    setGetSupplierRequest(supplier.name);
+    setStockHistory({
+      ...stockHistory,
+      supplierId: supplier.id
+    })
+
+  }
+  const handlePickProduct = (product: ProductEntity) => {
+    // setGetProductRequest(product.name);
+    setGetProductRequest("");
+    setTableData((prev: CreateStockHistoryItemRequestv2[]) => [...prev, {
+      productId: product.id,
+      quantity: 1,
+      pricePerUnit: product.costPrice,
+      product: product,
+    }])
+  }
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>, key: string) => {
+    setStockHistory({ ...stockHistory, [key]: e.target.value });
+  }
+
+  const handleSubmit = (status: string) => {
+    if (stockHistory.code == "" || tableData.length == 0 || stockHistory.supplierId == 0) {
+      alert("Chưa nhập đủ thông tin")
+    }
+    setStockHistory({
+      ...stockHistory,
+      status: status,
+      stockHistoryItems: tableData.map(data => {
+        return {
+          productId: data.productId,
+          quantity: data.quantity,
+          pricePerUnit: data.pricePerUnit,
+        };
+      }),
+      userId: id
+
+    })
+    createStockHistory(stockHistory).then((res: StockHistoryEntity) => {
+      console.log(res);
+      //setStockHistories((prev: CreateStockHistoryRequest[]) => [res, ...prev]);
+      //Fetchdata xuong setStockHistories
+    })
+    console.log(stockHistory)
+    if (status == "pending") {
+      router.push(`./home/purchase-order/${stockHistory.code}`)
+    }
+    else {
+      router.push(`./home/purchase-order`)
+    }
+  }
+
   const toggleNewSupplier = () => {
-    setNewSupplier((prev) => !prev);
+    setIsAddingNewSupplier((prev) => !prev);
   };
 
   const date = new Date();
@@ -23,13 +159,11 @@ const NewPage = () => {
     date.getHours() +
     ":" +
     date.getMinutes();
-  const [tableData, setTableData] = useState(initialTableData);
-  const [isAddingNewOpen, setIsAddingNewOpen] = useState(false);
 
-  const handlePriceForUnitChange = (id, newPricePerUnit) => {
+  const handlePriceForUnitChange = (productId, newPricePerUnit) => {
     setTableData((prevData) =>
       prevData.map((item) =>
-        item.id === id
+        item.productId === productId
           ? { ...item, pricePerUnit: Math.max(0, newPricePerUnit) }
           : item
       )
@@ -40,14 +174,14 @@ const NewPage = () => {
     return pricePerUnit * quantity;
   };
 
-  const handleQuantityChange = (id, newQuantity) => {
+  const handleQuantityChange = (productId, newQuantity) => {
     setTableData((prevData) =>
       prevData.map((item) =>
-        item.id === id
+        item.productId === productId
           ? {
-              ...item,
-              quantity: Math.max(0, newQuantity), // Ensure quantity stays within range
-            }
+            ...item,
+            quantity: Math.max(0, newQuantity), // Ensure quantity stays within range
+          }
           : item
       )
     );
@@ -66,7 +200,7 @@ const NewPage = () => {
   return (
     <div className="flex w-full h-screen font-nunito bg-[#f7f7f7]">
       {/* Left section for table and search bar */}
-      <div className="p-6">
+      <div className="p-6 w-2/3">
         <div className="flex items-center gap-2 ">
           <Link href="/home/purchase-order/">
             <button
@@ -106,148 +240,63 @@ const NewPage = () => {
               className="p-2 bg-transparent outline-none w-full"
               type="text"
               placeholder="Tìm hàng hóa theo mã hoặc theo tên"
+              value={getProductRequest}
+              onChange={(e) => setGetProductRequest(e.target.value)}
             />
-            <button
-              data-tooltip-id="my-tooltip"
-              data-tooltip-content="Thêm hàng hóa mới"
-              onClick={toggleAddingNewOpen}
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                height="24px"
-                viewBox="0 -960 960 960"
-                width="24px"
-                fill="#000000"
-              >
-                <path d="M440-440H200v-80h240v-240h80v240h240v80H520v240h-80v-240Z" />
-              </svg>
-            </button>
-            {isAddingNewOpen && (
-              <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-              <div className="bg-white p-6 rounded-lg shadow-lg w-3/5 h-6/10">
-                <div className="text-xl font-bold mb-4">Thêm hàng hóa</div>
-                <div className="flex pt-3">
-                  <div className="flex items-center gap-3">
-                    <div className="px-2 py-4 w-28">Mã hàng hóa</div>
-                    <input
-                      className="border-b-2 focus:border-b-black w-64 h-fit outline-none"
-                      placeholder="Mã tự động sinh"
-                    ></input>
-                  </div>
-                  <div className="flex items-center gap-3 pl-3">
-                    <div className="px-2 py-4">Giá vốn</div>
-                    <input className="border-b-2 focus:border-b-black outline-none w-40 h-fit"></input>
-                  </div>
-                </div>
-                <div className="flex">
-                  <div className="flex items-center gap-3">
-                    <div className="px-2 py-4 w-28">Tên hàng</div>
-                    <input className="border-b-2 focus:border-b-black outline-none w-64 h-fit"></input>
-                  </div>
-                  <div className="flex items-center gap-3 pl-3">
-                    <div className="px-2 py-4">Giá bán</div>
-                    <input className="border-b-2 focus:border-b-black outline-none w-40 h-fit"></input>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="px-2 py-4 w-28">Loại hàng</div>
-                  <select className="w-64 h-fit border-b-2 focus:border-b-black outline-none">
-                    <option selected>Chọn loại hàng</option>
-                    <option value="Type1">Type1</option>
-                    <option value="Type2">Type2</option>
-                    <option value="Type3">Type3</option>
-                    <option value="Type4">Type4</option>
-                  </select>
-                </div>
-                <div className="flex justify-end gap-3 items-center mt-4">
-                  <button
-                    className="flex pl-2 items-center border rounded-md bg-black "
-                    onClick={toggleAddingNewOpen}
+            {/* Hiển thị gợi ý */}
+            {products.length > 0 && (
+              <div className="absolute bg-white border border-gray-300 mt-1 max-h-40 overflow-y-auto w-full z-10">
+                {products.map((product) => (
+                  <div
+                    key={product.id}
+                    className="p-2 hover:bg-gray-100 cursor-pointer"
+                    onClick={() => {
+                      handlePickProduct(product); // Điền tên vào input
+                    }}
                   >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      height="24px"
-                      viewBox="0 -960 960 960"
-                      width="24px"
-                      fill="#FFFFFF"
-                    >
-                      <path d="M840-680v480q0 33-23.5 56.5T760-120H200q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h480l160 160Zm-80 34L646-760H200v560h560v-446ZM480-240q50 0 85-35t35-85q0-50-35-85t-85-35q-50 0-85 35t-35 85q0 50 35 85t85 35ZM240-560h360v-160H240v160Zm-40-86v446-560 114Z" />
-                    </svg>
-                    <div className="p-2 text-white  rounded right-0">Lưu</div>
-                  </button>
-                  <button
-                    className="p-2 rounded right-0"
-                    onClick={toggleAddingNewOpen}
-                  >
-                    Hủy
-                  </button>
-                </div>
+                    {product.name}
+                  </div>
+                ))}
               </div>
-            </div>
             )}
+            {getProductRequest.length == 0 ?
+              (<button
+                data-tooltip-id="my-tooltip"
+                data-tooltip-content="Thêm hàng hóa mới"
+                onClick={toggleAddingNewOpen}
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  height="24px"
+                  viewBox="0 -960 960 960"
+                  width="24px"
+                  fill="#000000"
+                >
+                  <path d="M440-440H200v-80h240v-240h80v240h240v80H520v240h-80v-240Z" />
+                </svg>
+              </button>) :
+              (<button
+                data-tooltip-id="delete-tooltip"
+                data-tooltip-content="Xóa hàng hóa"
+                onClick={() => { setGetProductRequest("") }}
+              >
+                X
+              </button>
+              )}
+            {isAddingNewOpen &&
+              <ProductForm
+                toggleAddingNewOpen={toggleAddingNewOpen}
+              />}
           </div>
         </div>
-
-        {/* Table */}
-        <table className="min-w-full border mt-6">
-          <thead className="bg-[#f7fafc] text-[13px]">
-            <tr>
-              <th className="px-4 py-2 text-left">STT</th>
-              <th className="px-4 py-2 text-left w-[110px]">Mã hàng hóa</th>
-              <th className="px-4 py-2 text-left">Tên hàng</th>
-              <th className="px-4 py-2 text-right w-[98px]">Số lượng</th>
-              <th className="px-4 py-2 text-right w-[120px]">Đơn giá</th>
-              <th className="px-4 py-2 text-right w-[120px]">Thành tiền</th>
-            </tr>
-          </thead>
-          <tbody className="bg-white">
-            {tableData.map((item, index) => (
-              <tr key={item.id} className="border-b">
-                <td className="px-4 py-2 text-center">{index + 1}</td>
-                <td className="px-4 py-2 text-center">{item.productCode}</td>
-                <td className="px-4 py-2">{item.productName}</td>
-                <td className="px-4 py-2 text-center">
-                  {/* Input for quantity to return */}
-                  <input
-                    min="0"
-                    value={item.quantity}
-                    onChange={(e) =>
-                      handleQuantityChange(
-                        item.id,
-                        parseInt(e.target.value, 10) || 0
-                      )
-                    }
-                    className="w-full mb-[20px] text-right  p-1 border-b-2  outline-none bg-none focus:border-b-black"
-                  />
-                </td>
-                <td className="px-4 py-2 text-right">
-                  {/* Input for price per unit */}
-                  <input
-                    min="0"
-                    value={item.pricePerUnit}
-                    onChange={(e) =>
-                      handlePriceForUnitChange(
-                        item.id,
-                        parseFloat(e.target.value) || 0
-                      )
-                    }
-                    className="w-full mb-[20px] text-right p-1 border-b-2  outline-none focus:border-b-black"
-                  />
-                </td>
-                <td className="px-4 pt-2 pb-[26px] text-right">
-                  {calculateTotal(
-                    item.pricePerUnit,
-                    item.quantity
-                  ).toLocaleString()}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <ProductTable tableData={tableData}
+          handleQuantityChange={handleQuantityChange}
+          handlePriceForUnitChange={handlePriceForUnitChange}
+          calculateTotal={calculateTotal} />
       </div>
 
       {/* Right section for detailed information */}
-      <div className="w-[360px] p-6 mr-6 mt-6  bg-white text-[13px] h-3/5">
+      <div className="w-1/3 p-6 mr-6 mt-6  bg-white text-[13px] h-3/5">
         <div className="text-right text-gray-500 mb-4">{showTime}</div>
         <div className="mb-4">
           <div className="flex items-center border-b-2 text-sm  bg-none px-2 ">
@@ -269,88 +318,58 @@ const NewPage = () => {
               className="p-2 bg-transparent outline-none w-full"
               type="text"
               placeholder="Tìm nhà cung cấp"
+              value={getSupplierRequest}
+              onChange={(e) => setGetSupplierRequest(e.target.value)}
             />
-            <button
-              onClick={() => setNewSupplier(!newSupplier)}
-              data-tooltip-id="my-tooltip"
-              data-tooltip-content="Thêm nhà cung cấp mới"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                height="24px"
-                viewBox="0 -960 960 960"
-                width="24px"
-                fill="#000000"
-              >
-                <path d="M440-440H200v-80h240v-240h80v240h240v80H520v240h-80v-240Z" />
-              </svg>
-            </button>
-            {newSupplier && (
-              <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 ">
-                <div className="bg-white p-6 rounded-lg shadow-lg w-1/2 h-6/10 ">
-                  <div className="font-bold mb-10 text-[20px]">
-                    Thêm nhà cung cấp{" "}
+            {/* Hiển thị gợi ý */}
+            {suppliers.length > 0 && (
+              <div className="absolute bg-white border border-gray-300 mt-1 max-h-40 overflow-y-auto w-full z-10">
+                {suppliers.map((supplier) => (
+                  <div
+                    key={supplier.id}
+                    className="p-2 hover:bg-gray-100 cursor-pointer"
+                    onClick={() => handlePickSupplier(supplier)}
+                  >
+                    {supplier.name}
                   </div>
-                  <div className="flex items-center justify-between mb-5">
-                    <div className="flex items-center">
-                      <div className="w-[140px] text-[15px]">
-                        Mã nhà cung cấp
-                      </div>
-                      <input className="outline-none border-b-2 focus:border-b-black"></input>
-                    </div>
-                    <div className="flex">
-                      <div className="w-[140px] text-[15px]">Email</div>
-                      <input className="outline-none border-b-2 focus:border-b-black"></input>
-                    </div>
-                  </div>
-                  <div className="flex items-center justify-between mb-5">
-                    <div className="flex">
-                      <div className="w-[140px] text-[15px]">
-                        Tên nhà cung cấp
-                      </div>
-                      <input className="outline-none border-b-2 focus:border-b-black"></input>
-                    </div>
-                    <div className="flex">
-                      <div className="w-[140px] text-[15px]">Điện thoại</div>
-                      <input className="outline-none border-b-2 focus:border-b-black"></input>
-                    </div>
-                  </div>
-                  <div className="flex items-center justify-between mb-5">
-                    <div className="flex">
-                      <div className="w-[140px] text-[15px]">Địa chỉ</div>
-                      <input className="outline-none border-b-2 focus:border-b-black"></input>
-                    </div>
-                    <div className="flex">
-                      <div className="w-[140px] text-[15px]">Ghi chú</div>
-                      <input className="outline-none border-b-2 focus:border-b-black"></input>
-                    </div>
-                  </div>
-                  <div className="flex justify-end mt-[40px] gap-3">
-                    <button
-                      className="flex pl-2 items-center border rounded-md bg-black "
-                      onClick={toggleNewSupplier}
-                    >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        height="24px"
-                        viewBox="0 -960 960 960"
-                        width="24px"
-                        fill="#FFFFFF"
-                      >
-                        <path d="M840-680v480q0 33-23.5 56.5T760-120H200q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h480l160 160Zm-80 34L646-760H200v560h560v-446ZM480-240q50 0 85-35t35-85q0-50-35-85t-85-35q-50 0-85 35t-35 85q0 50 35 85t85 35ZM240-560h360v-160H240v160Zm-40-86v446-560 114Z" />
-                      </svg>
-                      <div className="p-2 text-white  rounded right-0">Lưu</div>
-                    </button>
-                    <button
-                      className="p-2 rounded right-0"
-                      onClick={toggleNewSupplier}
-                    >
-                      Hủy
-                    </button>
-                  </div>
-                </div>
+                ))}
               </div>
             )}
+            {getSupplierRequest.length == 0 ?
+              <button
+                onClick={() => setIsAddingNewSupplier(!isAddingNewSupplier)}
+                data-tooltip-id="my-tooltip"
+                data-tooltip-content="Thêm nhà cung cấp mới"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  height="24px"
+                  viewBox="0 -960 960 960"
+                  width="24px"
+                  fill="#000000"
+                >
+                  <path d="M440-440H200v-80h240v-240h80v240h240v80H520v240h-80v-240Z" />
+                </svg>
+              </button> :
+              (<button
+                data-tooltip-id="delete-tooltip"
+                data-tooltip-content="Xóa nhà cung cấp"
+                onClick={() => {
+                  setGetSupplierRequest("");
+                  setStockHistory({
+                    ...stockHistory,
+                    supplierId: 0
+                  })
+                }}
+              >
+                X
+              </button>
+              )}
+            {isAddingNewSupplier &&
+              <SupplierForm
+                toggleNewSupplier={toggleNewSupplier}
+                setSuppliers={setSuppliers}
+              />}
           </div>
         </div>
         <div className="flex mb-4 justify-between">
@@ -358,6 +377,7 @@ const NewPage = () => {
           <input
             className="border-b-2  w-[140px]  outline-none focus:border-b-black pb-2"
             placeholder="Mã phiếu tự động"
+            onChange={(e) => handleInputChange(e, "code")}
           />
         </div>
         <div className="flex mb-4 justify-between">
@@ -381,18 +401,19 @@ const NewPage = () => {
           <textarea
             className="border-b-2 outline-none w-full focus:border-b-black"
             placeholder="Ghi chú"
+            onChange={(e) => handleInputChange(e, "note")}
           />
         </div>
         <div className="flex justify-between mt-20">
-          <button className="bg-blue-500 text-white px-4 py-2 rounded w-[130px]">
+          <button className="bg-blue-500 text-white px-4 py-2 rounded w-[130px]" onClick={() => handleSubmit("pending")}>
             Lưu tạm
           </button>
-          <button className="bg-green-500 text-white px-4 py-2 rounded w-[130px]">
+          <button className="bg-green-500 text-white px-4 py-2 rounded w-[130px] " onClick={() => handleSubmit("completed")}>
             Hoàn thành
           </button>
         </div>
       </div>
-    </div>
+    </div >
   );
 };
 

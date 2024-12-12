@@ -124,3 +124,22 @@ export function getFirstDayOfWeek(date: Date) {
   firstDay.setDate(date.getDate() - firstDayOffset); // Set the date to the previous Sunday
   return firstDay;
 }
+
+export function formatToDDMMYYYY(dateInput) {
+  if (!dateInput) return null;
+
+  // Chuyển đổi dateInput sang đối tượng Date nếu cần
+  const date = typeof dateInput === 'string' || typeof dateInput === 'number'
+    ? new Date(dateInput)
+    : dateInput;
+
+  if (isNaN(date)) {
+    throw new Error('Invalid date input');
+  }
+
+  const day = String(date.getDate()).padStart(2, '0'); // Lấy ngày, thêm '0' nếu cần
+  const month = String(date.getMonth() + 1).padStart(2, '0'); // Lấy tháng (tháng 0-11, nên +1)
+  const year = date.getFullYear(); // Lấy năm
+
+  return `${day}/${month}/${year}`;
+}

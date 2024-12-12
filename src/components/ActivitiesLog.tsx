@@ -5,7 +5,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { ActivityLogEntity } from "@/app/api-client/ActivityLogService";
+import { ActivityLogEntity, getAllActivityLogs } from "@/app/api-client/ActivityLogService";
 
 const sampleActivities: ActivityLogEntity[] = [
   {
@@ -37,8 +37,21 @@ const sampleActivities: ActivityLogEntity[] = [
 const ActivitiesLog = () => {
   const [activities, setActivities] = useState<ActivityLogEntity[]>([]);
   const [toggle, setToggle] = useState(false);
+  const [endTime, setEndTime] = useState(new Date()); // Thêm state cho endTime
+
 
   const activitiesRef = useRef(null);
+
+  const formatDate = (date: Date): string => {
+    const year = date.getFullYear();
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');  // Tháng bắt đầu từ 0, nên cộng 1
+    const day = date.getDate().toString().padStart(2, '0');
+    const hours = date.getHours().toString().padStart(2, '0');
+    const minutes = date.getMinutes().toString().padStart(2, '0');
+    const seconds = date.getSeconds().toString().padStart(2, '0');
+
+    return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+  };
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -54,30 +67,36 @@ const ActivitiesLog = () => {
   }, []);
 
   useEffect(() => {
-    /* Gọi API */
-    const startTime = new Date(0);
     const numberOfLogs = 1000;
+    // Hàm gọi API
+    const fetchActivityLogs = async () => {
+      const query = `page=1&page_size=${numberOfLogs || 20}&from_date=${formatDate(new Date(0))}&to_date=${formatDate(endTime)}`;
+      try {
+        const res = await getAllActivityLogs(query);
+        setActivities(res.second);
+      } catch (error) {
+        console.error("Error fetching activity logs:", error);
+      }
+    };
+
+    fetchActivityLogs();
 
     const interval = setInterval(() => {
-      const endTime = new Date();
-      const query = `startTime=${startTime.toISOString()}&endTime=${endTime.toISOString()}&page_size=${numberOfLogs}`;
-      // newActivities = callAPI(query);
-      const newActivity = sampleActivities;
-      setActivities(newActivity);
+      // Cập nhật thời gian startTime và endTime
+      setEndTime(new Date());
     }, 5000);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [endTime]);
 
   return (
     <div ref={activitiesRef} className="relative">
       <button
         onClick={() => setToggle(!toggle)}
-        className={`flex items-center justify-center gap-1 rounded-md h-9 w-40 ${
-          toggle
+        className={`flex items-center justify-center gap-1 rounded-md h-9 w-40 ${toggle
             ? "text-[#fafafa] bg-[#2b2b2b]"
             : "hover:shadow-sm hover:bg-[#e2e2e2]"
-        }`}
+          }`}
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
