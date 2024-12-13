@@ -27,7 +27,7 @@ export const setToken = (token: string) => {
   cookieStore.set({
     name: "token",
     value: token,
-    expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7),
+    expires: new Date(Date.now() + 1000 * 360000),
   });
 };
 
