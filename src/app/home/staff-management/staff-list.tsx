@@ -136,13 +136,13 @@ export default function StaffList({
       <table className="min-w-full bg-white border border-gray-200 mt-6">
         <thead>
           <tr className="bg-[#f7fafc] border-b-2">
-            <th className="px-4 py-2 border-b text-left">
+            {/* <th className="px-4 py-2 border-b text-left">
               <input
                 type="checkbox"
                 checked={masterChecked}
                 onChange={handleMasterCheckboxChange}
               />
-            </th>
+            </th> */}
             <th className="px-4 py-2 border-b text-left">Mã nhân viên</th>
             <th className="px-4 py-2 border-b text-left">Tên nhân viên</th>
             <th className="px-4 py-2 border-b text-left">Điện thoại</th>
@@ -171,14 +171,14 @@ export default function StaffList({
                   handleRowClick(staff.id); // Expand or collapse row
                 }}
               >
-                <td className="px-4 py-2 border-b">
+                {/* <td className="px-4 py-2 border-b">
                   <input
                     type="checkbox"
                     checked={!!checkedRows[staff.id]}
                     onChange={() => handleRowCheckboxChange(staff.id)}
                   />
-                </td>
-                <td className="px-4 py-2 border-b text-blue-600">
+                </td> */}
+                <td className="px-4 py-2 border-b text-blue-600 pl-11">
                   <button>{staff.id}</button>
                 </td>
                 <td className="px-4 py-2 border-b">{staff.name}</td>
@@ -311,43 +311,33 @@ export default function StaffList({
                                   {staff.salaryType === "HOURLY" ? "Theo giờ" : "Theo ngày"}
                                 </option>
                                 <option value="HOURLY">Theo giờ</option>
-                                <option value="DAYLY">Theo ngày</option>
+                                <option value="DAYLY">Theo tháng</option>
                               </select>
                             </label>
+                            {staff.salaryType === "HOURLY" ?
+                              <label className="w-64">
+                                Lương theo giờ
+                                <input
+                                  type="text"
+                                  value={staff.salaryPerHour}
+                                  className="w-full border-b-2 bg-gray-50 mt-2 outline-none focus:border-b-black"
+                                  onChange={(e) => handleUpdateStaff(e, staff.id, 'salaryPerHour')}
 
-                            <label className="w-64">
-                              Lương theo giờ
-                              <input
-                                type="text"
-                                value={staff.salaryPerHour}
-                                className="w-full border-b-2 bg-gray-50 mt-2 outline-none focus:border-b-black"
-                                onChange={(e) => handleUpdateStaff(e, staff.id, 'salaryPerHour')}
+                                />
+                              </label> :
+                              <label className="w-64">
+                                Lương theo tháng
+                                <input
+                                  type="text"
+                                  value={staff.salaryPerMonth}
+                                  className="w-full border-b-2 bg-gray-50 mt-2 outline-none focus:border-b-black"
+                                  onChange={(e) => handleUpdateStaff(e, staff.id, 'salaryPerMonth')}
 
-                              />
-                            </label>
+                                />
+                              </label>}
                           </div>
                         </div>
                         <div className="flex justify-between items-center">
-                          <div className="flex space-x-12">
-                            {/* <label className="w-64">
-                              Ghi chú
-                              <input
-                                type="text"
-                                value={staff.note}
-                                className="w-full border-b-2 bg-gray-50 mt-2 outline-none focus:border-b-black"
-                              />
-                            </label> */}
-                            <label className="w-64">
-                              Lương theo tháng
-                              <input
-                                type="text"
-                                value={staff.salaryPerMonth}
-                                className="w-full border-b-2 bg-gray-50 mt-2 outline-none focus:border-b-black"
-                                onChange={(e) => handleUpdateStaff(e, staff.id, 'salaryPerMonth')}
-
-                              />
-                            </label>
-                          </div>
                         </div>
                         <div className="flex justify-end">
                           <div className="flex gap-2">

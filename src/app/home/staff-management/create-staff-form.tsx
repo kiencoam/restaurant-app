@@ -280,7 +280,7 @@ export default function CreateStaffForm({
                 required
               >
                 <option value="HOURLY">Theo giờ</option>
-                <option value="DAYLY">Theo ngày</option>
+                <option value="DAYLY">Theo tháng</option>
               </select>
             </label>
           </div>

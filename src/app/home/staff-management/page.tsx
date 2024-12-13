@@ -1,6 +1,6 @@
 "use client";
 //chạy đoạn create role trước
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useContext } from "react";
 import CreateStaffForm from "./create-staff-form";
 import StaffList from "./staff-list";
 import DatePicker from "react-datepicker";
@@ -8,6 +8,7 @@ import "react-datepicker/dist/react-datepicker.css";
 import { UserEntity, CreateUserRequest, getAllUsers } from "@/app/api-client/UserService";
 import { PageInfo } from "@/app/api-client/PageInfo";
 import { createRole, CreateRoleRequest, deleteRole, getAllRoles } from "@/app/api-client/RoleService";
+import { loginUserContext } from "@/components/LoginUserProvider";
 
 //User
 
@@ -93,6 +94,19 @@ const StaffManagementPage = () => {
     page_size: 5
   });
 
+    const id = Number(useContext(loginUserContext).id);
+  const currUserRole = staffs?.find(user => user.id === id)?.position || null;
+
+  useEffect(() => {
+    if (currUserRole === "MANAGER") {
+      const filteredStaffs = staffs.filter(user =>
+        ["CASH", "WAITER", "CHEF"].includes(user.position)
+      );
+      setStaffs(filteredStaffs);
+    }
+  }, [currUserRole, staffs]);
+
+
   // khi role rỗng, chạy các đoạn này để tạo role : id, name, description
 
   // const handleCreateRole = async () => {
@@ -102,7 +116,7 @@ const StaffManagementPage = () => {
   //     { name: "CHEF", description: "CHEF" },
   //     { name: "CASHIER", description: "CASHIER" },
   //   ];
-  
+
   //   try {
   //     const promises = roles.map((role) => createRole(role));
   //     const results = await Promise.all(promises);
@@ -118,7 +132,7 @@ const StaffManagementPage = () => {
   // const handleDeleteRole = async () => {
   //   // Giả sử bạn có danh sách các ID role cần xóa
   //   const roleIds: number[] = [5, 8, 9, 7]; // Thay thế bằng ID thực tế
-  
+
   //   try {
   //     const promises = roleIds.map((id) => deleteRole(id)); // Gọi hàm API xóa role
   //     const results = await Promise.all(promises); // Đợi tất cả lời hứa hoàn thành
@@ -130,7 +144,7 @@ const StaffManagementPage = () => {
   //     console.log("Error deleting roles:", error);
   //   }
   // };
-  
+
   // const handleGetAll = async () => {
   //   try {
   //     const roles = await getAllRoles(); // Gọi API lấy danh sách roles
@@ -141,7 +155,7 @@ const StaffManagementPage = () => {
   //     throw error;
   //   }
   // };
-  
+
 
 
   const handlePageSizeChange = (value: number) => {
@@ -276,7 +290,7 @@ const StaffManagementPage = () => {
     <div className="w-full h-screen font-nunito bg-[#f7f7f7]">
       <div className="flex p-6 justify-between items-center">
         <div className="text-2xl font-extrabold">Nhân viên</div>
-        <div className="flex items-center gap-2">          
+        <div className="flex items-center gap-2">
           {/* Không có deleteStaff API */}
           {/* 
           {isAnyRowChecked && (
