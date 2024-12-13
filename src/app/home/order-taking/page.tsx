@@ -1,10 +1,13 @@
 "use client";
 
+import Image from "next/image";
 import { Menu } from "@/components/Menu";
 import { Receipt } from "@/app/home/order-taking/Receipt";
 import { Table } from "@/app/home/order-taking/Table";
 import { useCallback, useEffect, useState } from "react";
 import {
+  DisplayOrderEntity,
+  DisplayOrderItemEntity,
   MenuItemEntity,
   MenuSectionEntity,
   OrderEntity,
@@ -14,8 +17,10 @@ import {
 import { getAllOrders } from "@/app/api-client/OrderService";
 import { getAllTables, TableEntity } from "@/app/api-client/TableService";
 import { getAllMenuSections } from "@/app/api-client/MenuSectionService";
-import { createPayment, CreatePaymentRequest } from "@/app/api-client/PaymentService";
-
+import {
+  createPayment,
+  CreatePaymentRequest,
+} from "@/app/api-client/PaymentService";
 
 type GetOrderRequest = {
   page: number;
@@ -35,14 +40,14 @@ const OrderTakingPage = () => {
 
   const [selectedOrderId, setSelectedOrderId] = useState<number | null>(null);
 
-  const [orders, setOrders] = useState<OrderEntity[]>([]);
+  const [orders, setOrders] = useState<DisplayOrderEntity[]>([]);
 
   const [filter, setFilter] = useState<GetOrderRequest>({
     page: 0,
     page_size: 20,
     order_status: "CHECKED_IN",
     start_time: new Date("2024-01-01T00:00:00"),
-    end_time: new Date("2024-12-30T00:00:00")
+    end_time: new Date("2024-12-30T00:00:00"),
   });
 
   const [tables, setTables] = useState<TableEntity[]>([]);
@@ -51,7 +56,9 @@ const OrderTakingPage = () => {
 
   const [selectedTableIds, setSelectedTableIds] = useState<number[]>([]);
 
-  const orderTables: OrderTableEntity[] = orders.flatMap((order) => order.orderTables);
+  const orderTables: OrderTableEntity[] = orders.flatMap(
+    (order) => order.orderTables
+  );
 
   const tableOccupiedIds: number[] = orderTables.map(
     (orderTable) => orderTable.tableId
@@ -63,19 +70,23 @@ const OrderTakingPage = () => {
     (menuSection) => menuSection.menuItems
   );
 
-  console.log("order:", orders);
-  console.log("tables: ", tables);
-  console.log("menuSections: ", menuSections);
-  console.log("menuItems", menuItems);
+  // console.log("order:", orders);
+  // console.log("tables: ", tables);
+  // console.log("menuSections: ", menuSections);
+  // console.log("menuItems", menuItems);
 
   const fetchOrder = useCallback(async (query: string) => {
     getAllOrders(query).then((res) => {
-      if (res?.second && res.second.length > 0) { // Ensure valid response
-        setOrders(res.second);
-        setSelectedOrderId(res.second[0]?.id ?? null);
-      } else {
-        console.error("No orders fetched or invalid response.");
-      }
+      setOrders(
+        res.second.map((order: OrderEntity) => ({
+          ...order,
+          orderItems: order.orderItems.map((orderItem) => ({
+            ...orderItem,
+            currentQuantity: orderItem.orderedQuantity,
+          })),
+        }))
+      );
+      setSelectedOrderId(null);
     });
   }, []);
 
@@ -96,13 +107,7 @@ const OrderTakingPage = () => {
   }, [filter, fetchOrder]);
 
   useEffect(() => {
-    getAllTables().then((res) => {
-      if (res?.second) { // Ensure valid response
-        setTables(res.second);
-      } else {
-        console.error("Failed to fetch tables or invalid response.");
-      }
-    });
+    getAllTables().then((res) => setTables(res.second));
   }, []);
 
   useEffect(() => {
@@ -124,31 +129,17 @@ const OrderTakingPage = () => {
     return dateString[0] + " " + dateString[1].substring(0, 8);
   };
 
-  const handleOrderItemsChange = (newOrderItems: OrderItemEntity[]) => {
-    const updatedOrderItems = newOrderItems.map((orderItem) => {
-      const menuItem = menuItems.find(
-        (menuItem) => menuItem.id === orderItem.menuItemId
-      );
-      if (!menuItem) {
-        console.error(
-          `MenuItem with id ${orderItem.menuItemId} not found. Skipping...`
-        );
-        return orderItem;
-      }
-      return {
-        ...orderItem,
-        price: menuItem.sellingPrice * orderItem.orderedQuantity,
-      };
+  const handleOrderItemsChange = (newOrderItems: DisplayOrderItemEntity[]) => {
+    // console.log("new order items", newOrderItems)
+    newOrderItems.forEach((orderItem) => {
+      orderItem.price =
+        menuItems.find((menuItem) => menuItem.id === orderItem.menuItemId)
+          .sellingPrice * orderItem.currentQuantity;
     });
-
-    if (!currentOrder) {
-      console.error("Cannot update order items: Current order is undefined.");
-      return;
-    }
 
     const newOrder = {
       ...currentOrder,
-      orderItems: updatedOrderItems,
+      orderItems: newOrderItems,
     };
     const newOrders = orders.map((order) =>
       order.id === selectedOrderId ? newOrder : order
@@ -157,7 +148,7 @@ const OrderTakingPage = () => {
   };
 
   const handleSelectTable = (tableId: number) => {
-    console.log(tableId);
+    // console.log(tableId);
     if (selectedTableIds.includes(tableId)) {
       return;
     }
@@ -180,14 +171,9 @@ const OrderTakingPage = () => {
   };
 
   const handleAddMenuItem = (menuItemId: number) => {
-    const menuItem = menuItems.find((menuItem) => menuItem.id === menuItemId);
+    if (!currentOrder) return;
 
-    if (!menuItem) {
-      console.error(`MenuItem with id ${menuItemId} not found.`);
-      return;
-    }
-
-    let currentOrderItem = currentOrder?.orderItems?.find(
+    let currentOrderItem = currentOrder.orderItems.find(
       (orderItem) => orderItem.menuItemId === menuItemId
     );
 
@@ -197,26 +183,25 @@ const OrderTakingPage = () => {
       currentOrderItem = {
         orderId: selectedOrderId,
         menuItemId: menuItemId,
-        orderedQuantity: 1,
+        currentQuantity: 1,
+        orderedQuantity: 0,
         reservedQuantity: 0,
-        price: menuItem.sellingPrice,
+        price: menuItems.find((menuItem) => menuItem.id === menuItemId).sellingPrice,
         status: "PROCESSING",
       };
       isNewOrderItem = true;
     } else {
       currentOrderItem = {
         ...currentOrderItem,
-        orderedQuantity: currentOrderItem.orderedQuantity + 1,
-        price: menuItem.sellingPrice * (currentOrderItem.orderedQuantity + 1),
+        currentQuantity: currentOrderItem.currentQuantity + 1,
+        price:
+          menuItems.find((menuItem) => menuItem.id === menuItemId)
+            .sellingPrice *
+          (currentOrderItem.currentQuantity + 1),
       };
     }
 
-    if (!currentOrder) {
-      console.error("Cannot add menu item: Current order is undefined.");
-      return;
-    }
-
-    let newOrderItems: OrderItemEntity[] = [];
+    let newOrderItems: DisplayOrderItemEntity[] = [];
     if (isNewOrderItem) {
       newOrderItems = [...currentOrder.orderItems, currentOrderItem];
     } else {
@@ -229,11 +214,6 @@ const OrderTakingPage = () => {
   };
 
   const handleCreatePayment = useCallback(async () => {
-    if (!currentOrder) {
-      console.error("Current order is not defined.");
-      return;
-    }
-
     const totalPrice = currentOrder.orderItems.reduce(
       (total, item) => total + item.price,
       0
@@ -247,7 +227,8 @@ const OrderTakingPage = () => {
     };
 
     await createPayment(createPaymentRequest).then((res) => {
-      console.log("Payment created successfully:", res);
+      // console.log("res", res);
+      alert("Thanh toán thành công!")
     });
   }, [currentOrder, selectedOrderId]);
 
@@ -256,19 +237,21 @@ const OrderTakingPage = () => {
       <div className="basis-1/2">
         <div className="flex m-3 border h-12 w-48 text-[#898a84] text-sm bg-[#e5e6e1] font-semibold rounded-md p-1 gap-2">
           <button
-            className={`basis-1/2 rounded-md transition-all duration-500 ${selectMode === "table"
-              ? "text-[#fafafa] bg-[#2b2b2b] shadow-sm"
-              : ""
-              }`}
+            className={`basis-1/2 rounded-md transition-all duration-500 ${
+              selectMode === "table"
+                ? "text-[#fafafa] bg-[#2b2b2b] shadow-sm"
+                : ""
+            }`}
             onClick={() => setSelectMode("table")}
           >
             Bàn ăn
           </button>
           <button
-            className={`basis-1/2 rounded-md transition-all duration-500 ${selectMode === "menu"
-              ? "text-[#fafafa] bg-[#2b2b2b] shadow-sm"
-              : ""
-              }`}
+            className={`basis-1/2 rounded-md transition-all duration-500 ${
+              selectMode === "menu"
+                ? "text-[#fafafa] bg-[#2b2b2b] shadow-sm"
+                : ""
+            }`}
             onClick={() => setSelectMode("menu")}
           >
             Thực đơn
@@ -287,15 +270,32 @@ const OrderTakingPage = () => {
           />
         )}
       </div>
-      {tables.length > 0 && currentOrder && selectedTableIds.length > 0 &&
+      {tables.length > 0 && currentOrder && selectedTableIds.length > 0 ? (
         <Receipt
           menuItems={menuItems}
           orderItems={currentOrder.orderItems}
           handleOrderItemsChange={handleOrderItemsChange}
-          currentTable={tables.find((table) => selectedTableIds.includes(table.id))}
+          currentTable={tables.find((table) =>
+            selectedTableIds.includes(table.id)
+          )}
           selectedOrderId={selectedOrderId}
           handleCreatePayment={handleCreatePayment}
-        />}
+        />
+      ) : (
+        <section className="basis-1/2 h-full w-full p-4 flex items-center justify-center bg-[#fafafa] shadow-sm rounded-2xl font-semibold">
+          <div>
+            <Image
+              src="/icons/waiter-falling.svg"
+              alt="Waiter-falling"
+              width={200}
+              height={200}
+            />
+            <h1 className="text-center text-[#181818] text-xl font-bold">
+              Chọn bàn ăn để bắt đầu
+            </h1>
+          </div>
+        </section>
+      )}
     </main>
   );
 };

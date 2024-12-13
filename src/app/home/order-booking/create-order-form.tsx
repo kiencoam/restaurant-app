@@ -266,6 +266,7 @@ export default function CreateOrderForm({
                 </div>
 
                 <button
+                type="button"
                   data-tooltip-id="my-tooltip"
                   data-tooltip-content="Tạo khách hàng mới"
                   onClick={() => setIsNewCustomer((prev) => !prev)}
@@ -423,6 +424,7 @@ export default function CreateOrderForm({
               </div>
             </button>
             <button
+            type="button"
               className="p-2 rounded right-0"
               onClick={() => setIsNewOrder(false)}
             >

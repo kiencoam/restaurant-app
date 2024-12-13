@@ -217,6 +217,7 @@ export default function StaffList({
                               <input
                                 type={isCharsVisible ? "text" : "password"}
                                 value={staff.password}
+                                placeholder="Nhập mật khẩu mới"
                                 className="w-full border-b-2 bg-[#f7fafc] mt-2 outline-none"
                                 onChange={(e) => handleUpdateStaff(e, staff.id, 'password')}
 

@@ -182,6 +182,7 @@ export default function CreateCustomerForm({
             <div className="p-2 text-white  rounded right-0">Lưu</div>
           </button>
           <button
+          type="button"
             className="p-2 rounded right-0"
             onClick={() => setIsNewCustomer(false)}
           >

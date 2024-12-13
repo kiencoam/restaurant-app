@@ -57,9 +57,15 @@ export default function CreateSupplierForm({
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
       <div className="bg-white p-6 rounded-lg shadow-lg w-[80%] md:w-[50%] h-auto">
         <div className="text-xl font-bold mb-8">Thêm nhà cung cấp</div>
-
+        
         {/* Form Container */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <form
+          onSubmit={(e) => {
+            e.preventDefault(); // Ngăn trình duyệt reload khi submit
+            handleCreateSupplier(); // Gọi hàm xử lý khi submit
+          }}
+          className="grid grid-cols-1 md:grid-cols-2 gap-6"
+        >
           {/* Mã nhà cung cấp */}
           <div>
             <label className="block text-sm font-medium mb-2">Mã nhà cung cấp</label>
@@ -69,21 +75,22 @@ export default function CreateSupplierForm({
               placeholder="Mã mặc định"
               value={newSupplier.code}
               onChange={(e) => handleNewSupplierChange(e, "code")}
+              disabled
             />
           </div>
-
+  
           {/* Email */}
           <div>
             <label className="block text-sm font-medium mb-2">Email</label>
             <input
               className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-black"
-              type="text"
+              type="email"
               placeholder="qwe@gmail.com"
               value={newSupplier.email}
               onChange={(e) => handleNewSupplierChange(e, "email")}
             />
           </div>
-
+  
           {/* Tên nhà cung cấp */}
           <div>
             <label className="block text-sm font-medium mb-2">Tên nhà cung cấp</label>
@@ -92,9 +99,10 @@ export default function CreateSupplierForm({
               type="text"
               value={newSupplier.name}
               onChange={(e) => handleNewSupplierChange(e, "name")}
+              required
             />
           </div>
-
+  
           {/* Điện thoại */}
           <div>
             <label className="block text-sm font-medium mb-2">Điện thoại</label>
@@ -104,21 +112,11 @@ export default function CreateSupplierForm({
               placeholder="Ví dụ: 0912345678"
               value={newSupplier.phoneNumber}
               onChange={(e) => handleNewSupplierChange(e, "phoneNumber")}
+              pattern="[0-9]{10}"
+              required
             />
           </div>
-
-          {/* Ghi chú */}
-          <div>
-            {/* Giữ nguyên comment để dễ dàng bật lại nếu cần */}
-            {/* <label className="block text-sm font-medium mb-2">Ghi chú</label>
-            <input
-              className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-black"
-              type="text"
-              value={newSupplier.note}
-              onChange={(e) => handleNewSupplierChange(e, "note")}
-            /> */}
-          </div>
-
+  
           {/* Địa chỉ */}
           <div className="md:col-span-2">
             <label className="block text-sm font-medium mb-2">Địa chỉ</label>
@@ -129,24 +127,25 @@ export default function CreateSupplierForm({
               onChange={(e) => handleNewSupplierChange(e, "address")}
             />
           </div>
-        </div>
-
-        {/* Buttons */}
-        <div className="flex justify-end mt-8 gap-4">
-          <button
-            onClick={handleCreateSupplier}
-            className="px-4 py-2 bg-black text-white rounded hover:bg-opacity-80 focus:ring-2 focus:ring-black"
-          >
-            Lưu
-          </button>
-          <button
-            onClick={toggleNewSupplier}
-            className="px-4 py-2 border border-gray-300 rounded hover:bg-gray-100"
-          >
-            Hủy
-          </button>
-        </div>
+  
+          {/* Buttons */}
+          <div className="flex justify-end mt-8 gap-4 md:col-span-2">
+            <button
+              type="submit"
+              className="px-4 py-2 bg-black text-white rounded hover:bg-opacity-80 focus:ring-2 focus:ring-black"
+            >
+              Lưu
+            </button>
+            <button
+              type="button"
+              onClick={toggleNewSupplier}
+              className="px-4 py-2 border border-gray-300 rounded hover:bg-gray-100"
+            >
+              Hủy
+            </button>
+          </div>
+        </form>
       </div>
     </div>
-  );
+  );  
 }
