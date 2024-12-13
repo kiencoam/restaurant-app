@@ -1,19 +1,28 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { hasPermission } from "@/auth";
 import Link from "next/link";
 import Image from "next/image";
 import Logout from "./Logout";
 import { loginUserContext } from "./LoginUserProvider";
+import { getDetailUser, UserEntity } from "@/app/api-client/UserService";
 
 const NavBar = () => {
   const pathname = usePathname();
+  const userId = useContext(loginUserContext).id;
 
   const [toggle, setToggle] = useState(false);
+  const [loginUser, setLoginUser] = useState<UserEntity>();
 
-  const role = useContext(loginUserContext).role;
+  useEffect(() => {
+    const fetchUser = async () => {
+      const user = await getDetailUser(userId);
+      setLoginUser(user);
+    };
+    fetchUser();
+  }, [userId]);
 
   return (
     <div className="fixed left-0 top-0 flex flex-col min-h-screen w-[256px] p-2 justify-between items-center bg-[#262626] font-title font-[500] tracking-tight text-navtext">
@@ -40,7 +49,7 @@ const NavBar = () => {
         </div>
 
         {/* Thống kê */}
-        {hasPermission(role, "/home/dashboard") && (
+        {hasPermission(loginUser?.role.name, "/home/dashboard") && (
           <div
             className={`rounded-md w-full h-12 hover:bg-[#454545] ${
               pathname === "/home/dashboard"
@@ -82,7 +91,7 @@ const NavBar = () => {
         )}
 
         {/* Nhân viên */}
-        {hasPermission(role, "/home/staff-management") && (
+        {hasPermission(loginUser?.role.name, "/home/staff-management") && (
           <div className="relative rounded-md w-full hover:bg-[#2b2b2b]">
             <div
               onClick={() => setToggle((prev) => !prev)}
@@ -265,7 +274,7 @@ const NavBar = () => {
         )}
 
         {/* Hàng hóa */}
-        {hasPermission(role, "/home/products") && (
+        {hasPermission(loginUser?.role.name, "/home/products") && (
           <div
             className={`rounded-md w-full h-12 hover:bg-[#454545] ${
               pathname === "/home/products" ? "bg-[#383838] text-[#dcf70f]" : ""
@@ -299,7 +308,7 @@ const NavBar = () => {
         )}
 
         {/* Nhập hàng */}
-        {hasPermission(role, "/home/purchase-order") && (
+        {hasPermission(loginUser?.role.name, "/home/purchase-order") && (
           <div
             className={`rounded-md w-full h-12 hover:bg-[#454545] ${
               pathname.startsWith("/home/purchase-order")
@@ -333,7 +342,7 @@ const NavBar = () => {
         )}
 
         {/* Khách hàng */}
-        {hasPermission(role, "/home/customer-management") && (
+        {hasPermission(loginUser?.role.name, "/home/customer-management") && (
           <div
             className={`rounded-md w-full h-12 hover:bg-[#454545] ${
               pathname.startsWith("/home/customer-management")
@@ -369,7 +378,7 @@ const NavBar = () => {
         )}
 
         {/* Nhà bếp */}
-        {hasPermission(role, "/home/kitchen") && (
+        {hasPermission(loginUser?.role.name, "/home/kitchen") && (
           <div
             className={`rounded-md w-full h-12 hover:bg-[#454545] ${
               pathname === "/home/kitchen" ? "bg-[#383838] text-[#dcf70f]" : ""
@@ -404,7 +413,7 @@ const NavBar = () => {
         )}
 
         {/* Gọi món */}
-        {hasPermission(role, "/home/order-taking") && (
+        {hasPermission(loginUser?.role.name, "/home/order-taking") && (
           <div
             className={`rounded-md w-full h-12 hover:bg-[#454545] ${
               pathname === "/home/order-taking"
@@ -440,7 +449,7 @@ const NavBar = () => {
         )}
 
         {/* Đặt bàn */}
-        {hasPermission(role, "/home/order-booking") && (
+        {hasPermission(loginUser?.role.name, "/home/order-booking") && (
           <div
             className={`rounded-md w-full h-12 hover:bg-[#454545] ${
               pathname === "/home/order-booking"
@@ -489,8 +498,8 @@ const NavBar = () => {
             className="rounded-full h-10 w-10 ml-2"
           />
           <div className="ml-3 flex flex-col justify-center items-start">
-            <div className="text-white">Alexander Kien Pham</div>
-            <div className="text-[#8c8c8c] text-sm">{role}</div>
+            <div className="text-white">{loginUser?.name}</div>
+            <div className="text-[#8c8c8c] text-sm">{loginUser?.role.name}</div>
           </div>
         </button>
       </div>

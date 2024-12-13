@@ -63,6 +63,9 @@ type Role = keyof typeof ROLES;
 type Permission = (typeof ROLES)[Role][number];
 
 export function hasPermission(role: Role, permission: Permission) {
+  if (!ROLES[role]) {
+    return false;
+  }
   for (const path of ROLES[role]) {
     if (permission.startsWith(path)) {
       return true;
