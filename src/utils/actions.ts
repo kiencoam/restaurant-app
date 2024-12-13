@@ -2,24 +2,24 @@
 
 import { setToken, deleteToken } from "./cookiesHandler";
 import { redirect } from "next/navigation";
+import {
+  authenticate,
+  AuthenticationRequest,
+} from "@/app/api-client/AuthService";
 
-export const doLogin = (formData: FormData) => {
+export const doLogin = async (formData: FormData) => {
   console.log(formData);
 
-  // try {
-  //   const response = await signIn("credentials", {
-  //     email: formData.get("email"),
-  //     password: formData.get("password"),
-  //     redirect: false,
-  //   });
-  //   return response;
-  // } catch (err) {
-  //   throw err;
-  // }
-
-  setToken(
-    "eyJhbGciOiJIUzUxMiJ9.eyJpc3MiOiJxdWFudHVhbmh1eSIsInN1YiI6IjEiLCJleHAiOjE3MzM0MTMzOTYsImlhdCI6MTczMzA1MzM5NiwianRpIjoiZGVlZWNhMDktNWE5Mi00NGQzLWFhMjQtYTgzMWYwOWE0YjNlIiwic2NvcGUiOiJURVNURVIifQ.gkIFMv3tMs6-CpYOJOmsyo6k9EH8CTZvg-8Pbn9e8M1eWgRcPdTXU9xRxIjB5qRuTp5A5sFwYE1AUtqNtvPB2Q"
-  );
+  try {
+    const payload: AuthenticationRequest = {
+      email: formData.get("email") as string,
+      password: formData.get("password") as string,
+    };
+    const response = await authenticate(payload);
+    setToken(response.token);
+  } catch (err) {
+    throw err;
+  }
 
   return true;
 };

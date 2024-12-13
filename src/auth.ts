@@ -18,9 +18,6 @@ const ROLES = {
     "/home/order-booking",
     "/home/products",
     "/home/purchase-order",
-    "/home/purchase-order/new",
-    "/home/purchase-order/open",
-    "/home/purchase-order/return",
     "/home/menu",
   ],
   [MANAGER]: [
@@ -32,9 +29,6 @@ const ROLES = {
     "/home/supplier-management",
     "/home/products",
     "/home/purchase-order",
-    "/home/purchase-order/new",
-    "/home/purchase-order/open",
-    "/home/purchase-order/return",
     "/home/kitchen",
     "/home/order-booking",
     "/home/order-taking",
@@ -51,9 +45,6 @@ const ROLES = {
     "/home/customer-management",
     "/home/products",
     "/home/purchase-order",
-    "/home/purchase-order/new",
-    "/home/purchase-order/open",
-    "/home/purchase-order/return",
     "/home/kitchen",
     "/home/order-booking",
     "/home/order-taking",
@@ -72,7 +63,12 @@ type Role = keyof typeof ROLES;
 type Permission = (typeof ROLES)[Role][number];
 
 export function hasPermission(role: Role, permission: Permission) {
-  return ROLES[role]?.includes(permission);
+  for (const path of ROLES[role]) {
+    if (permission.startsWith(path)) {
+      return true;
+    }
+  }
+  return false;
 }
 
 export function firstView(role: Role): string {

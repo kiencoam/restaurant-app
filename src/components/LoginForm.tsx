@@ -2,18 +2,13 @@
 
 import { doLogin } from "@/utils/actions";
 
-import { useRouter } from "next/navigation";
-import { useState } from "react";
-
 export const LoginForm = () => {
-  const router = useRouter();
-
-  async function handleSubmit(event) {
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     const formData = new FormData(event.currentTarget);
 
-    const response = doLogin(formData);
+    const response = await doLogin(formData);
   }
 
   return (
@@ -41,16 +36,16 @@ export const LoginForm = () => {
           <div className="relative w-2/3 h-[50px] border-b-2 border-b-black my-[30px]">
             <input
               className="peer w-full h-full pr-[40px] font-flux font-semibold text-2xl bg-transparent border-none outline-none"
-              type="text"
-              name="username"
-              id="username"
+              type="email"
+              name="email"
+              id="email"
               required
             />
             <label
               className="font-flux text-2xl transition-all duration-500 absolute top-1/2 left-[5px] -translate-y-1/2 pointer-events-none peer-focus:-top-2 peer-focus:scale-75 peer-valid:-top-2 peer-valid:scale-75"
-              htmlFor="username"
+              htmlFor="email"
             >
-              Username
+              Email
             </label>
             <svg
               className="w-7 h-7 absolute top-1/4 right-[8px]"
