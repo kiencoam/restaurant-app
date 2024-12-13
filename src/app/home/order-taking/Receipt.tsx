@@ -109,16 +109,16 @@ export function Receipt({
             <div className="absolute rounded-b-lg shadow-sm inset-0 -translate-x-4 -translate-y-4 z-[-1] bg-[#ede6d5] w-[150px] h-12"></div>
           </div>
 
-          <div className="flex items-center h-10 w-full border-dotted border-b-2 border-[#adadad] font-bold mb-2">
+          <div className="flex items-center gap-2 h-10 w-full border-dotted border-b-2 border-[#adadad] font-bold mb-2">
             <div className="basis-[60%]">Item</div>
             <div className="basis-[20%] text-center">Qty</div>
-            <div className="basis-[20%] text-center">Price</div>
+            <div className="basis-[20%] text-end">Price</div>
           </div>
           <div className="max-h-[450px] overflow-auto">
             {orderItems?.map((item) => (
               <div
                 key={item.menuItemId}
-                className="group flex items-center h-10 w-full my-2"
+                className="group flex items-center gap-2 h-10 w-full my-2"
               >
                 <div className="overflow-hidden text-nowrap basis-[50%]">
                   {
@@ -127,12 +127,27 @@ export function Receipt({
                     ).title
                   }
                 </div>
-                <div
-                  className="flex justify-center items-center basis-[10%] bg-slate-200 rounded-3xl gap-1 p-2"
-                >
+                <div className="flex justify-center items-center basis-[10%] bg-slate-200 rounded-3xl gap-1 p-2 text-sm">
                   <div>{item.reservedQuantity}</div>
                   <div>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5"><path stroke="none" d="M0 0h24v24H0z" fill="none" /><path d="M4 11h16a1 1 0 0 1 1 1v.5c0 1.5 -2.517 5.573 -4 6.5v1a1 1 0 0 1 -1 1h-8a1 1 0 0 1 -1 -1v-1c-1.687 -1.054 -4 -5 -4 -6.5v-.5a1 1 0 0 1 1 -1z" /><path d="M12 4a2.4 2.4 0 0 0 -1 2a2.4 2.4 0 0 0 1 2" /><path d="M16 4a2.4 2.4 0 0 0 -1 2a2.4 2.4 0 0 0 1 2" /><path d="M8 4a2.4 2.4 0 0 0 -1 2a2.4 2.4 0 0 0 1 2" /></svg>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className="w-4 h-4"
+                    >
+                      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                      <path d="M4 11h16a1 1 0 0 1 1 1v.5c0 1.5 -2.517 5.573 -4 6.5v1a1 1 0 0 1 -1 1h-8a1 1 0 0 1 -1 -1v-1c-1.687 -1.054 -4 -5 -4 -6.5v-.5a1 1 0 0 1 1 -1z" />
+                      <path d="M12 4a2.4 2.4 0 0 0 -1 2a2.4 2.4 0 0 0 1 2" />
+                      <path d="M16 4a2.4 2.4 0 0 0 -1 2a2.4 2.4 0 0 0 1 2" />
+                      <path d="M8 4a2.4 2.4 0 0 0 -1 2a2.4 2.4 0 0 0 1 2" />
+                    </svg>
                   </div>
                 </div>
                 <div className="flex justify-evenly items-center font-bold basis-[20%] rounded-full group-hover:border hover:bg-[#f0f0f0]">

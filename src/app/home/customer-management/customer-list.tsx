@@ -1,6 +1,9 @@
-import { CustomerEntity, updateCustomer, UpdateCustomerRequest } from "@/app/api-client/CustomerService";
+import {
+  CustomerEntity,
+  updateCustomer,
+  UpdateCustomerRequest,
+} from "@/app/api-client/CustomerService";
 import { PageInfo } from "@/app/api-client/PageInfo";
-import { formatDateTime } from "@/utils/timeUtils";
 import React, { useState } from "react";
 
 type Props = {
@@ -15,7 +18,7 @@ type Props = {
   expandedRow: number | null;
   handlePageSizeChange: (pageSize: number) => void;
   handlePageNumberChange: (page: number) => void;
-}
+};
 
 export default function CustomerList({
   customers,
@@ -28,7 +31,7 @@ export default function CustomerList({
   handleRowClick,
   expandedRow,
   handlePageSizeChange,
-  handlePageNumberChange
+  handlePageNumberChange,
 }: Props) {
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -52,12 +55,12 @@ export default function CustomerList({
   };
 
   const getGender = (s: string): string => {
-    if (s === 'FEMALE') {
-      return 'Nữ';
-    } else if (s === 'MALE') {
-      return 'Nam';
+    if (s === "FEMALE") {
+      return "Nữ";
+    } else if (s === "MALE") {
+      return "Nam";
     }
-  }
+  };
 
   const handleSaveCusomter = (id: number) => {
     const selectedCustomer = customers.find((customer) => customer.id === id);
@@ -69,7 +72,7 @@ export default function CustomerList({
         email: selectedCustomer.email,
         address: selectedCustomer.address,
         dob: selectedCustomer.dob,
-        gender: selectedCustomer.gender
+        gender: selectedCustomer.gender,
       };
 
       try {
@@ -83,27 +86,31 @@ export default function CustomerList({
           });
 
           setCustomers(newCustomers);
-        })
+        });
       } catch (error) {
         console.error(error);
       }
     }
   };
 
-  const handleUpdateCustomer = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>, id: number, field: string) => {
+  const handleUpdateCustomer = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
+    id: number,
+    field: string
+  ) => {
     const newCustomers = customers.map((customer) => {
       if (customer.id === id) {
         return {
           ...customer,
           [field]: e.target.value,
-        }
+        };
       } else {
         return customer;
       }
-    })
+    });
 
     setCustomers(newCustomers);
-  }
+  };
 
   return (
     <div>
@@ -128,8 +135,9 @@ export default function CustomerList({
             <React.Fragment key={customer.id}>
               <tr
                 key={customer.id}
-                className={`hover:bg-gray-100 border-b-2 cursor-pointer ${checkedRows[customer.id] ? "bg-gray-100" : ""
-                  }`}
+                className={`hover:bg-gray-100 border-b-2 cursor-pointer ${
+                  checkedRows[customer.id] ? "bg-gray-100" : ""
+                }`}
                 onClick={(e) => {
                   const target = e.target as HTMLElement; // Cast to HTMLElement
 
@@ -180,7 +188,9 @@ export default function CustomerList({
                             type="text"
                             value={customer.email}
                             className="w-full border-b-2 bg-gray-50 mt-2"
-                            onChange={(e) => handleUpdateCustomer(e, customer.id, 'email')}
+                            onChange={(e) =>
+                              handleUpdateCustomer(e, customer.id, "email")
+                            }
                           />
                         </label>
                       </div>
@@ -192,7 +202,9 @@ export default function CustomerList({
                               type="text"
                               value={customer.name}
                               className="w-full border-b-2 bg-gray-50 mt-2"
-                              onChange={(e) => handleUpdateCustomer(e, customer.id, 'name')}
+                              onChange={(e) =>
+                                handleUpdateCustomer(e, customer.id, "name")
+                              }
                             />
                           </label>
                           <label className="w-64">
@@ -201,7 +213,13 @@ export default function CustomerList({
                               type="text"
                               value={customer.phoneNumber}
                               className="w-full border-b-2 bg-gray-50 mt-2"
-                              onChange={(e) => handleUpdateCustomer(e, customer.id, 'phoneNumber')}
+                              onChange={(e) =>
+                                handleUpdateCustomer(
+                                  e,
+                                  customer.id,
+                                  "phoneNumber"
+                                )
+                              }
                             />
                           </label>
                         </div>
@@ -214,7 +232,9 @@ export default function CustomerList({
                               type="text"
                               value={customer.dob}
                               className="w-full border-b-2 bg-gray-50 mt-2"
-                              onChange={(e) => handleUpdateCustomer(e, customer.id, 'dob')}
+                              onChange={(e) =>
+                                handleUpdateCustomer(e, customer.id, "dob")
+                              }
                             />
                           </label>
                           <label className="w-64">
@@ -223,7 +243,9 @@ export default function CustomerList({
                               type="text"
                               value={customer.address}
                               className="w-full border-b-2 bg-gray-50 mt-2"
-                              onChange={(e) => handleUpdateCustomer(e, customer.id, 'address')}
+                              onChange={(e) =>
+                                handleUpdateCustomer(e, customer.id, "address")
+                              }
                             />
                           </label>
                         </div>
@@ -236,7 +258,9 @@ export default function CustomerList({
                               type="text"
                               value={getGender(customer.gender)}
                               className="w-full border-b-2 bg-gray-50 mt-2"
-                              onChange={(e) => handleUpdateCustomer(e, customer.id, 'gender')}
+                              onChange={(e) =>
+                                handleUpdateCustomer(e, customer.id, "gender")
+                              }
                             />
                           </label>
                         </div>
@@ -275,11 +299,8 @@ export default function CustomerList({
             onChange={(e) => {
               changeRowsPerPage(Number(e.target.value));
               setCurrentPage(1);
-
             }}
           >
-            {/* <option defaultValue={rowsPerPage}>{rowsPerPage}</option> */}
-            <option value={1}>1</option>
             <option value={5}>5</option>
             <option value={10}>10</option>
             <option value={15}>15</option>
@@ -301,11 +322,12 @@ export default function CustomerList({
               <path d="m313-440 224 224-57 56-320-320 320-320 57 56-224 224h487v80H313Z" />
             </svg>
           </button>
-          {customers.length > 0 &&
+          {customers.length > 0 && (
             <span>
-              Page {Math.min(currentPage, pageInfo.totalPage)} of {pageInfo.totalPage}
+              Page {Math.min(currentPage, pageInfo.totalPage)} of{" "}
+              {pageInfo.totalPage}
             </span>
-          }
+          )}
           <button
             onClick={() => changePage(currentPage + 1)}
             disabled={currentPage === pageInfo.totalPage}

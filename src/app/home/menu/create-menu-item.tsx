@@ -1,7 +1,9 @@
-
 import { useState } from "react";
 import { MenuItemEntity, MenuSectionEntity } from "../order-taking/entity";
-import { createMenuItem, CreateMenuItemRequest } from "@/app/api-client/MenuItemService";
+import {
+  createMenuItem,
+  CreateMenuItemRequest,
+} from "@/app/api-client/MenuItemService";
 import CreateMenuSectionForm from "./create-menu-section";
 import { ParamsRequest } from "./page";
 import Image from "next/image";
@@ -17,7 +19,7 @@ export default function CreateMenuItemForm({
   setIsNewMenuItem: React.Dispatch<React.SetStateAction<boolean>>;
   menuSections: MenuSectionEntity[];
   setMenuSections: React.Dispatch<React.SetStateAction<MenuSectionEntity[]>>;
-  setParamsRequest: React.Dispatch<React.SetStateAction<ParamsRequest>>
+  setParamsRequest: React.Dispatch<React.SetStateAction<ParamsRequest>>;
 }) {
   const [newMenuItem, setNewMenuItem] = useState<CreateMenuItemRequest>({
     title: "",
@@ -34,12 +36,12 @@ export default function CreateMenuItemForm({
     /* Gọi API */
     // createMenuItem(newMenuItem);
     // if (ok) {
-    console.log(newMenuItem)
-    e.preventDefault()
+    console.log(newMenuItem);
+    e.preventDefault();
     try {
       createMenuItem(newMenuItem).then((res) => {
         console.log("menuitem created:", res);
-        setParamsRequest(prev => ({ ...prev })); // Kích hoạt useEffect
+        setParamsRequest((prev) => ({ ...prev })); // Kích hoạt useEffect
         setIsNewMenuItem((prev) => !prev);
       });
     } catch (error) {
@@ -136,7 +138,9 @@ export default function CreateMenuItemForm({
                     onChange={(e) =>
                       setNewMenuItem((prev) => ({
                         ...prev,
-                        menuSectionId: e.target.value ? Number(e.target.value) : undefined, // Chuyển về undefined nếu không chọn nhóm
+                        menuSectionId: e.target.value
+                          ? Number(e.target.value)
+                          : undefined, // Chuyển về undefined nếu không chọn nhóm
                       }))
                     }
                     className="bg-[#f7fafc] w-full outline-none focus:border-b-black border-b-2"
@@ -153,6 +157,7 @@ export default function CreateMenuItemForm({
                   </select>
                 </div>
                 <button
+                  type="button"
                   title="Thêm nhóm thực đơn mới"
                   onClick={() => setIsNewMenuSection((prev) => !prev)}
                   className="font-extrabold text-xl"
@@ -196,18 +201,12 @@ export default function CreateMenuItemForm({
                   />
                 </div>
               </div>
-              <div className="flex justify-center items-center">
-                {/* <Image
+              <div className="relative overflow-hidden h-28 w-28">
+                <Image
                   src={newMenuItem.thumbnailImg}
                   alt="thumbnail"
-                  width={160} // 40 x 4 (Tailwind rem to pixel conversion)
-                  height={160} // 40 x 4
-                  className="object-cover"
-                /> */}
-                <img
-                  src={newMenuItem.thumbnailImg}
-                  alt="thumbnail"
-                  className="w-40 h-40 object-cover"
+                  layout="fill"
+                  className="absolute w-full h-full object-cover"
                 />
               </div>
             </div>
@@ -229,6 +228,7 @@ export default function CreateMenuItemForm({
               <div className="p-2 text-white  rounded right-0">Lưu</div>
             </button>
             <button
+              type="button"
               className="p-2 rounded right-0"
               onClick={() => setIsNewMenuItem((prev) => !prev)}
             >

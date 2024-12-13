@@ -9,6 +9,7 @@ export const LoginForm = () => {
     const formData = new FormData(event.currentTarget);
 
     const response = await doLogin(formData);
+    if (!response) alert("Đăng nhập thất bại");
   }
 
   return (

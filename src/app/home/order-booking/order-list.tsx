@@ -1,8 +1,6 @@
 import { Tooltip } from "react-tooltip";
-import { formatDateToString } from "@/utils/timeUtils";
-import { useMemo } from "react";
-import { CustomerEntity } from "./data";
 import { OrderEntity } from "../order-taking/entity";
+import { formatDateToString } from "@/utils/timeUtils";
 
 const mapOrderStatus = (status: string) => {
   switch (status) {
@@ -34,7 +32,6 @@ export default function OrderList({
   handleCheckAll: (check: boolean) => void;
   handleUpdateStatus: (order: OrderEntity, status: string) => void;
 }) {
-
   return (
     <table className="min-w-full bg-white border border-gray-200 mt-6">
       <thead>
@@ -70,7 +67,7 @@ export default function OrderList({
               <div>{order.id}</div>
             </td>
             <td className="px-4 py-2 border-b">
-              {order.checkInTime}
+              {formatDateToString(new Date(order.checkInTime))}
             </td>
             <td className="px-4 py-2 border-b max-w-[142px] truncate">
               {order.customer.name}
@@ -119,6 +116,7 @@ export default function OrderList({
 
               <div className="hidden group-hover:flex items-center justify-center gap-4">
                 <button
+                  type="button"
                   data-tooltip-id="my-tooltip"
                   data-tooltip-content="Nhận bàn"
                   onClick={() => handleUpdateStatus(order, "CHECKED_IN")}
@@ -164,6 +162,7 @@ export default function OrderList({
                   </svg>
                 </button> */}
                 <button
+                  type="button"
                   data-tooltip-id="my-tooltip"
                   data-tooltip-content="Hủy đặt"
                   onClick={() => handleUpdateStatus(order, "CANCELLED")}

@@ -10,87 +10,114 @@ const apiClientService = {
 };
 
 export async function getData(endpoint: string) {
-  const response = await fetch(endpoint, {
-    method: "GET",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: "Bearer " + token,
-    },
-  });
+  try {
+    const response = await fetch(endpoint, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: "Bearer " + token,
+      },
+    });
 
-  if (!response.ok) {
-    throw new Error(`HTTP error! Status: ${response.status}`);
+    if (!response.ok) {
+      console.log(response);
+    }
+
+    return await response.json();
+  } catch (err) {
+    console.log(err);
   }
-
-  return await response.json();
 }
 
 export async function postData(endpoint: string, data: any) {
-  const response = await fetch(endpoint, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: "Bearer " + token,
-    },
-    body: JSON.stringify(data),
-  });
+  try {
+    const response = await fetch(endpoint, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: "Bearer " + token,
+      },
+      body: JSON.stringify(data),
+    });
 
-  if (!response.ok) {
-    alert("Error");
-    throw new Error(`HTTP error! Status: ${response.status}`);
+    if (!response.ok) {
+      console.log(response);
+      alert((await response.json()).metadata.message);
+    }
+
+    return await response.json();
+  } catch (err) {
+    alert("Đã có lỗi xảy ra");
+    console.log(err);
   }
-
-  return await response.json();
 }
 
 export async function putData(endpoint: string, data: any) {
-  const response = await fetch(endpoint, {
-    method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: "Bearer " + token,
-    },
-    body: JSON.stringify(data),
-  });
+  try {
+    const response = await fetch(endpoint, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: "Bearer " + token,
+      },
+      body: JSON.stringify(data),
+    });
 
-  if (!response.ok) {
-    throw new Error(`HTTP error! Status: ${response.status}`);
+    if (!response.ok) {
+      console.log(response);
+      alert((await response.json()).metadata.message);
+    }
+
+    return await response.json();
+  } catch (err) {
+    alert("Đã có lỗi xảy ra");
+    console.log(err);
   }
-
-  return await response.json();
 }
 
 export async function patchData(endpoint: string, data: any) {
-  const response = await fetch(endpoint, {
-    method: "PATCH",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: "Bearer " + token,
-    },
-    body: JSON.stringify(data),
-  });
+  try {
+    const response = await fetch(endpoint, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: "Bearer " + token,
+      },
+      body: JSON.stringify(data),
+    });
 
-  if (!response.ok) {
-    throw new Error(`HTTP error! Status: ${response.status}`);
+    if (!response.ok) {
+      console.log(response);
+      alert((await response.json()).metadata.message);
+    }
+
+    return await response.json();
+  } catch (err) {
+    alert("Đã có lỗi xảy ra");
+    console.log(err);
   }
-
-  return await response.json();
 }
 
 export async function deleteData(endpoint: string) {
-  const response = await fetch(endpoint, {
-    method: "DELETE",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: "Bearer " + token,
-    },
-  });
+  try {
+    const response = await fetch(endpoint, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: "Bearer " + token,
+      },
+    });
 
-  if (!response.ok) {
-    throw new Error(`HTTP error! Status: ${response.status}`);
+    if (!response.ok) {
+      console.log(response);
+      alert((await response.json()).metadata.message);
+    }
+
+    return await response.json();
+  } catch (err) {
+    alert("Đã có lỗi xảy ra");
+    console.log(err);
   }
-
-  return await response.json();
 }
 
 export default apiClientService;
