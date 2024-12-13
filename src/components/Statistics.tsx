@@ -133,8 +133,8 @@ const Statistics = () => {
     page: 1,
     pageSize: 15,
     orderStatus: new Set(),
-    startTime: new Date().toISOString(),
-    endTime: new Date().toISOString(),
+    startTime: formatDateToYYYYMMDD(new Date(0)),
+    endTime: formatDateToYYYYMMDD(new Date()),
     paymentMethod: "",
     tableIds: new Set(),
     userName: "",
@@ -147,21 +147,21 @@ const Statistics = () => {
       // Tính toán thời gian nếu không có
       const startTime = new Date(0); // Bắt đầu từ epoch
       const endTime = new Date(); // Thời gian hiện tại
-  
+
       // Cập nhật lại startTime và endTime trong request nếu chưa có
       setGetOrderRequest(prevState => ({
         ...prevState,
-        startTime: startTime.toISOString(),
-        endTime: endTime.toISOString(),
+        startTime: formatDateToYYYYMMDD(startTime),
+        endTime: formatDateToYYYYMMDD(endTime),
       }));
     }
-  
+
     let queryParams = `page=${getOrderRequest.page || 1}&page_size=${getOrderRequest.pageSize || 10}`;
-  
+
     // Thêm thời gian vào queryParams (bắt buộc)
     queryParams = queryParams.concat(`&start_time=${getOrderRequest.startTime}`);
     queryParams = queryParams.concat(`&end_time=${getOrderRequest.endTime}`);
-  
+
     // Thêm các tham số khác (tuỳ chọn)
     if (getOrderRequest.orderStatus?.size > 0) {
       queryParams = queryParams.concat(`&order_status=${Array.from(getOrderRequest.orderStatus).join(",")}`);
@@ -181,11 +181,11 @@ const Statistics = () => {
     if (getOrderRequest.tableIds?.size > 0) {
       queryParams = queryParams.concat(`&table_ids=${Array.from(getOrderRequest.tableIds).join(",")}`);
     }
-  
+
     return queryParams;
   }, [getOrderRequest]);
- 
-  
+
+
   useEffect(() => {
     const fetchDashboardData = async (queryParams: string) => {
       // Gọi doanh thu hôm nay và hôm qua
@@ -194,6 +194,7 @@ const Statistics = () => {
       const queryForRevenueAndCustomer = `start_date=${formatDateToYYYYMMDD(
         startDate
       )}&end_date=${formatDateToYYYYMMDD(endDate)}`;
+      console.log("queryForRevenueAndCustomer", queryForRevenueAndCustomer)
 
       // setTodayRevenue(sampleRevenueIn2Days[1].revenue);
       // setGrowthRevenue(
@@ -203,11 +204,13 @@ const Statistics = () => {
       // );
 
       try {
-        const revenueData = await getStatisticByRevenueAndDate(queryForRevenueAndCustomer);
-        setTodayRevenue(revenueData[1].revenue);
-        setGrowthRevenue(
-          ((revenueData[1].revenue - revenueData[0].revenue) / revenueData[0].revenue) * 100
-        );
+        getStatisticByRevenueAndDate(queryForRevenueAndCustomer).then((revenueData) => {
+          setTodayRevenue(revenueData[1].revenue);
+          setGrowthRevenue(
+            ((revenueData[1].revenue - revenueData[0].revenue) / revenueData[0].revenue) * 100
+          );
+        });
+
       } catch (error) {
         console.error("Error fetching revenue data:", error);
       }
@@ -221,11 +224,13 @@ const Statistics = () => {
       // );
 
       try {
-        const customerData = await getStatisticByCustomerAndDate(queryForRevenueAndCustomer);
-        setTodayCustomer(customerData[1].count);
-        setGrowthCustomer(
-          ((customerData[1].count - customerData[0].count) / customerData[0].count) * 100
-        );
+        getStatisticByCustomerAndDate(queryForRevenueAndCustomer).then((customerData) => {
+          setTodayCustomer(customerData[1].count);
+          setGrowthCustomer(
+            ((customerData[1].count - customerData[0].count) / customerData[0].count) * 100
+          );
+        });
+
       } catch (error) {
         console.error("Error fetching customer data:", error);
       }
@@ -247,14 +252,16 @@ const Statistics = () => {
       //   }, 0)
       // );
       try {
-        const orders = await getAllOrders(queryParams);
-        setTotalProcessingOrder(orders.second.length);
-        setTotalProcessingCost(
-          orders.second.reduce((total, order) => total + order.totalCost, 0)
-        );
-        setTotalProcessingPeople(
-          orders.second.reduce((total, order) => total + order.numberOfPeople, 0)
-        );
+        getAllOrders(queryParams).then((orders) => {
+          console.log("getAllOrder", queryParams)
+          setTotalProcessingOrder(orders.second.length);
+          setTotalProcessingCost(
+            orders.second.reduce((total, order) => total + order.totalCost, 0)
+          );
+          setTotalProcessingPeople(
+            orders.second.reduce((total, order) => total + order.numberOfPeople, 0)
+          );
+        });
       } catch (error) {
         console.error("Error fetching orders data:", error);
       }

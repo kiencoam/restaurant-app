@@ -7,8 +7,8 @@ import {
 const baseUrl: string = "http://localhost:8080/api/v1/salary_periods";
 
 export type CreateSalaryPeriodRequest = {
-  fromDate: Date;
-  toDate: Date;
+  fromDate: string;
+  toDate: string;
   title: string;
 };
 
@@ -22,8 +22,8 @@ export type SalaryPeriodEntity = {
   id: number;
   code: string;
   title: string;
-  fromDate: Date;
-  toDate: Date;
+  fromDate: string;
+  toDate: string;
   totalSalary: number;
   paidSalary: number;
   status: string;
@@ -53,8 +53,8 @@ export const asyncCalculateSalaryPeriod = async (
     .get(`${baseUrl}/${id}/async_calculate`)
     .then((res) => res.data);
 };
-
-export const getAll = async (query: string): Promise<SalaryPeriodEntity> => {
+// : Promise<SalaryPeriodEntity>
+export const getAll = async (query: string) => {
   return await apiClientService
     .get(`${baseUrl}?${query}`)
     .then((res) => res.data);

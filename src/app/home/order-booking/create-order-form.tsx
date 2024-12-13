@@ -1,8 +1,4 @@
-/*
-  Gọi API lấy thông tin user đang đăng nhập ở dòng 271
-  Gọi API lấy danh sách bàn trống ở dòng 277
-  Gọi API tạo order ở dòng 300
-*/
+
 
 import { default as ReactSelect, components } from "react-select";
 import { Tooltip } from "react-tooltip";
@@ -17,6 +13,7 @@ import { loginUserContext } from "@/components/LoginUserProvider";
 import { getAllCustomers } from "@/app/api-client/CustomerService";
 import { getAllTablesAvailable } from "@/app/api-client/TableService";
 import { createOrder } from "@/app/api-client/OrderService";
+import { start } from "repl";
 
 const DropdownIndicator = null;
 
@@ -100,11 +97,9 @@ export default function CreateOrderForm({
 }) {
   const loginUserId = useContext(loginUserContext).id;
 
-  const [startDate, setStartDate] = useState(new Date());
+  const [startDate, setStartDate] = useState(new Date(new Date().getTime() + 5*60*1000));
 
-  const [endDate, setEndDate] = useState(
-    new Date(new Date().getTime() + 60 * 60 * 1000)
-  );
+  const [duration, setDuration] = useState<number>(1)
 
   const [customers, setCustomers] = useState<CustomerEntity[]>([]);
 
@@ -112,7 +107,7 @@ export default function CreateOrderForm({
     customerId: null,
     userId: loginUserId,
     checkInTime: formatDateToString(startDate),
-    checkOutTime: formatDateToString(endDate),
+    checkOutTime: formatDateToString(new Date(startDate.getTime() + duration*60*60*1000)),
     numberOfPeople: 1,
     tableIds: new Set<number>(),
     note: "",
@@ -164,11 +159,12 @@ export default function CreateOrderForm({
   }, [loginUserId]);
 
   useEffect(() => {
-    getAllTablesAvailable(formatDateToString(startDate), formatDateToString(endDate)).then((res) => {
+
+    getAllTablesAvailable(formatDateToString(startDate), formatDateToString(new Date(startDate.getTime() + duration*60*60*1000))).then((res) => {
       setTables(res);
     })
 
-  }, [startDate, endDate]);
+  }, [startDate, duration]);
 
   const handleSelectedTablesChange = (selectedOptions) => {
     setSelectedTables(selectedOptions);
@@ -183,18 +179,20 @@ export default function CreateOrderForm({
     setSelectedTables([]);
     setNewOrder((prev) => ({
       ...prev,
+      checkInTime: formatDateToString(startDate),
+    checkOutTime: formatDateToString(new Date(startDate.getTime() + duration*60*60*1000)),
       tableIds: new Set<number>(),
     }));
-  }, [startDate, endDate]);
+  }, [startDate, duration]);
 
-  const handleCreateOrder = async () => {
+  const handleCreateOrder = async (e) => {
     /* Gọi API tao order */
+    e.preventDefault()
+    console.log("request", newOrder)
     await createOrder(newOrder).then((res) => {
       console.log(res);
-      setOrders((prev) => [...prev, res]);
     });
 
-    // setOrders((prev) => [...prev, newOrderEntity]);
     setIsNewOrder(false);
   };
 
@@ -202,7 +200,7 @@ export default function CreateOrderForm({
     <>
       <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
         <form
-          onSubmit={() => handleCreateOrder()}
+          onSubmit={(e) => handleCreateOrder(e)}
           className="bg-white p-6 rounded-lg shadow-lg w-3/5 h-6/10"
         >
           <div className="text-xl font-bold mb-4">Thêm mới đặt bàn</div>
@@ -268,6 +266,7 @@ export default function CreateOrderForm({
                 </div>
 
                 <button
+                type="button"
                   data-tooltip-id="my-tooltip"
                   data-tooltip-content="Tạo khách hàng mới"
                   onClick={() => setIsNewCustomer((prev) => !prev)}
@@ -347,11 +346,9 @@ export default function CreateOrderForm({
                   value={formatTimeToYYYYMMDDTHHMM(startDate)}
                   onChange={(e) => {
                     const selectedDate = new Date(e.target.value);
+                    if (selectedDate.getTime() < new Date().getTime()) return;
                     setStartDate(selectedDate);
-                    setNewOrder({
-                      ...newOrder,
-                      checkInTime: formatDateToString(selectedDate),
-                    });
+
                   }}
                   required
                 />
@@ -375,18 +372,10 @@ export default function CreateOrderForm({
                 className="p-2 bg-transparent w-full text-left outline-none border-b-2 focus:border-b-black"
                 type="number"
                 value={
-                  (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60)
+                  duration
                 }
                 onChange={(e) => {
-                  const selectedDate = new Date(
-                    startDate.getTime() +
-                    Number(e.target.value) * 60 * 60 * 1000
-                  );
-                  setEndDate(selectedDate);
-                  setNewOrder((prev) => ({
-                    ...prev,
-                    checkOutTime: formatDateToString(selectedDate),
-                  }));
+                  setDuration(Number(e.target.value))
                 }}
                 min={0.5}
                 max={24}
@@ -435,6 +424,7 @@ export default function CreateOrderForm({
               </div>
             </button>
             <button
+            type="button"
               className="p-2 rounded right-0"
               onClick={() => setIsNewOrder(false)}
             >

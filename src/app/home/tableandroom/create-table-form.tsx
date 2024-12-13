@@ -1,7 +1,3 @@
-/*
-  Gọi API tạo mới phòng/bàn ở dòng 27
-*/
-
 import { sampleLocations } from "@/app/api-client/Locations";
 import { createTable, CreateTableRequest, TableEntity } from "@/app/api-client/TableService";
 import { useState } from "react";

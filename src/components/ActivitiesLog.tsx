@@ -70,10 +70,14 @@ const ActivitiesLog = () => {
     const numberOfLogs = 1000;
     // Hàm gọi API
     const fetchActivityLogs = async () => {
-      const query = `page=1&page_size=${numberOfLogs || 20}&from_date=${formatDate(new Date(0))}&to_date=${formatDate(endTime)}`;
+      const query = `page=0&page_size=${20}&from_date=${formatDate(new Date(0))}&to_date=${formatDate(endTime)}`;
+      console.log("act query", query)
       try {
-        const res = await getAllActivityLogs(query);
-        setActivities(res.second);
+        getAllActivityLogs(query).then((res) => {
+          setActivities(res.second);
+          console.log("activity", res.second)
+        });
+
       } catch (error) {
         console.error("Error fetching activity logs:", error);
       }
@@ -82,8 +86,7 @@ const ActivitiesLog = () => {
     fetchActivityLogs();
 
     const interval = setInterval(() => {
-      // Cập nhật thời gian startTime và endTime
-      setEndTime(new Date());
+       setEndTime(new Date());
     }, 5000);
 
     return () => clearInterval(interval);
@@ -94,8 +97,8 @@ const ActivitiesLog = () => {
       <button
         onClick={() => setToggle(!toggle)}
         className={`flex items-center justify-center gap-1 rounded-md h-9 w-40 ${toggle
-            ? "text-[#fafafa] bg-[#2b2b2b]"
-            : "hover:shadow-sm hover:bg-[#e2e2e2]"
+          ? "text-[#fafafa] bg-[#2b2b2b]"
+          : "hover:shadow-sm hover:bg-[#e2e2e2]"
           }`}
       >
         <svg

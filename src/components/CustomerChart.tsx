@@ -13,78 +13,85 @@ import {
   formatDateToVietnameseFormat,
   formatDateToYYYYMMDD,
 } from "@/utils/timeUtils";
-import { getStatisticByCustomerAndDate, getStatisticByCustomerAndHour } from "@/app/api-client/StatisticService";
+import { CustomerStatisticPerDate, CustomerStatisticPerHour, getStatisticByCustomerAndDate, getStatisticByCustomerAndHour } from "@/app/api-client/StatisticService";
 
-const sampleCustomerPerDate = [
-  { date: new Date("12-04-2024"), count: 40 },
-  { date: new Date("12-03-2024"), count: 10 },
-  { date: new Date("12-05-2024"), count: 10 },
-  { date: new Date("12-06-2024"), count: 40 },
-  { date: new Date("12-07-2024"), count: 80 },
-];
+// const sampleCustomerPerDate = [
+//   { date: new Date("12-04-2024"), count: 40 },
+//   { date: new Date("12-03-2024"), count: 10 },
+//   { date: new Date("12-05-2024"), count: 10 },
+//   { date: new Date("12-06-2024"), count: 40 },
+//   { date: new Date("12-07-2024"), count: 80 },
+// ];
 
-const sampleCustomersPerHours = [
-  { hour: new Date("12-03-2024 08:00"), count: 40 },
-  { hour: new Date("12-03-2024 09:00"), count: 30 },
-  { hour: new Date("12-03-2024 10:00"), count: 70 },
-  { hour: new Date("12-03-2024 11:00"), count: 50 },
-  { hour: new Date("12-03-2024 12:00"), count: 80 },
-  { hour: new Date("12-03-2024 13:00"), count: 10 },
-  { hour: new Date("12-03-2024 14:00"), count: 40 },
-  { hour: new Date("12-03-2024 15:00"), count: 10 },
-];
+// const sampleCustomersPerHours = [
+//   { hour: new Date("12-03-2024 08:00"), count: 40 },
+//   { hour: new Date("12-03-2024 09:00"), count: 30 },
+//   { hour: new Date("12-03-2024 10:00"), count: 70 },
+//   { hour: new Date("12-03-2024 11:00"), count: 50 },
+//   { hour: new Date("12-03-2024 12:00"), count: 80 },
+//   { hour: new Date("12-03-2024 13:00"), count: 10 },
+//   { hour: new Date("12-03-2024 14:00"), count: 40 },
+//   { hour: new Date("12-03-2024 15:00"), count: 10 },
+// ];
 
 export function CustomerChart() {
   const [selectedMode, setSelectedMode] = useState("daily");
-  const [customersPerDate, setCustomersPerDate] = useState(
-    sampleCustomerPerDate
-  );
-  const [customersPerHours, setCustomersPerHours] = useState(
-    sampleCustomersPerHours
-  );
+  const [customersPerDate, setCustomersPerDate] = useState<CustomerStatisticPerDate[]>([]);
+  const [customersPerHours, setCustomersPerHours] = useState<CustomerStatisticPerHour[]>([]);
 
   useEffect(() => {
     const fetchCustomerData = async () => {
-      const endTime = new Date();
-  
-      // Lấy dữ liệu số lượng khách hàng theo ngày
-      const startDate = new Date(new Date().setDate(endTime.getDate() - 4));
-      const queryForDate = `start_date=${formatDateToYYYYMMDD(
-        startDate
-      )}&end_date=${formatDateToYYYYMMDD(endTime)}`;
+      const endDate = new Date();
+      const endDateFormatted = formatDateToYYYYMMDD(endDate);
+
+      const startDate = new Date();
+      startDate.setDate(endDate.getDate() - 4);
+      const startDateFormatted = formatDateToYYYYMMDD(startDate);
+
+      const queryForDate = `start_date=${startDateFormatted}&end_date=${endDateFormatted}`;
+      console.log("customer queryForDate", queryForDate)
       try {
-        const dateData = await getStatisticByCustomerAndDate(queryForDate);
-        setCustomersPerDate(
-          dateData.customerStatistics.map((item) => ({
-            date: new Date(item.date),
-            count: item.count,
-          }))
-        );
+        getStatisticByCustomerAndDate(queryForDate).then((res) => {
+          setCustomersPerDate(
+            res.customerStatistics.map((item) => ({
+              date: item.date,
+              count: item.count,
+            }))
+          );
+        });
       } catch (error) {
         console.error("Error fetching customer data by date:", error);
       }
-  
+
       // Lấy dữ liệu số lượng khách hàng theo giờ
-      const startTime = new Date(new Date().setHours(endTime.getHours() - 7));
-      const queryForHours = `start_date=${formatDateToString(
-        startTime
-      )}&end_date=${formatDateToString(endTime)}`;
+      const endTime = new Date();
+      const endTimeFormatted = formatDateToYYYYMMDD(endTime);
+
+      const startTime = new Date();
+      startTime.setHours(endTime.getHours() - 7); // Dùng `setHours` thay vì `setDate`
+      const startTimeFormatted = formatDateToYYYYMMDD(startTime);
+
+      const queryForTime = `start_date=${startTimeFormatted}&end_date=${endTimeFormatted}`;
+      console.log("customer queryForTime", queryForTime)
       try {
-        const hourData = await getStatisticByCustomerAndHour(queryForHours);
-        setCustomersPerHours(
-          hourData.customerStatistics.map((item) => ({
-            hour: new Date(item.hour),
-            count: item.count,
-          }))
-        );
+        getStatisticByCustomerAndHour(queryForTime).then((res) => {
+          setCustomersPerHours(
+            res.customerStatistics.map((item) => ({
+              hour: item.hour,
+              count: item.count,
+            }))
+          );
+        });
+
       } catch (error) {
-        console.error("Error fetching customer data by hour:", error);
+        console.error("Error fetching customer data by time:", error);
       }
     };
-  
+
     fetchCustomerData();
   }, []);
-  
+
+
 
   const dataPerDate: ChartData<"bar"> = {
     labels: customersPerDate.map((data) =>
@@ -180,21 +187,19 @@ export function CustomerChart() {
         <div className="font-extrabold text-xl">Số lượng khách hàng</div>
         <div className="flex m-3 h-10 w-48 text-[#898a84] text-sm bg-[#f7f7f7] font-semibold rounded-md p-1 gap-2">
           <button
-            className={`basis-1/2 rounded-md transition-all duration-500 ${
-              selectedMode == "daily"
-                ? "text-[#fafafa] bg-[#2b2b2b] shadow-sm"
-                : ""
-            }`}
+            className={`basis-1/2 rounded-md transition-all duration-500 ${selectedMode == "daily"
+              ? "text-[#fafafa] bg-[#2b2b2b] shadow-sm"
+              : ""
+              }`}
             onClick={() => setSelectedMode("daily")}
           >
             Theo ngày
           </button>
           <button
-            className={`basis-1/2 rounded-md transition-all duration-500 ${
-              selectedMode == "hourly"
-                ? "text-[#fafafa] bg-[#2b2b2b] shadow-sm"
-                : ""
-            }`}
+            className={`basis-1/2 rounded-md transition-all duration-500 ${selectedMode == "hourly"
+              ? "text-[#fafafa] bg-[#2b2b2b] shadow-sm"
+              : ""
+              }`}
             onClick={() => setSelectedMode("hourly")}
           >
             Theo giờ

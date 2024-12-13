@@ -23,7 +23,7 @@ export default function CreateCustomerForm({
     address: "",
     email: "",
     dob: "",
-    gender: "",
+    gender: "MALE",
   })
 
   const handleNewCustomerChange = (e: React.ChangeEvent<HTMLInputElement>, field: string) => {
@@ -92,7 +92,13 @@ export default function CreateCustomerForm({
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
       <div className="bg-[#f7fafc] p-8 rounded-lg shadow-lg w-3/5">
         <div className="text-xl font-bold mb-6 text-center">Thêm khách hàng</div>
-        <div className="grid grid-cols-2 gap-6">
+        <form
+          onSubmit={(e) => {
+            e.preventDefault(); // Ngăn trình duyệt reload khi submit
+            handleCreateCustomer(); // Gọi hàm xử lý khi nhấn submit
+          }}
+          className="grid grid-cols-2 gap-6"
+        >
           {/* Mã khách hàng */}
           <div className="flex flex-col">
             <label className="font-medium">Mã khách hàng</label>
@@ -108,7 +114,7 @@ export default function CreateCustomerForm({
           <div className="flex flex-col">
             <label className="font-medium">Email</label>
             <input
-              type="text"
+              type="email"
               placeholder="qwe@gmail.com"
               value={newCustomer.email}
               onChange={(e) => handleNewCustomerChange(e, "email")}
@@ -125,6 +131,7 @@ export default function CreateCustomerForm({
               value={newCustomer.name}
               onChange={(e) => handleNewCustomerChange(e, "name")}
               className="border-b-2 bg-[#f7fafc] outline-none focus:border-black mt-2 py-1"
+              required 
             />
           </div>
 
@@ -132,11 +139,14 @@ export default function CreateCustomerForm({
           <div className="flex flex-col">
             <label className="font-medium">Điện thoại</label>
             <input
-              type="text"
+              type="tel"
               placeholder="Ví dụ: 0912345678"
               value={newCustomer.phoneNumber}
               onChange={(e) => handleNewCustomerChange(e, "phoneNumber")}
               className="border-b-2 bg-[#f7fafc] outline-none focus:border-black mt-2 py-1"
+              pattern="[0-9]{10}" 
+              required 
+              title="Số điện thoại phải gồm 10 chữ số." 
             />
           </div>
 
@@ -146,6 +156,7 @@ export default function CreateCustomerForm({
             <input
               type="text"
               placeholder="dd/mm/yyyy"
+              pattern="(0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[0-2])\/\d{4}"
               value={newCustomer.dob}
               onChange={(e) => handleNewCustomerChange(e, "dob")}
               className="border-b-2 bg-[#f7fafc] outline-none focus:border-black mt-2 py-1"
@@ -160,7 +171,6 @@ export default function CreateCustomerForm({
               onChange={(e) => handleGenderChange(e, "gender")}
               className="border-b-2 bg-[#f7fafc] outline-none focus:border-black mt-2 py-1"
             >
-              <option value="">Chọn giới tính</option>
               <option value="MALE">Nam</option>
               <option value="FEMALE">Nữ</option>
             </select>
@@ -176,34 +186,35 @@ export default function CreateCustomerForm({
               className="border-b-2 bg-[#f7fafc] outline-none focus:border-black mt-2 py-1"
             />
           </div>
-        </div>
 
-        <div className="flex justify-end gap-4 items-center mt-8">
-          {/* Lưu */}
-          <button
-            className="flex items-center gap-2 px-4 py-2 bg-black text-white rounded-md hover:bg-gray-800 transition"
-            onClick={handleCreateCustomer}
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              height="24px"
-              viewBox="0 -960 960 960"
-              width="24px"
-              fill="currentColor"
+          <div className="flex justify-end gap-4 items-center mt-8 col-span-2">
+            {/* Lưu */}
+            <button
+              type="submit"
+              className="flex items-center gap-2 px-4 py-2 bg-black text-white rounded-md hover:bg-gray-800 transition"
             >
-              <path d="M840-680v480q0 33-23.5 56.5T760-120H200q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h480l160 160Zm-80 34L646-760H200v560h560v-446ZM480-240q50 0 85-35t35-85q0-50-35-85t-85-35q-50 0-85 35t-35 85q0 50 35 85t85 35ZM240-560h360v-160H240v160Zm-40-86v446-560 114Z" />
-            </svg>
-            Lưu
-          </button>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                height="24px"
+                viewBox="0 -960 960 960"
+                width="24px"
+                fill="currentColor"
+              >
+                <path d="M840-680v480q0 33-23.5 56.5T760-120H200q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h480l160 160Zm-80 34L646-760H200v560h560v-446ZM480-240q50 0 85-35t35-85q0-50-35-85t-85-35q-50 0-85 35t-35 85q0 50 35 85t85 35ZM240-560h360v-160H240v160Zm-40-86v446-560 114Z" />
+              </svg>
+              Lưu
+            </button>
 
-          {/* Hủy */}
-          <button
-            className="px-4 py-2 border rounded-md hover:bg-gray-100 transition"
-            onClick={toggleNewCustomer}
-          >
-            Hủy
-          </button>
-        </div>
+            {/* Hủy */}
+            <button
+              type="button"
+              className="px-4 py-2 border rounded-md hover:bg-gray-100 transition"
+              onClick={toggleNewCustomer}
+            >
+              Hủy
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   );

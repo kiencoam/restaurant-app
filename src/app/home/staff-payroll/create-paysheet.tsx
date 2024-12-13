@@ -1,62 +1,110 @@
 import React, { useState } from "react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-import ReactSelect from "react-select";
 
-export default function CreatePaysheet({
-  toggleNewPaysheet,
-  filterUser,
-  searchUser,
-  setSearchUser,
-  newPaysheet,
-  setNewPaysheet,
-}) {
-  const [dateRange, setDateRange] = useState([null, null]);
-  const [startDate, endDate] = dateRange;
-  const [scalePay, changeScalePay] = useState("ALL");
+import { createSalaryPeriod, CreateSalaryPeriodRequest } from "@/app/api-client/SalaryPeriodService";
+import { GetSalaryPeriodRequest } from "./page";
+import { formatDateToYYYYMMDD } from "@/utils/timeUtils";
 
-  const changeScalePayFunction = (value) => {
-    changeScalePay(value); // Update the scalePay state
+
+type Props = {
+  toggleNewPaysheet: () => void;
+  setPeriodFilter: React.Dispatch<React.SetStateAction<GetSalaryPeriodRequest>>;
+};
+
+export default function CreatePaysheet({ toggleNewPaysheet, setPeriodFilter }: Props) {
+  const [newSalaryPeriod, setNewSalaryPeriod] = useState<CreateSalaryPeriodRequest>({
+    title: "",
+    fromDate: null,
+    toDate: null,
+  });
+
+  const [startDate, setStartDate] = useState<Date | null>(null);
+  const [endDate, setEndDate] = useState<Date | null>(null);
+
+
+  const handleTitleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setNewSalaryPeriod({ ...newSalaryPeriod, title: event.target.value });
   };
 
-  const userOptions = filterUser.map((user) => ({
-    value: user.id,
-    label: user.name + " - " + user.position,
-  }));
 
-  const handleUserChange = (selectedOption) => {
-    setNewPaysheet({
-      ...newPaysheet,
-      customerId: selectedOption ? selectedOption.value : null,
+  const handleStartDateChange = (date: Date | null) => {
+    setStartDate(date);
+    setNewSalaryPeriod({
+      ...newSalaryPeriod,
+      fromDate: date ? formatDateToYYYYMMDD(date) : null,
     });
   };
 
-  const DropdownIndicator = null;
+  const handleEndDateChange = (date: Date | null) => {
+    setEndDate(date);
+    setNewSalaryPeriod({
+      ...newSalaryPeriod,
+      toDate: date ? formatDateToYYYYMMDD(date) : null,
+    });
+  };
+
+
+
+  const handleSubmit = (event: React.FormEvent) => {
+    event.preventDefault();
+    console.log("new", newSalaryPeriod)
+    if (!newSalaryPeriod.title || !newSalaryPeriod.fromDate || !newSalaryPeriod.toDate) {
+      alert("Vui lòng điền đầy đủ thông tin trước khi lưu!");
+      return;
+    }
+    createSalaryPeriod(newSalaryPeriod).then((res) => {
+      console.log("Submitting salary period:", res);
+      setPeriodFilter(prev => ({ ...prev }));
+    })
+
+    toggleNewPaysheet();
+  };
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-      <div className="bg-[#f7fafc] p-6 rounded-lg shadow-lg w-3/5 h-6/10">
-        <div className="text-xl font-bold mb-12">Thêm bảng tính lương</div>
-        <form className="space-y-8">
-          <div className="flex space-x-12 items-center">
-            <div className="bg-gray-50 w-32">Tên</div>
-            <input className="border-b-2 focus:border-b-black outline-none bg-[#f7fafc]"></input>
-          </div>
-          <div className="flex space-x-12 items-center">
-            <div className="bg-gray-50 w-32">Kỳ làm việc</div>
-            <DatePicker
-              className="border-b-2 focus:border-b-black w-60 outline-none bg-[#f7fafc]"
-              selectsRange={true}
-              startDate={startDate}
-              endDate={endDate}
-              onChange={(update) => {
-                setDateRange(update);
-              }}
-              dateFormat="dd/MM/yyyy"
-              isClearable={true}
+      <div className="bg-[#f7fafc] p-8 rounded-lg shadow-lg w-2/5">
+        <div className="text-2xl font-bold mb-6 text-center">Thêm bảng tính lương</div>
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Title Input */}
+          <div className="flex flex-col space-y-2">
+            <label className="text-gray-700 font-medium">Tên</label>
+            <input
+              type="text"
+              value={newSalaryPeriod.title}
+              onChange={handleTitleChange}
+              className="border p-2 rounded focus:outline-none focus:ring-2 focus:ring-black"
+              placeholder="Nhập tên bảng lương"
             />
           </div>
-          <div className="flex space-x-12 items-center">
+
+          <div className="flex flex-col space-y-2">
+            <label className="text-gray-700 font-medium">Kỳ làm việc</label>
+            <div className="flex space-x-2 w-full"> {/* Using flex and space-x-2 for spacing */}
+              <DatePicker
+                className="border p-2 rounded focus:outline-none focus:ring-2 focus:ring-black w-full"
+                selected={startDate}
+                onChange={handleStartDateChange}
+                dateFormat="dd/MM/yyyy"
+                placeholderText="Ngày bắt đầu"
+                isClearable
+              />
+              <DatePicker
+                className="border p-2 rounded focus:outline-none focus:ring-2 focus:ring-black w-full"
+                selected={endDate}
+                onChange={handleEndDateChange}
+                dateFormat="dd/MM/yyyy"
+                placeholderText="Ngày kết thúc"
+                isClearable
+              />
+            </div>
+          </div>
+
+
+
+
+          {/* Optional: Scope of application (Commented for now) */}
+          {/* <div className="flex space-x-12 items-center">
             <div className="bg-gray-50 w-32">Phạm vi áp dụng</div>
             <label className="flex items-center space-x-2">
               <input
@@ -115,24 +163,21 @@ export default function CreatePaysheet({
                 }}
               />
             </div>
-          )}
-          <div className="flex justify-end gap-4 items-center mt-4">
+          )} */}
+
+          {/* Action Buttons */}
+          <div className="flex justify-end space-x-4">
             <button
-              className="flex pl-2 items-center border rounded-md bg-black "
-              onClick={toggleNewPaysheet}
+              type="submit"
+              className="px-4 py-2 bg-black text-white rounded-md shadow hover:bg-gray-800"
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                height="24px"
-                viewBox="0 -960 960 960"
-                width="24px"
-                fill="#FFFFFF"
-              >
-                <path d="M840-680v480q0 33-23.5 56.5T760-120H200q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h480l160 160Zm-80 34L646-760H200v560h560v-446ZM480-240q50 0 85-35t35-85q0-50-35-85t-85-35q-50 0-85 35t-35 85q0 50 35 85t85 35ZM240-560h360v-160H240v160Zm-40-86v446-560 114Z" />
-              </svg>
-              <div className="p-2 text-white  rounded right-0">Lưu</div>
+              Lưu
             </button>
-            <button className="p-2 rounded right-0" onClick={toggleNewPaysheet}>
+            <button
+              type="button"
+              onClick={toggleNewPaysheet}
+              className="px-4 py-2 bg-gray-200 text-black rounded-md shadow hover:bg-gray-300"
+            >
               Hủy
             </button>
           </div>

@@ -1,4 +1,4 @@
-enum SalaryDetailStatusEnum {
+export enum SalaryDetailStatusEnum {
     Processing = "PROCESSING",
     Paid = "PAID"
 }

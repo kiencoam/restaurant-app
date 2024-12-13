@@ -11,6 +11,19 @@ export default function ProductList({ masterChecked,
     expandedRow,
     handleUpdateProduct
 }) {
+
+    const getProductTypeInVietnamese = (productType) => {
+        const typeMapping = {
+            INGREDIENT: "Nguyên liệu thô",
+            READY_TO_EAT: "Chế biến sẵn",
+            PROCESSED_FOOD: "Món ăn chế biến",
+            DRINK: "Đồ uống",
+            UTENSILS: "Dụng cụ",
+            OTHER: "Khác",
+        };
+        return typeMapping[productType] || "Không xác định";
+    };
+
     return (
         <div className="px-6">
             <table className="min-w-full shadow-lg rounded-md border">
@@ -44,11 +57,11 @@ export default function ProductList({ masterChecked,
                                     const target = e.target as HTMLElement; // Cast to HTMLElement
                                     // Ignore click on checkboxes and action buttons
                                     if (
-                                      (target instanceof HTMLInputElement && target.type === "checkbox") ||
-                                      target.tagName.toLowerCase() === "button" ||
-                                      target.closest("button")
+                                        (target instanceof HTMLInputElement && target.type === "checkbox") ||
+                                        target.tagName.toLowerCase() === "button" ||
+                                        target.closest("button")
                                     ) {
-                                      return;
+                                        return;
                                     }
                                     handleRowClick(product.id); // Expand or collapse row
                                 }}
@@ -78,18 +91,23 @@ export default function ProductList({ masterChecked,
                                 </td>
                                 <td className="px-4 py-2">
                                     {editingRow === product.id ? (
-                                        <input
-                                            type="text"
+                                        <select
                                             value={product.productType}
-                                            onChange={(e) =>
-                                                handleEditInputChange(e, "productType", product.id)
-                                            }
+                                            onChange={(e) => handleEditInputChange(e, "productType", product.id)}
                                             className="w-full"
-                                        />
+                                        >
+                                            <option value="INGREDIENT">Nguyên liệu thô</option>
+                                            <option value="READY_TO_EAT">Chế biến sẵn</option>
+                                            <option value="PROCESSED_FOOD">Món ăn chế biến</option>
+                                            <option value="DRINK">Đồ uống</option>
+                                            <option value="UTENSILS">Dụng cụ</option>
+                                            <option value="OTHER">Khác</option>
+                                        </select>
                                     ) : (
-                                        product.productType
+                                        getProductTypeInVietnamese(product.productType)
                                     )}
                                 </td>
+
                                 <td className="px-4 py-2">
                                     {editingRow === product.id ? (
                                         <input
@@ -145,21 +163,23 @@ export default function ProductList({ masterChecked,
                                                         className="w-full border-b-2 focus:border-b-black outline-none bg-[#f7f9fa] p-1 "
                                                     />
                                                 </label>
-                                                <label
-                                                    htmlFor={`edit-type-${product.id}`}
-                                                    className="w-64"
-                                                >
+                                                <label htmlFor={`edit-type-${product.id}`} className="w-64">
                                                     Loại hàng:
-                                                    <input
+                                                    <select
                                                         id={`edit-type-${product.id}`}
-                                                        type="text"
                                                         value={product.productType}
-                                                        onChange={(e) =>
-                                                            handleEditInputChange(e, "productType", product.id)
-                                                        }
-                                                        className="w-full border-b-2 focus:border-b-black outline-none bg-[#f7f9fa] p-1 "
-                                                    />
+                                                        onChange={(e) => handleEditInputChange(e, "productType", product.id)}
+                                                        className="w-full border-b-2 focus:border-b-black outline-none bg-[#f7f9fa] p-1"
+                                                    >
+                                                        <option value="INGREDIENT">Nguyên liệu thô</option>
+                                                        <option value="READY_TO_EAT">Chế biến sẵn</option>
+                                                        <option value="PROCESSED_FOOD">Món ăn chế biến</option>
+                                                        <option value="DRINK">Đồ uống</option>
+                                                        <option value="UTENSILS">Dụng cụ</option>
+                                                        <option value="OTHER">Khác</option>
+                                                    </select>
                                                 </label>
+
                                             </div>
                                             <div className="flex justify-between items-center">
                                                 <div className="flex space-x-4">

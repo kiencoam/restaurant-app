@@ -1,7 +1,3 @@
-/*
-  Gọi API lấy tất cả phòng/bàn ở dòng 124
-*/
-
 "use client";
 import React, { useEffect, useRef, useState } from "react";
 import { TableEntity } from "../order-taking/entity";

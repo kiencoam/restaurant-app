@@ -1,231 +1,110 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
-import { SalaryPeriodEntity, UserEntity } from "./data";
 import CreatePaysheet from "./create-paysheet";
 import PaysheetList from "./paysheet-list";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+import { PageInfo } from "@/app/api-client/PageInfo";
+import { GetStaffRequest } from "../staff-management/page";
+import { getAllUsers, UserEntity } from "@/app/api-client/UserService";
+import { getAll, SalaryPeriodEntity } from "@/app/api-client/SalaryPeriodService";
+import { getAllSalaryDetails } from "@/app/api-client/SalaryDetailService";
 
-const salaryPeriods: SalaryPeriodEntity[] = [
-  {
-    id: 1,
-    code: "BL001",
-    title: "Kỳ lương Tháng 11",
-    fromDate: "01/11/2024",
-    toDate: "30/11/2024",
-    totalSalary: 40000000,
-    paidSalary: 0,
-    status: "PROCESSING",
-    salaryDetails: [
-      {
-        id: 1,
-        code: "PL001",
-        userId: 1,
-        userName: "Nguyễn Văn A",
-        salaryPeriodId: 1,
-        totalWorkingDays: 29,
-        totalWorkingHours: 0,
-        totalSalary: 40000000,
-        paidSalary: 0,
-        status: "Chưa thanh toán",
-        paymentMethod: "Chuyển khoản",
-        user: {
-          id: 1,
-          name: "Nguyễn Văn A",
-          phoneNumber: "0123456789",
-          email: "nguyenvana@gmail.com",
-          password: "123",
-          address: "Hà Nội",
-          dob: "01/01/1990",
-          gender: "male",
-          roleId: 1,
-          position: "ADMIN",
-          salaryType: "DAILY",
-          salaryPerHour: 0,
-          salaryPerMonth: 40000000,
-          status: "IN",
-          note: "Newbie",
-        },
-      },
-      {
-        id: 2,
-        code: "PL002",
-        userId: 2,
-        userName: "Nguyễn Văn B",
-        salaryPeriodId: 1,
-        totalWorkingDays: 20,
-        totalWorkingHours: 0,
-        totalSalary: 25000000,
-        paidSalary: 0,
-        status: "Chưa thanh toán",
-        paymentMethod: "Tiền mặt",
-        user: {
-          id: 2,
-          name: "Nguyễn Văn B",
-          phoneNumber: "0123456789",
-          email: "nguyenvanb@gmail.com",
-          password: "123",
-          address: "Hà Nội",
-          dob: "01/01/1990",
-          gender: "female",
-          roleId: 1,
-          position: "CHEF",
-          salaryType: "DAILY",
-          salaryPerHour: 0,
-          salaryPerMonth: 25000000,
-          status: "IN",
-          note: "Con giam doc",
-        },
-      },
-    ],
-    updatedTime: "30/11/2024 14:00:35",
-  },
-  {
-    id: 2,
-    code: "BL002",
-    title: "Kỳ lương Tháng 10",
-    fromDate: "01/10/2024",
-    toDate: "31/10/2024",
-    totalSalary: 120000000,
-    paidSalary: 120000000,
-    status: "DONE",
-    salaryDetails: [
-      {
-        id: 1,
-        code: "PL003",
-        userId: 3,
-        userName: "Nguyễn Văn C",
-        salaryPeriodId: 2,
-        totalWorkingDays: 0,
-        totalWorkingHours: 248,
-        totalSalary: 12400000,
-        paidSalary: 12400000,
-        status: "Đã thanh toán",
-        paymentMethod: "Chuyển khoản",
-        user: {
-          id: 3,
-          name: "Nguyễn Văn C",
-          phoneNumber: "0123436789",
-          email: "nguyenvanc@gmail.com",
-          password: "123",
-          address: "Hà Nội",
-          dob: "02/02/1999",
-          gender: "male",
-          roleId: 1,
-          position: "CASHIER",
-          salaryType: "HOURLY",
-          salaryPerHour: 50000,
-          salaryPerMonth: 0,
-          status: "IN",
-          note: "Con nuoi giam doc",
-        },
-      },
-    ],
-    updatedTime: "31/10/2024 12:52:30",
-  },
-];
+export type GetSalaryPeriodRequest = {
+  page: number,
+  page_size: number,
+  title?: string,
+  status?: string,
+}
 
-const staffs: UserEntity[] = [
-  {
-    id: 1,
-    name: "Nguyễn Văn A",
-    phoneNumber: "0123456789",
-    email: "nguyenvana@gmail.com",
-    password: "123",
-    address: "Hà Nội",
-    dob: "01/01/1990",
-    gender: "male",
-    roleId: 1,
-    position: "ADMIN",
-    salaryType: "DAILY",
-    salaryPerHour: 0,
-    salaryPerMonth: 40000000,
-    status: "IN",
-    note: "Newbie",
-  },
-  {
-    id: 2,
-    name: "Nguyễn Văn B",
-    phoneNumber: "0123456789",
-    email: "nguyenvanb@gmail.com",
-    password: "123",
-    address: "Hà Nội",
-    dob: "01/01/1990",
-    gender: "female",
-    roleId: 1,
-    position: "CHEF",
-    salaryType: "DAILY",
-    salaryPerHour: 0,
-    salaryPerMonth: 25000000,
-    status: "IN",
-    note: "Con giam doc",
-  },
-  {
-    id: 3,
-    name: "Nguyễn Văn C",
-    phoneNumber: "0123436789",
-    email: "nguyenvanc@gmail.com",
-    password: "123",
-    address: "Hà Nội",
-    dob: "02/02/1999",
-    gender: "male",
-    roleId: 1,
-    position: "CASHIER",
-    salaryType: "HOURLY",
-    salaryPerHour: 50000,
-    salaryPerMonth: 0,
-    status: "IN",
-    note: "Con nuoi giam doc",
-  },
-  {
-    id: 4,
-    name: "Nguyễn xx",
-    phoneNumber: "0123436781",
-    email: "nguyenxx@gmail.com",
-    password: "123",
-    address: "Hà Nội",
-    dob: "01/01/2004",
-    gender: "male",
-    roleId: 1,
-    position: "WAITER",
-    salaryType: "HOURLY",
-    salaryPerHour: 50000,
-    salaryPerMonth: 0,
-    status: "IN",
-    note: "Con nuoi giam doc",
-  },
-  {
-    id: 5,
-    name: "Trần xx",
-    phoneNumber: "0123436781",
-    email: "tranxx@gmail.com",
-    password: "1234",
-    address: "Hà Nội",
-    dob: "01/01/1995",
-    gender: "male",
-    roleId: 1,
-    position: "MANAGER",
-    salaryType: "DAILY",
-    salaryPerHour: 0,
-    salaryPerMonth: 15000000,
-    status: "IN",
-    note: "Con nuoi giam doc",
-  },
-];
+export type GetSalaryDetailRequest = {
+  page: number,
+  page_size: number,
+  user_id?: number,
+  salary_period_id?: number,
+  status?: string,
+}
 
 const PaysheetPage = () => {
+
+  const [users, setUsers] = useState<UserEntity[]>([]);
+
+  const [salaryPeriods, setSalaryPeriods] = useState<SalaryPeriodEntity[]>([])
+
   const [masterChecked, setMasterChecked] = useState(false);
+
   const [isNewPaysheet, setIsNewPaysheet] = useState(false);
+
   const [checkedRows, setCheckedRows] = useState({});
+
   const [flyOutActions, setFlyOutActions] = useState(false);
+
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+
   const filterRef = useRef(null);
+
   const [expandedRow, setExpandedRow] = useState(null);
-  const [searchUser, setSearchUser] = useState("");
+  //"Tên bảng lương, tên nhân viên"
+  const [searchParam, setSearchParam] = useState("");
+
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const [rowsPerPage, setRowsPerPage] = useState(5);
 
   const [startDate, setStartDate] = useState(new Date("2014/01/01"));
+
   const [endDate, setEndDate] = useState(new Date("2025/12/31"));
+
+  const [pageInfo, setPageInfo] = useState<PageInfo>({
+    totalPage: null,
+    totalRecord: null,
+    pageSize: null,
+    nextPage: null,
+    previousPage: null,
+  });
+
+
+  const handleStartDateChange = (date) => {
+    setStartDate(date);
+  };
+
+  const handleEndDateChange = (date) => {
+    setEndDate(date);
+  };
+
+  const [periodFilter, setPeriodFilter] = useState<GetSalaryPeriodRequest>({
+    page: 0,
+    page_size: 5,
+  });
+
+  const changePage = (newPage) => {
+    if (newPage >= 1 && newPage <= pageInfo.totalPage) {
+      setCurrentPage(newPage);
+      handlePageNumberChange(newPage - 1);
+    }
+  };
+
+  //Handle rowsPerPage change
+  const changeRowsPerPage = (pageSize) => {
+    setRowsPerPage(pageSize);
+    handlePageSizeChange(pageSize);
+  };
+
+  const handlePageSizeChange = (value: number) => {
+    setPeriodFilter({
+      ...periodFilter,
+      page_size: value,
+      page: 0
+    })
+  }
+
+  const handlePageNumberChange = (value: number) => {
+    setPeriodFilter({
+      ...periodFilter,
+      page: value
+    })
+  }
 
   const isAnyRowChecked = Object.values(checkedRows).some(Boolean);
 
@@ -237,33 +116,12 @@ const PaysheetPage = () => {
     }
   };
 
-  const handleMasterCheckboxChange = () => {
-    const newMasterChecked = !masterChecked;
-    setMasterChecked(newMasterChecked);
-
-    const updatedCheckedRows = {};
-    staffs.forEach((staff) => {
-      updatedCheckedRows[staff.id] = newMasterChecked;
-    });
-    setCheckedRows(updatedCheckedRows);
-  };
-
-  useEffect(() => {
-    // Sync master checkbox with individual row checkboxes
-    const allChecked = staffs.every((staff) => checkedRows[staff.id]);
-    setMasterChecked(allChecked);
-  }, [checkedRows]);
-
-  const handleRowCheckboxChange = (id) => {
-    const updatedCheckedRows = {
-      ...checkedRows,
-      [id]: !checkedRows[id],
-    };
-    setCheckedRows(updatedCheckedRows);
-  };
-
   const toggleNewPaysheet = () => {
     setIsNewPaysheet((prev) => !prev);
+  };
+
+  const toggleFilterDropdown = () => {
+    setIsFilterOpen((prev) => !prev);
   };
 
   useEffect(() => {
@@ -276,37 +134,84 @@ const PaysheetPage = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const toggleFilterDropdown = () => {
-    setIsFilterOpen((prev) => !prev);
+  const handleMasterCheckboxChange = () => {
+    const newMasterChecked = !masterChecked;
+    setMasterChecked(newMasterChecked);
+
+    const updatedCheckedRows = {};
+    users.forEach((staff) => {
+      updatedCheckedRows[staff.id] = newMasterChecked;
+    });
+    setCheckedRows(updatedCheckedRows);
   };
 
-  const filterUser: UserEntity[] =
-    searchUser.trim() === ""
-      ? []
-      : staffs.filter((staff) =>
-          staff.name.toLowerCase().includes(searchUser.toLowerCase())
-        );
+  useEffect(() => {
+    // Sync master checkbox with individual row checkboxes
+    const allChecked = users.every((staff) => checkedRows[staff.id]);
+    setMasterChecked(allChecked);
+  }, [checkedRows]);
 
-  const [newPaysheet, setNewPaysheet] = useState<SalaryPeriodEntity>({
-    id: null,
-    code: null,
-    title: null,
-    fromDate: null,
-    toDate: null,
-    totalSalary: null,
-    paidSalary: null,
-    status: null,
-    salaryDetails: null,
-    updatedTime: null,
+  const handleRowCheckboxChange = (id) => {
+    const updatedCheckedRows = {
+      ...checkedRows,
+      [id]: !checkedRows[id],
+    };
+    setCheckedRows(updatedCheckedRows);
+  };
+
+
+  const handleFilterChange = (e, field) => {
+    let newValue = e.target.value;
+    if (newValue === "") {
+      newValue = null;
+    } else {
+      newValue = Number(newValue);
+    }
+
+    setPeriodFilter({
+      ...periodFilter,
+      [field]: newValue
+    })
+  }
+
+  //userFilter
+  const [filter, setFilter] = useState<GetStaffRequest>({
+    page: 0,
+    page_size: 5
   });
 
-  const handleStartDateChange = (date) => {
-    setStartDate(date);
-  };
+  //Lấy tất cả User
+  useEffect(() => {
+    const query = Object.entries(filter)
+      .map(([key, value]) => {
+        if (value) {
+          return `${key}=${value}`;
+        }
+      })
+      .join("&");
+    console.log("user:", query)
+    getAllUsers(query).then((data) => {
+      setUsers(data.second);
+    })
+    // console.log(query)
+  }, [filter]);
 
-  const handleEndDateChange = (date) => {
-    setEndDate(date);
-  };
+  //Lấy tất cả SalaryPeriods
+  useEffect(() => {
+    const query = Object.entries(periodFilter)
+      .map(([key, value]) => {
+        if (value) {
+          return `${key}=${value}`;
+        }
+      })
+      .join("&");
+    console.log("SalaryPeriodsQuery", query)
+    getAll(query).then((data) => {
+      setPageInfo(data.first);
+      setSalaryPeriods(data.second);
+    })
+    // console.log(query)
+  }, [periodFilter]);
 
   return (
     <div className="w-full h-screen font-nunito bg-[#f7f7f7]">
@@ -333,7 +238,7 @@ const PaysheetPage = () => {
                   setFlyOutActions(!flyOutActions);
                 }}
               >
-                <span className="sr-only">Show submenu for "Flyout Menu"</span>
+                <span className="sr-only">Show submenu for Flyout Menu</span>
                 <svg
                   className="w-3 h-3 fill-slate-500"
                   xmlns="http://www.w3.org/2000/svg"
@@ -467,25 +372,99 @@ const PaysheetPage = () => {
           {isNewPaysheet && (
             <CreatePaysheet
               toggleNewPaysheet={toggleNewPaysheet}
-              filterUser={filterUser}
-              searchUser={searchUser}
-              setSearchUser={setSearchUser}
-              newPaysheet={newPaysheet}
-              setNewPaysheet={setNewPaysheet}
+              setPeriodFilter={setPeriodFilter}
+            // filterUser={filterUser}
+            // searchUser={searchUser}
+            // setSearchUser={setSearchUser}
+            // newPaysheet={newPaysheet}
+            // setNewPaysheet={setNewPaysheet}
             />
           )}
         </div>
       </div>
       <div className="px-6">
         <PaysheetList
-          paysheets={salaryPeriods}
+          salaryPeriods={salaryPeriods}
+          setSalaryPeriods={setSalaryPeriods}
           masterChecked={masterChecked}
           checkedRows={checkedRows}
+          pageInfo={pageInfo}
           handleMasterCheckboxChange={handleMasterCheckboxChange}
           handleRowCheckboxChange={handleRowCheckboxChange}
           handleRowClick={handleRowClick}
           expandedRow={expandedRow}
-        />
+          handlePageSizeChange={handlePageSizeChange}
+          handlePageNumberChange={handlePageNumberChange}
+          setPeriodFilter={setPeriodFilter}
+        /><div className="flex items-center space-x-8 mt-4">
+          <div className="flex">
+            <div>Số bản ghi: </div>
+            <select
+              className="bg-[#f7f7f7] outline-none"
+              value={rowsPerPage}
+              onChange={(e) => {
+                changeRowsPerPage(Number(e.target.value));
+                setCurrentPage(1);
+
+              }}
+            >
+              {/* <option defaultValue={rowsPerPage}>{rowsPerPage}</option> */}
+              {/* <option value={1}>1</option> */}
+              <option value={5}>5</option>
+              <option value={10}>10</option>
+              <option value={15}>15</option>
+              <option value={20}>20</option>
+            </select>
+          </div>
+          <div className="flex space-x-2">
+            <button
+              onClick={() => {
+                changePage(currentPage - 1); // Cập nhật số trang
+                setPeriodFilter(prevParams => ({
+                  ...prevParams, // Giữ lại các tham số cũ
+                  page: currentPage - 2, // Cập nhật page theo currentPage - 1
+                }));
+              }}
+              disabled={currentPage === 1}
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                height="24px"
+                viewBox="0 -960 960 960"
+                width="24px"
+                fill="#000000"
+              >
+                <path d="m313-440 224 224-57 56-320-320 320-320 57 56-224 224h487v80H313Z" />
+              </svg>
+            </button>
+            {salaryPeriods.length > 0 &&
+              <span>
+                Page {Math.min(currentPage, pageInfo.totalPage)} of {pageInfo.totalPage}
+              </span>
+            }
+            <button
+              onClick={() => {
+                changePage(currentPage + 1); // Cập nhật số trang
+                setPeriodFilter(prevParams => ({
+                  ...prevParams, // Giữ lại các tham số cũ
+                  page: currentPage, // Cập nhật page theo currentPage + 1
+                }));
+              }}
+              disabled={currentPage === pageInfo.totalPage}
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                height="24px"
+                viewBox="0 -960 960 960"
+                width="24px"
+                fill="#000000"
+              >
+                <path d="M647-440H160v-80h487L423-744l57-56 320 320-320 320-57-56 224-224Z" />
+              </svg>
+            </button>
+
+          </div>
+        </div>
       </div>
     </div>
   );

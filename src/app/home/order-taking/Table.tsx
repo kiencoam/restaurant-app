@@ -58,26 +58,26 @@ export function Table({
           {viewTables.map((table) => (
             <button
               key={table.id}
-              className="bg-[#f5f5f5] h-28 w-28 p-2 font-semibold flex flex-col justify-between active:border-2 active:border-[#f5f5f5f5]"
+              className={`bg-[#f5f5f5] h-28 w-28 p-2 font-semibold flex flex-col justify-between active:border-2 active:border-[#f5f5f5f5] ${
+                selectedTableIds.includes(table.id) ? "border border-green-500" : ""
+              }`}
               onClick={() => handleSelectTable(table.id)}
-              disabled={tableOccupiedIds.includes(table.id)}
+              disabled={!tableOccupiedIds.includes(table.id)}
             >
               <div
-                className={`w-full text-[#181818] text-md flex flex-col ${
-                  selectedTableIds.includes(table.id) ? "outline-green-500" : ""
-                } ${
-                  tableOccupiedIds.includes(table.id) ? "text-[#d6d6d6]" : ""
+                className={`w-full text-[#181818] text-md flex flex-col  ${
+                  !tableOccupiedIds.includes(table.id) ? "text-[#d6d6d6]" : ""
                 }`}
               >
                 {table.name}
               </div>
               {!tableOccupiedIds.includes(table.id) ? (
                 <div className="bg-[#68948c] w-full h-5 text-[#f5f5f5] text-sm font-[400]">
-                  Free
+                  Trống
                 </div>
               ) : (
                 <div className="bg-[#9a78ad] w-full h-5 text-[#f5f5f5] text-sm font-[400]">
-                  Occupied
+                  Đã nhận
                 </div>
               )}
             </button>

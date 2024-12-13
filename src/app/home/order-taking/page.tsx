@@ -70,10 +70,10 @@ const OrderTakingPage = () => {
     (menuSection) => menuSection.menuItems
   );
 
-  console.log(orders);
-  console.log(tables);
-  console.log(menuSections);
-  console.log(menuItems);
+  // console.log("order:", orders);
+  // console.log("tables: ", tables);
+  // console.log("menuSections: ", menuSections);
+  // console.log("menuItems", menuItems);
 
   const fetchOrder = useCallback(async (query: string) => {
     getAllOrders(query).then((res) => {
@@ -112,16 +112,25 @@ const OrderTakingPage = () => {
 
   useEffect(() => {
     getAllMenuSections().then((res) => {
-      setMenuSections(res);
+      if (res) { // Ensure valid response
+        setMenuSections(res);
+      } else {
+        console.error("Failed to fetch menu sections or invalid response.");
+      }
     });
   }, []);
 
   const convertTime = (date: Date): string => {
+    if (!(date instanceof Date) || isNaN(date.getTime())) { // Validate date
+      console.error("Invalid date:", date);
+      return "";
+    }
     const dateString = date.toISOString().split("T");
     return dateString[0] + " " + dateString[1].substring(0, 8);
   };
 
   const handleOrderItemsChange = (newOrderItems: DisplayOrderItemEntity[]) => {
+    // console.log("new order items", newOrderItems)
     newOrderItems.forEach((orderItem) => {
       orderItem.price =
         menuItems.find((menuItem) => menuItem.id === orderItem.menuItemId)
@@ -139,7 +148,7 @@ const OrderTakingPage = () => {
   };
 
   const handleSelectTable = (tableId: number) => {
-    console.log(tableId);
+    // console.log(tableId);
     if (selectedTableIds.includes(tableId)) {
       return;
     }
@@ -177,8 +186,7 @@ const OrderTakingPage = () => {
         currentQuantity: 1,
         orderedQuantity: 0,
         reservedQuantity: 0,
-        price: menuItems.find((menuItem) => menuItem.id === menuItemId)
-          .sellingPrice,
+        price: menuItems.find((menuItem) => menuItem.id === menuItemId).sellingPrice,
         status: "PROCESSING",
       };
       isNewOrderItem = true;
@@ -219,7 +227,8 @@ const OrderTakingPage = () => {
     };
 
     await createPayment(createPaymentRequest).then((res) => {
-      console.log("res", res);
+      // console.log("res", res);
+      alert("Thanh toán thành công!")
     });
   }, [currentOrder, selectedOrderId]);
 

@@ -1,4 +1,4 @@
-enum SalaryPeriodStatusEnum {
+export enum SalaryPeriodStatusEnum {
     Processing = "PROCESSING",
     Done = "DONE"
 }

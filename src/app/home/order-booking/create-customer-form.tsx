@@ -1,6 +1,4 @@
-/*
-  Gọi API tạo khách hàng mới ở dòng 30
-*/
+
 
 import {
   createCustomer,
@@ -26,12 +24,13 @@ export default function CreateCustomerForm({
     dob: "",
     gender: "MALE",
   });
+  
 
-  const handleSaveCustomer = async () => {
+  const handleSaveCustomer = async (e) => {
     /* Gọi API */
     //const newCustomerEntity = await createCustomer(newCustomer);
+    e.preventDefault()
     console.log(newCustomer);
-    
     await createCustomer(newCustomer).then((res) => {
       console.log(res);
     })
@@ -42,7 +41,7 @@ export default function CreateCustomerForm({
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
       <form
-        onSubmit={() => handleSaveCustomer()}
+        onSubmit={(e) => handleSaveCustomer(e)}
         className="bg-white p-6 rounded-lg shadow-lg w-3/5 h-6/10"
       >
         <div className="text-xl font-bold mb-4">Thêm khách hàng</div>
@@ -183,6 +182,7 @@ export default function CreateCustomerForm({
             <div className="p-2 text-white  rounded right-0">Lưu</div>
           </button>
           <button
+          type="button"
             className="p-2 rounded right-0"
             onClick={() => setIsNewCustomer(false)}
           >

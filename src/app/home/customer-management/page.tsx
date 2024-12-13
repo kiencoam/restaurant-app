@@ -141,7 +141,7 @@ const CustomerManagementPage = () => {
         }
       })
       .join("&");
-
+    console.log(query)
     getAllCustomers(query).then((data) => {
       setPageInfo(data.first);
       setCustomers(data.second);

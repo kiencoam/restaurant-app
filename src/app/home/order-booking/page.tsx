@@ -1,8 +1,4 @@
-/*
-  Gọi API lấy danh sách bàn ở dòng 586
-  Gọi API lấy danh sách khách hàng và danh sách bàn ở dòng 611
-  Gọi API cập nhận order status ở dòng 709
-*/
+
 
 "use client";
 
@@ -562,9 +558,9 @@ const OrderBookingPage = () => {
 
   const [displayMode, setDisplayMode] = useState("all");
 
-  const [startDate, setStartDate] = useState(null);
+  const [startDate, setStartDate] = useState(new Date(new Date().setHours(0, 0, 0, 0)));
 
-  const [endDate, setEndDate] = useState(null);
+  const [endDate, setEndDate] = useState(new Date(new Date().setHours(23, 59, 59, 999)));
 
   const [pageInfo, setPageInfo] = useState<PageInfo>({
     totalPage: null,
@@ -596,18 +592,18 @@ const OrderBookingPage = () => {
 
     // console.log(start);
     // console.log(end);
-    const start = new Date("2024-10-01T00:00:00");
-    const end = new Date("2024-12-30T23:59:59");
+    // const start = new Date("2024-10-01T00:00:00");
+    // const end = new Date("2024-12-30T23:59:59");
 
-    setStartDate(start);
-    setEndDate(end);
+    // setStartDate(start);
+    // setEndDate(end);
 
     setParamsRequest((prev) => ({
       ...prev,
-      start_time: start,
-      end_time: end,
+      start_time: startDate,
+      end_time: endDate,
     }))
-  }, [])
+  }, [isNewOrder])
 
   useEffect(() => {
     /* Gọi API */
@@ -634,6 +630,10 @@ const OrderBookingPage = () => {
     });
 
   }, [paramsRequest]);
+
+  useEffect(()=>{
+    setParamsRequest(prev=>({...prev, page:0}))
+  }, [paramsRequest.order_status, paramsRequest.customer_name, paramsRequest.user_name, paramsRequest.note, paramsRequest.start_time, paramsRequest.end_time])
 
   // useEffect(() => {
   //   /* Gọi API */

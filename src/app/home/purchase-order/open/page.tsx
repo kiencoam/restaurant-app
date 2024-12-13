@@ -1,17 +1,18 @@
-//Khong update duoc
 "use client";
 import React, { useState, useEffect, useRef, useCallback, useContext } from "react";
 import { Tooltip } from "react-tooltip";
 import Link from "next/link";
-import ProductTable from "./ProductTable";
 import { CreateProductRequest, getAllProducts, ProductEntity, updateProduct, UpdateProductRequest } from "@/app/api-client/ProductService";
-import { createStockHistory, CreateStockHistoryItemRequest, CreateStockHistoryRequest, StockHistoryEntity } from "@/app/api-client/StockHistoryService";
+import { createStockHistory, CreateStockHistoryItemRequest, CreateStockHistoryRequest, getAllStockHistories, getDetailStockHistory, StockHistoryEntity, updateStockHistory, UpdateStockHistoryRequest } from "@/app/api-client/StockHistoryService";
 import ProductForm from "../../products/ProductForm";
 import { getAllSuppliers, SupplierEntity } from "@/app/api-client/SupplierService";
 import { useRouter } from "next/navigation";
 import { loginUserContext } from "@/components/LoginUserProvider";
 import CreateSupplierForm from "../../supplier-management/create-supplier-form";
 import { GetSupplierRequest } from "../../supplier-management/page";
+import ProductTable from "./ProductTable";
+import { StockHistoryRequest } from "../page";
+import dayjs from "dayjs";
 // Mock data for table rows
 
 enum StockHistoryStatusEnum {
@@ -49,8 +50,10 @@ export type GetProductRequest = {
 }
 
 const NewPage = () => {
+  //Lay code tu [open]
+  const code = "123333";
 
-  const [newStockHistory, setNewStockHistory] = useState<CreateStockHistoryRequest>(initialStockHistory);
+  const [newStockHistory, setNewStockHistory] = useState<UpdateStockHistoryRequest>(initialStockHistory);
   const [tableData, setTableData] = useState<CreateStockHistoryItemRequestv2[]>(initialTableData);
   // TO FETCH PRODUCTS AND SUPPLIERS
   const [products, setProducts] = useState<ProductEntity[]>([]);
@@ -68,13 +71,66 @@ const NewPage = () => {
     page: 0,
     page_size: 5
   })
+  const [filter, setFilter] = useState<StockHistoryRequest>({
+    page: 0,
+    page_size: 5,
+    code: code,
+    from_date: new Date("2004/01/01"),
+    to_date: new Date("2025/12/31")
+  });
+  const [stockId, setStockId] = useState(0)
+
+  const formatDate = (date: Date) => {
+    if (!date) return null; // Kiểm tra đầu vào
+    return dayjs(date).format("YYYY-MM-DD HH:mm:ss");
+  };
 
 
   const router = useRouter()
 
   //lấy id làm userid
   const id = Number(useContext(loginUserContext).id)
+  useEffect(() => {
+    /* Gọi API */
+    const query = Object.entries(filter)
+      .filter(([key, value]) => value !== undefined && value !== "")
+      .map(([key, value]) => {
+        if ((key === 'from_date' || key === 'to_date') && value instanceof Date) {
+          value = formatDate(value);
+        }
+        return `${key}=${(value)}`;
+      })
+      .join("&");
 
+    getAllStockHistories(query).then((res) => {
+      if (res.second && res.second.length > 0) {
+        const firstStockHistory = res.second[0];
+        setStockId(firstStockHistory.id)
+        setNewStockHistory({
+          supplierId: firstStockHistory.supplierId,
+          userId: firstStockHistory.userId,
+          code: firstStockHistory.code,
+          status: firstStockHistory.status,
+          note: firstStockHistory.note,
+          stockHistoryItems: [],
+        });
+
+        setTableData(
+          firstStockHistory.stockHistoryItems.map((item) => ({
+            productId: item.productId,
+            quantity: item.quantity,
+            pricePerUnit: item.pricePerUnit,
+            product: item.product,
+          }))
+        );
+        setSelectedSupplier(firstStockHistory.supplier)
+      } else {
+        console.warn("No stock history found");
+      }
+    }).catch((error) => {
+      console.error("Failed to fetch stock histories:", error);
+    });
+  }, [filter]);
 
   useEffect(() => {
     const query = Object.entries(getProductRequest)
@@ -120,12 +176,27 @@ const NewPage = () => {
       page_size: 5,
       name: "",
     });
-    setTableData((prev: CreateStockHistoryItemRequestv2[]) => [...prev, {
-      productId: product.id,
-      quantity: 1,
-      pricePerUnit: product.costPrice,
-      product: product,
-    }])
+    setTableData((prev: CreateStockHistoryItemRequestv2[]) => {
+      const existingItemIndex = prev.findIndex((item) => item.productId === product.id);
+      if (existingItemIndex !== -1) {
+        return prev.map((item, index) =>
+          index === existingItemIndex
+            ? { ...item, quantity: item.quantity + 1 }
+            : item
+        );
+      } else {
+        return [
+          ...prev,
+          {
+            productId: product.id,
+            quantity: 1,
+            pricePerUnit: product.costPrice,
+            product: product,
+          },
+        ];
+      }
+    });
+
   }
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>, key: string) => {
@@ -149,14 +220,14 @@ const NewPage = () => {
 
     console.log(updatedStockHistory)
 
-    createStockHistory(updatedStockHistory).then((res: StockHistoryEntity) => {
+    updateStockHistory(stockId, updatedStockHistory).then((res: StockHistoryEntity) => {
       console.log(res);
-      if (status == StockHistoryStatusEnum.Pending) {
-        router.push(`./home/purchase-order/`)
-      }
-      else if (status == StockHistoryStatusEnum.Done){
-        router.push(`./home/purchase-order`)
-      }
+      // if (status == StockHistoryStatusEnum.Pending) {
+      //   router.push(`./home/purchase-order/${newStockHistory.code}`)
+      // }
+      // else if (status == StockHistoryStatusEnum.Done) {
+      //   router.push(`./home/purchase-order`)
+      // }
     })
   }
 
@@ -417,8 +488,9 @@ const NewPage = () => {
           <label className="text-gray-700">Mã phiếu nhập</label>
           <input
             className="border-b-2  w-[140px]  outline-none focus:border-b-black pb-2"
-            // placeholder="Mã phiếu tự động"
-            onChange={(e) => handleInputChange(e, "code")}
+            placeholder="Mã phiếu tự động"
+            value={newStockHistory.code}
+            disabled
           />
         </div>
         <div className="flex mb-4 justify-between">
@@ -442,6 +514,7 @@ const NewPage = () => {
           <textarea
             className="border-b-2 outline-none w-full focus:border-b-black"
             placeholder="Ghi chú"
+            value={newStockHistory.note}
             onChange={(e) => handleInputChange(e, "note")}
           />
         </div>

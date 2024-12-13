@@ -356,7 +356,7 @@ export default function StaffSchedulePage() {
         endTime: shift.endTime.slice(0, 5),
       }));
       setShifts(formattedShifts);
-    });    
+    });
   }, []);
 
   // useEffect(() => {
@@ -394,7 +394,7 @@ export default function StaffSchedulePage() {
         shift: {
           ...sche.shift,
           startTime: sche.shift.startTime.slice(0, 5),
-          endTime: sche.shift.endTime.slice(0, 5), 
+          endTime: sche.shift.endTime.slice(0, 5),
         },
       }));
 
@@ -484,7 +484,7 @@ export default function StaffSchedulePage() {
           console.log("Error creating schedules:", error);
         });
     } catch (error) {
-      console.log("Error:", error);
+      alert("Trùng với các ca làm việc khác");
     }
   };
 
@@ -503,18 +503,25 @@ export default function StaffSchedulePage() {
       startTime: formattedStartTime,
       endTime: formattedEndTime,
     };
-
-    createShift(payload).then((res) => {
-      getAll().then((res) => {
-        const formattedShifts: ShiftEntity[] = res.map((shift) => ({
-          ...shift,
-          startTime: shift.startTime.slice(0, 5),
-          endTime: shift.endTime.slice(0, 5),
-        }));
-        setShifts(formattedShifts);
+    try {
+      createShift(payload).then((res) => {
+        getAll().then((res) => {
+          const formattedShifts: ShiftEntity[] = res.map((shift) => ({
+            ...shift,
+            startTime: shift.startTime.slice(0, 5),
+            endTime: shift.endTime.slice(0, 5),
+          }));
+          setShifts(formattedShifts);
+        });
+        closeCreateShift();
+      })
+      .catch ((error) => {
+        alert("Trùng với các ca làm việc khác");;
       });
-      closeCreateShift();
-    })
+    }
+    catch (error) {
+      alert("Trùng với các ca làm việc khác");
+    }
   };
 
   const closeCreateShift = () => {
@@ -560,10 +567,13 @@ export default function StaffSchedulePage() {
           }));
           setShifts(formattedShifts);
           closeEditShift();
-        });        
+        });
+      })
+      .catch ((error) => {
+        alert("Trùng với các ca làm việc khác");;
       });
     } catch (error) {
-      console.error(error);
+      alert("Trùng với các ca làm việc khác");;
     }
   };
 
@@ -635,11 +645,11 @@ export default function StaffSchedulePage() {
         console.log("Deleted schedules:", idsToDelete);
       })
       .catch((error) => {
-        alert("Có lỗi khi xóa các sche.");
+        alert("Không thể xóa lịch trong quá khứ !");
         console.error(error);
       });
   };
-  
+
 
   const displayWeek = useMemo(() => {
     const startDate = formatDateToReactComponent(displayDate);

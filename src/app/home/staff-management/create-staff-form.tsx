@@ -48,30 +48,30 @@ export default function CreateStaffForm({
   const [newStaff, setNewStaff] = useState<CreateUserRequest>({
     id: 0,
     email: "",
-    password: "",
-    name: "",
+    password: undefined,
+    name: undefined,
     phoneNumber: "",
-    gender: "",
+    gender: "MALE",
     dateOfBirth: "",
-    roleId: 0,
+    roleId: 1,
     cccd: "",
     cvImg: "",
-    position: "",
-    salaryType: "",
+    position: "ADMIN",
+    salaryType: "DAYLY",
     salaryPerHour: 0,
     salaryPerMonth: 0,
   });
 
   function convertDateToISOFormat(input: string): string {
     const [day, month, year] = input.split("/");
-  
+
     // Đảm bảo rằng tháng và ngày đều có 2 chữ số
     const formattedMonth = String(month).padStart(2, "0");
     const formattedDay = String(day).padStart(2, "0");
-  
+
     return `${year}-${formattedMonth}-${formattedDay}`;
   }
-  
+
   const handleNewStaffChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>, field: string) => {
     let newValue = e.target.value;
     setNewStaff({
@@ -81,7 +81,8 @@ export default function CreateStaffForm({
   };
 
   //lỗi khi lưu bị refresh lại và có lỗi
-  const handleCreateStaff = async () => {
+  const handleCreateStaff = async (e) => {
+    e.preventDefault()
     const finalNewStaff = {
       ...newStaff,
       dateOfBirth: convertDateToISOFormat(newStaff.dateOfBirth),
@@ -94,7 +95,7 @@ export default function CreateStaffForm({
         // res.status = StaffStatusEnum.Active; 
         console.log("Staff created:", res);
         setFilter(prev => ({ ...prev })); // Kích hoạt useEffect
-        //toggleNewStaff();
+        toggleNewStaff();
       });
     } catch (error) {
       console.log("Error creating staff:", error);
@@ -105,7 +106,7 @@ export default function CreateStaffForm({
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
       <div className="bg-[#f7fafc] p-6 rounded-lg shadow-lg w-3/5 h-6/10">
         <div className="text-xl font-bold mb-4">Thêm nhân viên</div>
-        <form className="space-y-4">
+        <form className="space-y-4" onSubmit={(e) => handleCreateStaff(e)}>
           {/* Hàng 1: Mã nhân viên và Tên nhân viên */}
           <div className="flex space-x-4">
             <label className="w-1/2">
@@ -113,8 +114,7 @@ export default function CreateStaffForm({
               <input
                 type="text"
                 className="w-full border-b-2 bg-gray-50 mt-2 outline-none focus:border-b-black"
-                // value={newStaff.id}
-                onChange={(e) => handleNewStaffChange(e, "id")}
+                disabled
                 placeholder="Mã nhân viên tự động"
               />
             </label>
@@ -126,6 +126,7 @@ export default function CreateStaffForm({
                 value={newStaff.name}
                 onChange={(e) => handleNewStaffChange(e, "name")}
                 placeholder="Nguyễn Văn A"
+                required
               />
             </label>
           </div>
@@ -135,11 +136,12 @@ export default function CreateStaffForm({
             <label className="w-1/2">
               Email
               <input
-                type="text"
+                type="email"
                 className="w-full border-b-2 bg-gray-50 mt-2 outline-none focus:border-b-black"
                 value={newStaff.email}
                 onChange={(e) => handleNewStaffChange(e, "email")}
                 placeholder="abc@gmail.com"
+                required
               />
             </label>
             <label className="w-1/2">
@@ -150,6 +152,8 @@ export default function CreateStaffForm({
                   className="w-full border-b-2 bg-[#f7fafc] mt-2 outline-none"
                   value={newStaff.password}
                   onChange={(e) => handleNewStaffChange(e, "password")}
+                  required
+                  placeholder="Nhập mật khẩu"
                 />
                 <button
                   type="button"
@@ -180,6 +184,7 @@ export default function CreateStaffForm({
                 value={newStaff.phoneNumber}
                 onChange={(e) => handleNewStaffChange(e, "phoneNumber")}
                 placeholder="0987654321"
+                pattern="[0-9]{10}"
               />
             </label>
             <label className="w-1/2">
@@ -190,6 +195,7 @@ export default function CreateStaffForm({
                 className="w-full border-b-2 bg-gray-50 mt-2 outline-none focus:border-b-black"
                 value={newStaff.dateOfBirth}
                 onChange={(e) => handleNewStaffChange(e, "dateOfBirth")}
+                pattern="(0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[0-2])\/\d{4}"
               />
             </label>
           </div>
@@ -204,6 +210,8 @@ export default function CreateStaffForm({
                 value={newStaff.cccd}
                 onChange={(e) => handleNewStaffChange(e, "cccd")}
                 placeholder="001xxxxxxxxx"
+                pattern="001[0-9]{9}"
+                required
               />
             </label>
             <label className="w-1/2">
@@ -212,6 +220,7 @@ export default function CreateStaffForm({
                 className="w-full border-b-2 bg-gray-50 mt-2 outline-none focus:border-b-black"
                 value={newStaff.gender}
                 onChange={(e) => handleNewStaffChange(e, "gender")}
+                required
               >
                 <option value="">Chọn giới tính</option>
                 <option value="MALE">Nam</option>
@@ -229,7 +238,6 @@ export default function CreateStaffForm({
                 value={newStaff.position}
                 onChange={(e) => handleNewStaffChange(e, "position")}
               >
-                <option value="">Chọn vị trí</option>
                 {Object.entries(RoleEnum).map(([key, value]) => (
                   <option key={value} value={value}>
                     {RoleDisplay[value]}
@@ -256,10 +264,9 @@ export default function CreateStaffForm({
               <select
                 className="w-full border-b-2 bg-gray-50 mt-2 outline-none focus:border-b-black"
                 onChange={(e) => handleNewStaffChange(e, "status")}
-                // value={newStaff.status || "IN"}
+              // value={newStaff.status || "IN"}
 
               >
-                <option value="">Chọn trạng thái</option>
                 <option value="IN">Đang làm việc</option>
                 <option value="OUT">Đã nghỉ</option>
               </select>
@@ -270,8 +277,8 @@ export default function CreateStaffForm({
                 className="w-full border-b-2 bg-gray-50 mt-2 outline-none focus:border-b-black"
                 value={newStaff.salaryType}
                 onChange={(e) => handleNewStaffChange(e, "salaryType")}
+                required
               >
-                <option value="">Chọn loại lương</option>
                 <option value="HOURLY">Theo giờ</option>
                 <option value="DAYLY">Theo ngày</option>
               </select>
@@ -280,32 +287,31 @@ export default function CreateStaffForm({
 
           {/* Hàng 7: Lương theo giờ và Lương theo tháng */}
           <div className="flex space-x-4">
-            <label className="w-1/2">
+            {newStaff.salaryType === "HOURLY" ? <label className="w-1/2">
               Lương theo giờ
               <input
                 type="text"
                 className="w-full border-b-2 bg-gray-50 mt-2 outline-none focus:border-b-black"
                 value={newStaff.salaryPerHour}
                 onChange={(e) => handleNewStaffChange(e, "salaryPerHour")}
+                required
               />
-            </label>
+            </label> :
+              <label className="w-1/2">
+                Lương theo tháng
+                <input
+                  type="text"
+                  className="w-full border-b-2 bg-gray-50 mt-2 outline-none focus:border-b-black"
+                  value={newStaff.salaryPerMonth}
+                  onChange={(e) => handleNewStaffChange(e, "salaryPerMonth")}
+                  required
+                />
+              </label>
+            }
             <label className="w-1/2">
-              Lương theo tháng
-              <input
-                type="text"
-                className="w-full border-b-2 bg-gray-50 mt-2 outline-none focus:border-b-black"
-                value={newStaff.salaryPerMonth}
-                onChange={(e) => handleNewStaffChange(e, "salaryPerMonth")}
-              />
-            </label>
-          </div>
-
-          {/* Hàng 8: Ghi chú */}
-          <div className="flex space-x-4">
-            <label className="w-full">
               Ghi chú
               <input
-                className="w-full h-10 border-b-2 bg-gray-50 mt-2 outline-none focus:border-b-black resize-none"
+                className="w-full border-b-2 bg-gray-50 mt-2 outline-none focus:border-b-black resize-none"
                 onChange={(e) => handleNewStaffChange(e, "note")}
                 placeholder="Nhập ghi chú"
               />
@@ -315,8 +321,7 @@ export default function CreateStaffForm({
           <div className="flex justify-end gap-4 items-center mt-4">
             <button
               className="flex items-center gap-2 px-4 py-2 bg-black text-white rounded-md hover:bg-gray-800 transition"
-              onClick={handleCreateStaff}
-              type="button"
+              type="submit"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -332,6 +337,7 @@ export default function CreateStaffForm({
 
             {/* Hủy */}
             <button
+            type="button"
               className="px-4 py-2 border rounded-md hover:bg-gray-100 transition"
               onClick={toggleNewStaff}
             >

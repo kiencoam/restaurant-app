@@ -1,7 +1,4 @@
 /*
-  Gọi API lấy tất cả shift ở dòng 339
-  Gọi API lấy tất cả work attendance ở dòng 349
-  Gọi API update work attendance ở dòng 413
   lỗi: Chuyển absent sang các trạng thái khác phải nhập thời gian, không thì không chuyển
   khi  đang có status mà xóa hết thời gian thì không chuyển thành not started được
 */
