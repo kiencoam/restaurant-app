@@ -2,8 +2,9 @@
 
 import { PageInfo } from "@/app/api-client/PageInfo";
 import { updateUser, UpdateUserRequest, UserEntity } from "@/app/api-client/UserService";
+import { loginUserContext } from "@/components/LoginUserProvider";
 import { formatDateToYYYYMMDD } from "@/utils/timeUtils";
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 
 type Props = {
   staffs: UserEntity[]; // Assuming StaffEntity is the type for a staff object
@@ -42,6 +43,10 @@ export default function StaffList({
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(5);
+
+  let role = useContext(loginUserContext).role;
+  //tạm thời
+  // role = "MANAGER"
 
   // Calculate total pages
   const totalPages = Math.ceil(staffs.length / rowsPerPage);
@@ -185,7 +190,7 @@ export default function StaffList({
                 <td className="px-4 py-2 border-b">{staff.phoneNumber}</td>
                 <td className="px-4 py-2 border-b">{staff.position}</td>
               </tr>
-              {expandedRow === staff.id && (
+              {expandedRow === staff.id && ((role === "MANAGER" && staff.position !== "ADMIN" && staff.position !== "MANAGER") || role === "ADMIN") && (
                 <tr>
                   <td colSpan={5} className="bg-gray-50 p-4">
                     {/* Detailed information and editable fields */}

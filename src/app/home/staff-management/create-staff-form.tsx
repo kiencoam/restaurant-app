@@ -1,8 +1,9 @@
 //Phải comment một số tsx input vì backend chưa có !
 //Fix roleId, uncomment toggleNewStaff
 import { createUser, CreateUserRequest, UserEntity } from "@/app/api-client/UserService";
-import { useState } from "react";
+import { useContext, useState } from "react";
 import { GetStaffRequest } from "./page";
+import { loginUserContext } from "@/components/LoginUserProvider";
 
 type Props = {
   setStaffs: React.Dispatch<React.SetStateAction<UserEntity[]>>;
@@ -41,6 +42,10 @@ export default function CreateStaffForm({
 }: Props) {
   const [isCharsVisible, changeCharsVisibility] = useState(false);
 
+  let role = useContext(loginUserContext).role;
+  //tạm thời
+  role = "ADMIN"
+  
   const toggleCharsVisibility = () => {
     changeCharsVisibility(!isCharsVisible);
   };
@@ -239,6 +244,7 @@ export default function CreateStaffForm({
                 onChange={(e) => handleNewStaffChange(e, "position")}
               >
                 {Object.entries(RoleEnum).map(([key, value]) => (
+                  ((role === "MANAGER" && value !== "ADMIN" && value !== "MANAGER") || role === "ADMIN") &&
                   <option key={value} value={value}>
                     {RoleDisplay[value]}
                   </option>
@@ -337,7 +343,7 @@ export default function CreateStaffForm({
 
             {/* Hủy */}
             <button
-            type="button"
+              type="button"
               className="px-4 py-2 border rounded-md hover:bg-gray-100 transition"
               onClick={toggleNewStaff}
             >

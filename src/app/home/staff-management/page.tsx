@@ -94,17 +94,6 @@ const StaffManagementPage = () => {
     page_size: 5
   });
 
-    const id = Number(useContext(loginUserContext).id);
-  const currUserRole = staffs?.find(user => user.id === id)?.position || null;
-
-  useEffect(() => {
-    if (currUserRole === "MANAGER") {
-      const filteredStaffs = staffs.filter(user =>
-        ["CASH", "WAITER", "CHEF"].includes(user.position)
-      );
-      setStaffs(filteredStaffs);
-    }
-  }, [currUserRole, staffs]);
 
 
   // khi role rỗng, chạy các đoạn này để tạo role : id, name, description
@@ -173,6 +162,68 @@ const StaffManagementPage = () => {
     })
   }
 
+  // useEffect(() => {
+  //   const RoleIdDisplay = {
+  //     ADMIN: 1,
+  //     MANAGER: 3,
+  //     WAITER: 4,
+  //     CHEF: 2,
+  //     CASHIER: 6,
+  //   };
+  //   const displayRoleIds = [RoleIdDisplay["CASHIER"], RoleIdDisplay["WAITER"], RoleIdDisplay["CHEF"]];
+
+  //   const query = Object.entries(filter)
+  //     .map(([key, value]) => {
+  //       if (value !== undefined && value !== null) {
+  //         return `${key}=${value}`;
+  //       }
+  //     })
+  //     .filter(Boolean)
+  //     .join("&");
+
+  //   if (tempRole === "MANAGER") {
+  //     const promises = displayRoleIds.map((roleId) => {
+  //       const roleQuery = `page=0&page_size=20&role_id=${roleId}`;
+  //       return getAllUsers(roleQuery);
+  //     });
+  //     Promise.all(promises).then((results) => {
+  //       const combinedStaffs = results
+  //         .map((res) => res.second)
+  //         .flat();
+
+  //       const aggregatedPageInfo = results.reduce(
+  //         (acc, res) => {
+  //           return {
+  //             totalRecord: (acc.totalRecord || 0) + res.first.totalRecord,
+  //             totalPage: (acc.totalPage || 0) + res.first.totalPage,
+  //             pageSize: filter.page_size,
+  //             nextPage: null,
+  //             previousPage: null,
+  //           };
+  //         },
+  //         {
+  //           totalRecord: 0,
+  //           totalPage: 0,
+  //           pageSize: filter.page_size,
+  //           nextPage: null,
+  //           previousPage: null,
+  //         }
+  //       );
+
+  //       setPageInfo(aggregatedPageInfo);
+  //       setStaffs(combinedStaffs);
+  //       console.log(aggregatedPageInfo, "and", combinedStaffs);
+  //     });
+  //   } else {
+  //     getAllUsers(query).then((data) => {
+  //       setPageInfo(data.first);
+  //       setStaffs(data.second);
+  //       console.log(data);
+  //     });
+  //   }
+  // }, [filter]);
+
+
   useEffect(() => {
     const query = Object.entries(filter)
       .map(([key, value]) => {
@@ -183,8 +234,16 @@ const StaffManagementPage = () => {
       .join("&");
 
     getAllUsers(query).then((data) => {
+      const allStaffs = data.second; 
+      let filteredStaffs = allStaffs;
+      // if (tempRole === 'MANAGER') {
+      //   const roleIds = ['CASHIER','WAITER','CHEF'];
+      //   filteredStaffs = allStaffs.filter(staff =>
+      //     roleIds.includes(staff.position)
+      //   );
+      // }
+      setStaffs(filteredStaffs);
       setPageInfo(data.first);
-      setStaffs(data.second);
     });
     console.log(query)
   }, [filter]);
