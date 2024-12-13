@@ -1,9 +1,3 @@
-/*
-  Gọi API update thông tin bàn ở dòng 35
-  GỌi API xóa bàn ở dòng 47
-  Xóa = Đổi status
-*/
-
 import { deleteTable, TableEntity, updateTable, UpdateTableRequest } from "@/app/api-client/TableService";
 import React, { useState } from "react";
 import { sampleLocations } from "@/app/api-client/Locations";

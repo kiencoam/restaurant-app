@@ -2,13 +2,13 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import PurchaseOrderTable from "./PurchaseOrderTable"
-import { getAllStockHistories, StockHistoryEntity } from "@/app/api-client/StockHistoryService";
+import { deleteStockHistory, getAllStockHistories, StockHistoryEntity } from "@/app/api-client/StockHistoryService";
 import dayjs from "dayjs";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { PageInfo } from "@/app/api-client/PageInfo";
 
-type StockHistoryRequest = {
+export type StockHistoryRequest = {
   page: number;
   page_size: number;
   code?: string;
@@ -26,8 +26,6 @@ const PurchaseOrderPage = () => {
 
   const [stockHistories, setStockHistories] = useState<StockHistoryEntity[]>([])
 
-  const [expandedRows, setExpandedRows] = useState(null);
-
   const [isFilterOpen, setIsFilterOpen] = useState(false);
 
   const [searchOptionsOpen, setSearchOptionsOpen] = useState(false);
@@ -43,6 +41,19 @@ const PurchaseOrderPage = () => {
     nextPage: null,
     previousPage: null,
   });
+
+  // const idList = [1, 2, 3, 4, 5, 6, 7, 8];
+
+  // useEffect(() => {
+  //   Promise.all(idList.map((id) => deleteStockHistory(id)))
+  //     .then((results) => {
+  //       console.log("Deleted stock histories:", results);
+  //     })
+  //     .catch((error) => {
+  //       console.error("Error deleting stock histories:", error);
+  //     });
+  // }, []);
+  
 
   const [filter, setFilter] = useState<StockHistoryRequest>({
     page: 0,
@@ -87,7 +98,7 @@ const PurchaseOrderPage = () => {
       .filter(([key, value]) => value !== undefined && value !== "")
       .map(([key, value]) => {
         if ((key === 'from_date' || key === 'to_date') && value instanceof Date) {
-          value = formatDate(value); 
+          value = formatDate(value);
         }
         return `${key}=${value}`;
       })
@@ -96,6 +107,11 @@ const PurchaseOrderPage = () => {
     getAllStockHistories(query).then((data) => {
       console.log("data:", data)
       setPageInfo(data.first);
+      /*nextPage: 1
+      pageSize: 5
+      previousPage: null
+      totalPage: null
+      totalRecord: 8 */
       setStockHistories(data.second);
     });
   }, [filter]);
@@ -119,7 +135,7 @@ const PurchaseOrderPage = () => {
       };
     });
   };
-  
+
 
   const handleDateChange = (date: Date | null, dateType: "from_date" | "to_date") => {
     if (date) {
@@ -211,9 +227,9 @@ const PurchaseOrderPage = () => {
             <input
               className="p-2 bg-transparent outline-none"
               type="text"
-              placeholder="Theo tên hàng"
+              placeholder="Theo tên nhà cung cấp"
               value={filter.product_name}
-              onChange={(e) => handleInputChange(e, "product_name")}
+              onChange={(e) => handleInputChange(e, "supplier_name")}
             />
             <button onClick={toggleSearchOptions}>
               <svg
@@ -327,7 +343,7 @@ const PurchaseOrderPage = () => {
                       />
                       <span>Đã nhập hàng</span>
                     </label>
-                    <label className="flex items-center space-x-2 mt-2">
+                    {/* <label className="flex items-center space-x-2 mt-2">
                       <input
                         type="checkbox"
                         className="form-checkbox"
@@ -335,7 +351,7 @@ const PurchaseOrderPage = () => {
                         onChange={(e) => handleCheckboxChange(e, "canceled")}
                       />
                       <span>Đã hủy</span>
-                    </label>
+                    </label> */}
                   </div>
 
                   <div className="p-2">
@@ -394,8 +410,7 @@ const PurchaseOrderPage = () => {
       <div className="p-6">
         <PurchaseOrderTable
           data={currentRowsData}
-          expandedRows={expandedRows}
-          setExpandedRows={setExpandedRows}
+          setFilter={setFilter}
         />
         <div className="flex items-center space-x-8 mt-4">
           <div className="flex">

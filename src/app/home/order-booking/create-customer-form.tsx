@@ -1,6 +1,4 @@
-/*
-  Gọi API tạo khách hàng mới ở dòng 30
-*/
+
 
 import {
   createCustomer,

@@ -1,3 +1,5 @@
+//Chỉ tạo bảng lương cho toàn bộ nhân viên chứ không có cho nhóm nv cụ thể
+
 import React, { useState } from "react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";

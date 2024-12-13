@@ -1,9 +1,3 @@
-/*
-  Gọi API lấy tất cả kitchen items ở trạng thái PENDING ở dòng 228
-  Gọi API lấy tất cả kitchen items ở trạng thái READY ở dòng 244
-  Gọi API cập nhật các kitchen items hiện ở trạng thái PENDING ở dòng 252
-  Gọi API cập nhật các kitchen items hiện ở trạng thái READY ở dòng 273
-*/
 
 "use client";
 

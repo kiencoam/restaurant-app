@@ -1,8 +1,4 @@
-/*
-  Gọi API lấy danh sách bàn ở dòng 586
-  Gọi API lấy danh sách khách hàng và danh sách bàn ở dòng 611
-  Gọi API cập nhận order status ở dòng 709
-*/
+
 
 "use client";
 

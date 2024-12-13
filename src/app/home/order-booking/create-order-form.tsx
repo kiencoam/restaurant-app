@@ -1,8 +1,4 @@
-/*
-  Gọi API lấy thông tin user đang đăng nhập ở dòng 271
-  Gọi API lấy danh sách bàn trống ở dòng 277
-  Gọi API tạo order ở dòng 300
-*/
+
 
 import { default as ReactSelect, components } from "react-select";
 import { Tooltip } from "react-tooltip";

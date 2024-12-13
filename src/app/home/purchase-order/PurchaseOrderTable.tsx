@@ -1,10 +1,11 @@
-// Check Enum CANCELED hoặc gì đó vì k tồn tại
-// Chỉnh update từng item và cả đơn nhập
-
-import React, { useEffect, useState } from "react";
+//Khong update note user.. dc
+import React, { useContext, useEffect, useState } from "react";
 import Link from "next/link";
-import { getDetailStockHistory, StockHistoryEntity, UpdateStockHistoryRequest, UpdateStockHistoryItemRequest } from "@/app/api-client/StockHistoryService";
+import { getDetailStockHistory, StockHistoryEntity, UpdateStockHistoryRequest, UpdateStockHistoryItemRequest, updateStockHistory, deleteStockHistory } from "@/app/api-client/StockHistoryService";
 import { formatToDDMMYYYY } from "@/utils/timeUtils";
+import { loginUserContext } from "@/components/LoginUserProvider";
+import { getAllUsers, UserEntity } from "@/app/api-client/UserService";
+import { StockHistoryRequest } from "./page";
 
 // export type UpdateStockHistoryRequest = {
 //   supplierId: number;
@@ -23,27 +24,73 @@ import { formatToDDMMYYYY } from "@/utils/timeUtils";
 
 interface PurchaseOrderTableProps {
   data: StockHistoryEntity[];
-  expandedRows: number;
-  setExpandedRows: (id: number) => void;
+  setFilter: React.Dispatch<React.SetStateAction<StockHistoryRequest>>
 }
 
-const PurchaseOrderTable = ({ data, expandedRows, setExpandedRows }: PurchaseOrderTableProps) => {
+const PurchaseOrderTable = ({ data, setFilter }: PurchaseOrderTableProps) => {
 
   const [updatingStockHistory, setUpdatingStockHistory] = useState<StockHistoryEntity | null>(null)
   const [updatingStockHistoryId, setUpdatingStockHistoryId] = useState<number | null>(null)
+  const [users, setUsers] = useState<UserEntity[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [userName, setUserName] = useState("");
 
+  //lấy id làm userid
+  const id = Number(useContext(loginUserContext).id)
+
+  useEffect(() => {
+    if (userName) {
+      const query = `page=0&page_size=5&name=${userName}`;
+
+      getAllUsers(query).then((data) => {
+        setUsers(data.second);
+      });
+    }
+  }, [userName]);
 
   const handleRowClick = (id: number) => {
     setUpdatingStockHistoryId((prevId) => (prevId === id ? null : id));
+
   };
 
+  const handleInputChange = (field: string, value) => {
+    if (field === "userName") {
+      setUserName(value); // Cập nhật giá trị state
+    }
+    else setUpdatingStockHistory({
+      ...updatingStockHistory,
+      [field]: value
+    })
+  }
+  const handleSubmit = () => {
+    const payload: UpdateStockHistoryRequest = {
+      supplierId: updatingStockHistory.supplierId,
+      userId: updatingStockHistory.userId,
+      code: updatingStockHistory.code,
+      status: updatingStockHistory.status,
+      note: updatingStockHistory.note,
+      stockHistoryItems: updatingStockHistory.stockHistoryItems,
+    }
+    console.log("payload: ", payload);
+    updateStockHistory(updatingStockHistoryId, payload).then((res) => {
+      handleRowClick(updatingStockHistoryId);
+    })
+  }
+
+  const handleDelete = () => {
+    deleteStockHistory(updatingStockHistoryId).then((res) => {
+      console.log(res);
+      handleRowClick(updatingStockHistoryId);
+      setFilter(prev => ({ ...prev })); // Kích hoạt useEffect    
+    })
+  }
 
   useEffect(() => {
     if (updatingStockHistoryId !== null) {
       getDetailStockHistory(updatingStockHistoryId)
         .then((data) => {
           setUpdatingStockHistory(data);
-          console.log(data)
+          setUserName(data.user.name)
         })
         .catch((error) => {
           console.error("Lỗi khi lấy chi tiết phiếu nhập:", error);
@@ -53,21 +100,6 @@ const PurchaseOrderTable = ({ data, expandedRows, setExpandedRows }: PurchaseOrd
       setUpdatingStockHistory(null); // Reset khi ID là null (collapse)
     }
   }, [updatingStockHistoryId]);
-
-  // useEffect(() => {
-  //   const query = Object.entries(getProductRequest)
-  //     .map(([key, value]) => {
-  //       if (value || key === "page") {
-  //         return `${key}=${value}`;
-  //       }
-  //     })
-  //     .join("&");
-
-  //   getAllProducts(query).then((data) => {
-  //     setProducts(data.second);
-  //   })
-  // }, [getProductRequest]);
-
 
   return (
     <div className="m-[24px] border border-gray-300 rounded-lg overflow-hidden">
@@ -94,7 +126,7 @@ const PurchaseOrderTable = ({ data, expandedRows, setExpandedRows }: PurchaseOrd
                 <td className="p-3 border ">{formatToDDMMYYYY(item.dateTime)}</td>
                 <td className="p-3 border">{item.supplier.name}</td>
                 <td className="p-3 border ">{item.totalPrice}</td>
-                <td className="p-3 border ">{item.status}</td>
+                <td className="p-3 border ">{item.status === "DONE" ? "Đã nhập hàng" : "Phiếu tạm"}</td>
               </tr>
               {updatingStockHistoryId === item.id && updatingStockHistory && (
                 <tr className="bg-gray-50">
@@ -103,25 +135,93 @@ const PurchaseOrderTable = ({ data, expandedRows, setExpandedRows }: PurchaseOrd
                       <div className="grid grid-cols-2 gap-4 mb-4">
                         <div>
                           <p>
-                            <strong>Mã phiếu nhập:</strong> {updatingStockHistory.code}
+                            <label>
+                              <span>Mã phiếu nhập:</span>
+                              <input
+                                type="text"
+                                value={updatingStockHistory.code}
+                                className="w-full p-2 border rounded"
+                                disabled
+                              />
+                            </label>
                           </p>
                           <p>
-                            <strong>Thời gian:</strong> {formatToDDMMYYYY(updatingStockHistory.dateTime)}
+                            <label>
+                              <span>Thời gian:</span>
+                              <input
+                                type="text"
+                                value={formatToDDMMYYYY(updatingStockHistory.dateTime)}
+                                className="w-full p-2 border rounded"
+                                disabled
+                              />
+                            </label>
                           </p>
                           <p>
-                            <strong>Nhà cung cấp:</strong> {updatingStockHistory.supplier.name}
+                            <label className="relative">
+                              <span>Nhà cung cấp:</span>
+                              <input
+                                type="text"
+                                value={updatingStockHistory.supplier.name}
+                                className="w-full p-2 border rounded"
+                                disabled
+
+                              />
+                            </label>
+
                           </p>
                         </div>
                         <div>
                           <p>
-                            <strong>Trạng thái:</strong> {updatingStockHistory.status}
+                            <label>
+                              <span>Trạng thái:</span>
+                              <input
+                                type="text"
+                                value={updatingStockHistory.status === "DONE" ? "Đã nhập hàng" : "Phiếu tạm"}
+                                className="w-full p-2 border rounded"
+                                disabled
+                              />
+                            </label>
                           </p>
-
                           <p>
-                            <strong>Người nhập:</strong> {updatingStockHistory.user.name}
+                            <label>
+                              <span>Người nhập:</span>
+                              <input
+                                type="text"
+                                value={userName}
+                                onChange={(e) => handleInputChange("userName", e.target.value)}
+                                className="w-full p-2 border rounded"
+                                onFocus={() => setShowSuggestions(true)}
+                                onBlur={() => setTimeout(() => setShowSuggestions(false), 100)}
+                              />
+                              {showSuggestions && users.length > 0 && userName && (
+                                <div className="absolute z-10 w-full bg-white border border-gray-300 rounded shadow-md max-h-40 overflow-y-auto">
+                                  {users.map((user) => (
+                                    <div
+                                      key={user.id}
+                                      className="px-4 py-2 cursor-pointer hover:bg-gray-100"
+                                      onMouseDown={() => {
+                                        handleInputChange("userId", user.id);
+                                        setUserName(user.name);
+                                        setShowSuggestions(false);
+                                      }}
+                                    >
+                                      {user.name}
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                            </label>
                           </p>
                           <p>
-                            <strong>Ghi chú:</strong> {updatingStockHistory.note || ""}
+                            <label>
+                              <span>Ghi chú:</span>
+                              <input
+                                type="text"
+                                value={updatingStockHistory.note || ""}
+                                onChange={(e) => handleInputChange("note", e.target.value)}
+                                className="w-full p-2 border rounded"
+                              />
+                            </label>
                           </p>
                         </div>
                       </div>
@@ -181,40 +281,39 @@ const PurchaseOrderTable = ({ data, expandedRows, setExpandedRows }: PurchaseOrd
                         </p>
                       </div>
                       <div className="flex justify-end gap-4 mt-4">
-                        {/* CANCELED? */}
-                        {updatingStockHistory.status !== "canceled" && (
+                        {/* Status Logic */}
+                        {updatingStockHistory.status === "DONE" && (
+                          <button
+                            onClick={handleSubmit}
+                            className="border rounded-md px-2 shadow-sm bg-black text-white"
+                          >
+                            Lưu
+                          </button>
+                        )}
+
+                        {updatingStockHistory.status === "PENDING" && (
                           <>
                             <button
-                              onClick={() => handleRowClick(updatingStockHistory.id)}
+                              onClick={handleSubmit}
                               className="border rounded-md px-2 shadow-sm bg-black text-white"
                             >
                               Lưu
                             </button>
-                            {updatingStockHistory.status === "PENDING" && (
-                              // <Link href={`/home/purchase-order/${updatingStockHistory.code}`}>
-                              <Link href={`/home/purchase-order/open`}>
-
-                                <button className="border rounded-md px-2 shadow-sm bg-blue-500 text-white">
-                                  Mở phiếu
-                                </button>
-                              </Link>
-                            )}
-                            {updatingStockHistory.status === "DONE" && (
-                              <Link href="/home/purchase-return">
-                                <button className="border rounded-md px-2 shadow-sm bg-red-500 text-white">
-                                  Trả hàng
-                                </button>
-                              </Link>
-                            )}
+                            <Link href={`/home/purchase-order/open`}>
+                              <button className="border rounded-md px-2 shadow-sm bg-blue-500 text-white">
+                                Mở phiếu
+                              </button>
+                            </Link>
+                            <button
+                              onClick={handleDelete}
+                              className="border rounded-md px-2 shadow-sm"
+                            >
+                              Hủy
+                            </button>
                           </>
                         )}
-                        <button
-                          onClick={() => handleRowClick(updatingStockHistory.id)}
-                          className="border rounded-md px-2 shadow-sm"
-                        >
-                          Hủy
-                        </button>
                       </div>
+
                     </div>
                   </td>
                 </tr>

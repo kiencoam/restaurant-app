@@ -1,7 +1,3 @@
-/*
-  Gọi API update thông tin menuitems ở dòng 36 done
-  GỌi API xóa menuitems ở dòng 50 done
-*/
 
 import React, { useState } from "react";
 import { MenuItemEntity, MenuSectionEntity } from "../order-taking/entity";

@@ -1,6 +1,3 @@
-/*
-  Gọi API tạo mới menuitems ở dòng 33 done
-*/
 
 import { useState } from "react";
 import { MenuItemEntity, MenuSectionEntity } from "../order-taking/entity";

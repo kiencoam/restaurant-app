@@ -1,6 +1,4 @@
-/*
-  Gọi API tạo mới menu section ở dòng 23 done
-*/
+
 
 import { useState } from "react";
 import { MenuSectionEntity } from "../order-taking/entity";

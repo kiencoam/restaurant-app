@@ -1,7 +1,4 @@
-/*
-  Gọi API lấy tất cả menu items ở dòng 113 done
-  Gọi API lấy tất cả menu sections ở dòng 127 done
-*/
+
 
 "use client";
 import React, { useEffect, useRef, useState } from "react";

@@ -1,3 +1,4 @@
+//Khong update duoc
 "use client";
 import React, { useState, useEffect, useRef, useCallback, useContext } from "react";
 import { Tooltip } from "react-tooltip";
@@ -15,7 +16,6 @@ import { GetSupplierRequest } from "../../supplier-management/page";
 
 enum StockHistoryStatusEnum {
   Pending = "PENDING",
-  Processing = "PROCESSING",
   Done = "DONE"
 }
 
@@ -37,7 +37,7 @@ const initialStockHistory: CreateStockHistoryRequest = {
   stockHistoryItems: [] as CreateStockHistoryItemRequest[],
 }
 
-type GetProductRequest = {
+export type GetProductRequest = {
   page: number,
   page_size: number,
   name?: string,
@@ -152,7 +152,7 @@ const NewPage = () => {
     createStockHistory(updatedStockHistory).then((res: StockHistoryEntity) => {
       console.log(res);
       if (status == StockHistoryStatusEnum.Pending) {
-        router.push(`./home/purchase-order/${newStockHistory.code}`)
+        router.push(`./home/purchase-order/`)
       }
       else if (status == StockHistoryStatusEnum.Done){
         router.push(`./home/purchase-order`)
@@ -417,7 +417,7 @@ const NewPage = () => {
           <label className="text-gray-700">Mã phiếu nhập</label>
           <input
             className="border-b-2  w-[140px]  outline-none focus:border-b-black pb-2"
-            placeholder="Mã phiếu tự động"
+            // placeholder="Mã phiếu tự động"
             onChange={(e) => handleInputChange(e, "code")}
           />
         </div>
