@@ -1,7 +1,10 @@
-
 import React, { useState } from "react";
 import { MenuItemEntity, MenuSectionEntity } from "../order-taking/entity";
-import { deleteMenuItem, updateMenuItem, UpdateMenuItemRequest } from "@/app/api-client/MenuItemService";
+import {
+  deleteMenuItem,
+  updateMenuItem,
+  UpdateMenuItemRequest,
+} from "@/app/api-client/MenuItemService";
 import Image from "next/image";
 
 export default function MenuItemList({
@@ -37,9 +40,7 @@ export default function MenuItemList({
       updateMenuItem(updatingMenuItemId, updatingMenuItem).then((res) => {
         setMenuItems((prev) =>
           prev.map((menu) =>
-            menu.id === updatingMenuItemId
-              ? { ...menu, ...res }
-              : menu
+            menu.id === updatingMenuItemId ? { ...menu, ...res } : menu
           )
         );
       });
@@ -226,11 +227,12 @@ export default function MenuItemList({
                               className="w-full border-b-2 bg-gray-50 mt-2 focus:border-b-black outline-none"
                             />
                           </label>
-                          <div className="flex justify-center items-center">
-                            <img
+                          <div className="relative overflow-hidden h-28 w-28">
+                            <Image
                               src={updatingMenuItem.thumbnailImg}
                               alt="thumbnail"
-                              className="w-28 h-28 object-cover"
+                              layout="fill"
+                              className="absolute w-full h-full object-cover"
                             />
                           </div>
                         </div>

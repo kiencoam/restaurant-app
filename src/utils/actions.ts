@@ -18,7 +18,7 @@ export const doLogin = async (formData: FormData) => {
     const response = await authenticate(payload);
     setToken(response.token);
   } catch (err) {
-    throw err;
+    return false;
   }
 
   return true;

@@ -1,5 +1,3 @@
-
-
 import { default as ReactSelect, components } from "react-select";
 import { Tooltip } from "react-tooltip";
 import CreateCustomerForm from "./create-customer-form";
@@ -7,7 +5,10 @@ import { CreateOrderRequest, TableEntity } from "../order-taking/entity";
 import { OrderEntity } from "../order-taking/entity";
 import { useContext, useEffect, useState } from "react";
 import { CustomerEntity } from "./data";
-import { formatDateToString, formatTimeToYYYYMMDDTHHMM } from "@/utils/timeUtils";
+import {
+  formatDateToString,
+  formatTimeToYYYYMMDDTHHMM,
+} from "@/utils/timeUtils";
 import { getDetailUser, UserEntity } from "@/app/api-client/UserService";
 import { loginUserContext } from "@/components/LoginUserProvider";
 import { getAllCustomers } from "@/app/api-client/CustomerService";
@@ -87,7 +88,6 @@ const Option = (props) => {
   );
 };
 
-
 export default function CreateOrderForm({
   setOrders,
   setIsNewOrder,
@@ -97,9 +97,11 @@ export default function CreateOrderForm({
 }) {
   const loginUserId = useContext(loginUserContext).id;
 
-  const [startDate, setStartDate] = useState(new Date(new Date().getTime() + 5*60*1000));
+  const [startDate, setStartDate] = useState(
+    new Date(new Date().getTime() + 5 * 60 * 1000)
+  );
 
-  const [duration, setDuration] = useState<number>(1)
+  const [duration, setDuration] = useState<number>(1);
 
   const [customers, setCustomers] = useState<CustomerEntity[]>([]);
 
@@ -107,7 +109,9 @@ export default function CreateOrderForm({
     customerId: null,
     userId: loginUserId,
     checkInTime: formatDateToString(startDate),
-    checkOutTime: formatDateToString(new Date(startDate.getTime() + duration*60*60*1000)),
+    checkOutTime: formatDateToString(
+      new Date(startDate.getTime() + duration * 60 * 60 * 1000)
+    ),
     numberOfPeople: 1,
     tableIds: new Set<number>(),
     note: "",
@@ -129,9 +133,8 @@ export default function CreateOrderForm({
     const query = `page=0&page_size=5&name=${searchCustomer}`;
     getAllCustomers(query).then((res) => {
       setCustomers(res.second);
-    })
+    });
   }, [searchCustomer]);
-
 
   const customerOptions = customers.map((customer) => ({
     value: customer.id,
@@ -154,16 +157,18 @@ export default function CreateOrderForm({
     /* Gọi API lay thong tin user dang nhap */
     getDetailUser(loginUserId).then((res) => {
       setLoginUser(res);
-    })
-
+    });
   }, [loginUserId]);
 
   useEffect(() => {
-
-    getAllTablesAvailable(formatDateToString(startDate), formatDateToString(new Date(startDate.getTime() + duration*60*60*1000))).then((res) => {
+    getAllTablesAvailable(
+      formatDateToString(startDate),
+      formatDateToString(
+        new Date(startDate.getTime() + duration * 60 * 60 * 1000)
+      )
+    ).then((res) => {
       setTables(res);
-    })
-
+    });
   }, [startDate, duration]);
 
   const handleSelectedTablesChange = (selectedOptions) => {
@@ -180,15 +185,17 @@ export default function CreateOrderForm({
     setNewOrder((prev) => ({
       ...prev,
       checkInTime: formatDateToString(startDate),
-    checkOutTime: formatDateToString(new Date(startDate.getTime() + duration*60*60*1000)),
+      checkOutTime: formatDateToString(
+        new Date(startDate.getTime() + duration * 60 * 60 * 1000)
+      ),
       tableIds: new Set<number>(),
     }));
   }, [startDate, duration]);
 
   const handleCreateOrder = async (e) => {
     /* Gọi API tao order */
-    e.preventDefault()
-    console.log("request", newOrder)
+    e.preventDefault();
+    console.log("request", newOrder);
     await createOrder(newOrder).then((res) => {
       console.log(res);
     });
@@ -266,7 +273,7 @@ export default function CreateOrderForm({
                 </div>
 
                 <button
-                type="button"
+                  type="button"
                   data-tooltip-id="my-tooltip"
                   data-tooltip-content="Tạo khách hàng mới"
                   onClick={() => setIsNewCustomer((prev) => !prev)}
@@ -310,7 +317,7 @@ export default function CreateOrderForm({
               <div> Phòng/bàn</div>
               <div className="w-60 border-b-2">
                 <ReactSelect
-                  options={tables.map((table) => ({
+                  options={tables?.map((table) => ({
                     value: table.id,
                     label: table.name,
                   }))}
@@ -327,11 +334,11 @@ export default function CreateOrderForm({
                   styles={customStyles}
                   noOptionsMessage={() => "Bàn/Phòng không có sẵn"}
                   required
-                // Hide dropdown list  when select any item
-                // closeMenuOnSelect={true}
+                  // Hide dropdown list  when select any item
+                  // closeMenuOnSelect={true}
 
-                //Selected Item Remove in dropdown list
-                // hideSelectedOptions={true}
+                  //Selected Item Remove in dropdown list
+                  // hideSelectedOptions={true}
                 />
               </div>
             </div>
@@ -346,9 +353,7 @@ export default function CreateOrderForm({
                   value={formatTimeToYYYYMMDDTHHMM(startDate)}
                   onChange={(e) => {
                     const selectedDate = new Date(e.target.value);
-                    if (selectedDate.getTime() < new Date().getTime()) return;
                     setStartDate(selectedDate);
-
                   }}
                   required
                 />
@@ -371,11 +376,9 @@ export default function CreateOrderForm({
               <input
                 className="p-2 bg-transparent w-full text-left outline-none border-b-2 focus:border-b-black"
                 type="number"
-                value={
-                  duration
-                }
+                value={duration}
                 onChange={(e) => {
-                  setDuration(Number(e.target.value))
+                  setDuration(Number(e.target.value));
                 }}
                 min={0.5}
                 max={24}
@@ -424,7 +427,7 @@ export default function CreateOrderForm({
               </div>
             </button>
             <button
-            type="button"
+              type="button"
               className="p-2 rounded right-0"
               onClick={() => setIsNewOrder(false)}
             >

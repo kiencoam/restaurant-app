@@ -60,12 +60,12 @@ export function Menu({
               className="bg-[#f5f5f5] h-44 w-28 p-2 text-sm flex flex-col justify-between rounded-md shadow-sm active:shadow-[#d7d7d7] active:shadow-inner"
               onClick={() => handleAddMenuItem(item.id)}
             >
-              <div className="object-contain overflow-hidden">
+              <div className="relative overflow-hidden w-24 h-24">
                 <Image
                   src={item.thumbnailImg}
                   alt={item.title}
-                  width={96}
-                  height={96}
+                  layout="fill"
+                  className="absolute object-cover w-full h-full"
                 />
               </div>
               <h1 className="text-center font-semibold text-[#7d7d7d]">
