@@ -126,13 +126,13 @@ export default function SupplierList({
       <table className="min-w-full bg-white border border-gray-200 mt-6">
         <thead>
           <tr className="bg-[#f7fafc] border-b-2">
-            <th className="px-4 py-2 border-b text-left">
+            {/* <th className="px-4 py-2 border-b text-left">
               <input
                 type="checkbox"
                 checked={masterChecked}
                 onChange={handleMasterCheckboxChange}
               />
-            </th>
+            </th> */}
             <th className="px-4 py-2 border-b text-left">Mã nhà cung cấp</th>
             <th className="px-4 py-2 border-b text-left">Tên nhà cung cấp</th>
             <th className="px-4 py-2 border-b text-right">Nợ hiện tại</th>
@@ -162,14 +162,14 @@ export default function SupplierList({
                   handleRowClick(supllier.id); // Expand or collapse row
                 }}
               >
-                <td className="px-4 py-2 border-b">
+                {/* <td className="px-4 py-2 border-b">
                   <input
                     type="checkbox"
                     checked={!!checkedRows[supllier.id]}
                     onChange={() => handleRowCheckboxChange(supllier.id)}
                   />
-                </td>
-                <td className="px-4 py-2 border-b text-blue-600">
+                </td> */}
+                <td className="px-4 py-2 border-b text-blue-600 pl-9">
                   <button>{supllier.code}</button>
                 </td>
                 <td className="px-4 py-2 border-b">{supllier.name}</td>

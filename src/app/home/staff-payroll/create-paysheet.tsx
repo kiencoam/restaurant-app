@@ -49,13 +49,12 @@ export default function CreatePaysheet({ toggleNewPaysheet, setPeriodFilter }: P
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
     console.log("new", newSalaryPeriod)
-    if (!newSalaryPeriod.title || !newSalaryPeriod.fromDate || !newSalaryPeriod.toDate) {
-      alert("Vui lòng điền đầy đủ thông tin trước khi lưu!");
-      return;
-    }
     createSalaryPeriod(newSalaryPeriod).then((res) => {
       console.log("Submitting salary period:", res);
       setPeriodFilter(prev => ({ ...prev }));
+    })
+    .catch((error) => {
+      alert("Tạo bảng lương thất bại !")
     })
 
     toggleNewPaysheet();
@@ -75,6 +74,7 @@ export default function CreatePaysheet({ toggleNewPaysheet, setPeriodFilter }: P
               onChange={handleTitleChange}
               className="border p-2 rounded focus:outline-none focus:ring-2 focus:ring-black"
               placeholder="Nhập tên bảng lương"
+              required
             />
           </div>
 
@@ -88,6 +88,7 @@ export default function CreatePaysheet({ toggleNewPaysheet, setPeriodFilter }: P
                 dateFormat="dd/MM/yyyy"
                 placeholderText="Ngày bắt đầu"
                 isClearable
+                required
               />
               <DatePicker
                 className="border p-2 rounded focus:outline-none focus:ring-2 focus:ring-black w-full"
@@ -96,6 +97,7 @@ export default function CreatePaysheet({ toggleNewPaysheet, setPeriodFilter }: P
                 dateFormat="dd/MM/yyyy"
                 placeholderText="Ngày kết thúc"
                 isClearable
+                required
               />
             </div>
           </div>

@@ -1,5 +1,6 @@
-import { CreateOrderRequest, OrderEntity } from "../home/order-taking/entity";
+import { CreateOrderRequest, OrderItemEntity, OrderTableEntity} from "../home/order-taking/entity";
 import apiClientService from "./ApiClientService";
+import { CustomerEntity } from "./CustomerService";
 
 const baseUrl: string = "http://localhost:8080/api/v1/orders";
 
@@ -24,6 +25,23 @@ export type UpdateOrderRequest = {
 
 export type UpdateOrderStatusRequest = {
   status: string;
+};
+
+export type OrderEntity = {
+  id?: number;
+  customerId?: number;
+  userId?: number;
+  orderStatus?: string;
+  totalCost: number;
+  numberOfPeople?: number;
+  note?: string;
+  checkInTime?: string;
+  checkOutTime?: string;
+  paymentId?: number;
+  paymentMethod?: string;
+  customer?: CustomerEntity;
+  orderItems: OrderItemEntity[];
+  orderTables: OrderTableEntity[];
 };
 
 export const createOrder = async (

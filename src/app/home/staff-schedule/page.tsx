@@ -27,6 +27,7 @@ import { createWorkSchedule, deleteWorkSchedule, getAllWorkSchedules, WorkSchedu
 import { getAllUsers, UserEntity } from "@/app/api-client/UserService";
 import { createShift, deleteShift, getAll, ShiftEntity, updateShift } from "@/app/api-client/ShiftService";
 import { CreateWorkScheduleRequest } from "@/app/api-client/WorkScheduleService";
+import { newDate } from "react-datepicker/dist/date_utils";
 
 const daysOfWeek = [
   { id: 0, name: "SUN" },
@@ -333,6 +334,8 @@ export default function StaffSchedulePage() {
   const [selectedSchedule, setSelectedSchedule] =
     useState<WorkScheduleEntity>(null); // State lưu thông tin ca làm đang được chọn
 
+  const [currWorkSchedules, setCurrWorkSchedules] = useState<WorkScheduleEntity[]>([]);
+
   const [searchInput, setSearchInput] = useState<string>("");
 
   const [displayUsers, setDisplayUsers] = useState<UserEntity[]>([]);
@@ -435,10 +438,17 @@ export default function StaffSchedulePage() {
   };
 
   const openAddShifts = (user: UserEntity, date: string) => {
+    if (new Date(date) < new Date()){
+      return;
+    }
+    setCurrWorkSchedules(searchByUserIdAndDate(user.id, date))
     setUser(user);
     setChosenDate(date);
     setIsAddShifts(true);
+
   };
+
+  console.log(currWorkSchedules)
 
   const handleChosenShifts: ChangeEventHandler<HTMLInputElement> = (e) => {
     const newChosenShifts = new Set(chosenShiftIds);
@@ -453,6 +463,8 @@ export default function StaffSchedulePage() {
   const closeAddShifts = () => {
     setIsAddShifts(false);
     setChosenShiftIds(new Set());
+    setCurrWorkSchedules([])
+
   };
 
   const saveAddShifts = () => {
@@ -515,9 +527,9 @@ export default function StaffSchedulePage() {
         });
         closeCreateShift();
       })
-      .catch ((error) => {
-        alert("Trùng với các ca làm việc khác");;
-      });
+        .catch((error) => {
+          alert("Trùng với các ca làm việc khác");;
+        });
     }
     catch (error) {
       alert("Trùng với các ca làm việc khác");
@@ -569,9 +581,9 @@ export default function StaffSchedulePage() {
           closeEditShift();
         });
       })
-      .catch ((error) => {
-        alert("Trùng với các ca làm việc khác");;
-      });
+        .catch((error) => {
+          alert("Trùng với các ca làm việc khác");;
+        });
     } catch (error) {
       alert("Trùng với các ca làm việc khác");;
     }
@@ -635,7 +647,7 @@ export default function StaffSchedulePage() {
 
   //Xóa các schedule trước khi xóa shift
   const delSchedulesByShiftId = (shiftIdToDelete) => {
-    const schedulesToDelete = workSchedules.filter(schedule => schedule.shiftId === shiftIdToDelete);
+    const schedulesToDelete = workSchedules.filter(schedule => schedule.shiftId === shiftIdToDelete && new Date(schedule.date) >= new Date());
     console.log(schedulesToDelete)
     const idsToDelete = schedulesToDelete.map(schedule => schedule.id);
     console.log(idsToDelete)
@@ -890,7 +902,9 @@ export default function StaffSchedulePage() {
             </div>
             <div className="font-bold text-xl mb-4">Chọn ca làm việc</div>
             <div className="flex flex-wrap mb-4 gap-y-3">
-              {shifts && shifts.map((shift) => (
+              {shifts && shifts.filter(shift =>
+                !currWorkSchedules.some(work => work.shiftId === shift.id)
+              ).map((shift) => (
                 <label key={shift.id} className="basis-1/2 space-x-2">
                   <input
                     type="checkbox"
