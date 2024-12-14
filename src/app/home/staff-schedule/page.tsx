@@ -647,7 +647,7 @@ export default function StaffSchedulePage() {
 
   //Xóa các schedule trước khi xóa shift
   const delSchedulesByShiftId = (shiftIdToDelete) => {
-    const schedulesToDelete = workSchedules.filter(schedule => schedule.shiftId === shiftIdToDelete);
+    const schedulesToDelete = workSchedules.filter(schedule => schedule.shiftId === shiftIdToDelete && new Date(schedule.date) >= new Date());
     console.log(schedulesToDelete)
     const idsToDelete = schedulesToDelete.map(schedule => schedule.id);
     console.log(idsToDelete)

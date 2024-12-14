@@ -21,6 +21,7 @@ const ROLES = {
     "/home/products",
     "/home/purchase-order",
     "/home/menu",
+    "/home/bill",
   ],
   [MANAGER]: [
     "/home/staff-management",
