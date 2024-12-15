@@ -8,33 +8,35 @@ const TESTER: string = "TESTER";
 const ROLES = {
   [ADMIN]: [
     "/home/dashboard",
-    "/home/kitchen",
-    "/home/tableandroom",
     "/home/staff-management",
     "/home/staff-schedule",
     "/home/staff-attendance",
     "/home/staff-payroll",
-    "/home/customer-management",
-    "/home/supplier-management",
-    "/home/order-taking",
     "/home/order-booking",
-    "/home/products",
-    "/home/purchase-order",
+    "/home/order-taking",
+    "/home/kitchen",
     "/home/menu",
     "/home/bill",
-  ],
-  [MANAGER]: [
-    "/home/staff-management",
-    "/home/staff-schedule",
-    "/home/staff-attendance",
-    "/home/staff-payroll",
+    "/home/tableandroom",
     "/home/customer-management",
     "/home/supplier-management",
     "/home/products",
     "/home/purchase-order",
-    "/home/kitchen",
+  ],
+  [MANAGER]: [
+    "/home/staff-schedule",
+    "/home/staff-attendance",
+    "/home/staff-payroll",
     "/home/order-booking",
     "/home/order-taking",
+    "/home/kitchen",
+    "/home/menu",
+    "/home/bill",
+    "/home/tableandroom",
+    "/home/customer-management",
+    "/home/supplier-management",
+    "/home/products",
+    "/home/purchase-order",
   ],
   [CHEF]: ["/home/kitchen"],
   [WAITER]: ["/home/order-taking"],
@@ -61,15 +63,13 @@ export function firstView(role: Role): string {
     case ADMIN:
       return "/home/dashboard";
     case MANAGER:
-      return "/home/staff-management";
+      return "/home/staff-schedule";
     case CHEF:
       return "/home/kitchen";
     case RECEPTIONIST:
       return "/home/order-booking";
     case WAITER:
       return "/home/order-taking";
-    case TESTER:
-      return "/home/dashboard";
     default:
       return "";
   }

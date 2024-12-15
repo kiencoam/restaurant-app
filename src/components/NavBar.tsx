@@ -90,40 +90,6 @@ const NavBar = () => {
           </div>
         )}
 
-        {/* Thực đơn */}
-        {hasPermission(loginUser?.role.name, "/home/menu") && (
-          <div
-            className={`rounded-md w-full h-12 hover:bg-[#454545] ${
-              pathname === "/home/menu" ? "bg-[#383838] text-[#dcf70f]" : ""
-            }`}
-          >
-            <Link
-              className="flex items-center gap-2 w-full h-full"
-              href="/home/menu"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="w-5 h-5 ml-3"
-              >
-                <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-                <path d="M4 11h16a1 1 0 0 1 1 1v.5c0 1.5 -2.517 5.573 -4 6.5v1a1 1 0 0 1 -1 1h-8a1 1 0 0 1 -1 -1v-1c-1.687 -1.054 -4 -5 -4 -6.5v-.5a1 1 0 0 1 1 -1z" />
-                <path d="M19 7l-14 1" />
-                <path d="M19 2l-14 3" />
-              </svg>
-
-              <p className="text-xl">Thực đơn</p>
-            </Link>
-          </div>
-        )}
-
         {/* Đặt bàn */}
         {hasPermission(loginUser?.role.name, "/home/order-booking") && (
           <div
@@ -174,21 +140,22 @@ const NavBar = () => {
               href="/home/order-taking"
             >
               <svg
-                className="w-5 h-5 ml-3"
-                aria-hidden="true"
                 xmlns="http://www.w3.org/2000/svg"
                 width="24"
                 height="24"
-                fill="none"
                 viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="w-5 h-5 ml-3"
               >
-                <path
-                  stroke="currentColor"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M15 4h3a1 1 0 0 1 1 1v15a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h3m0 3h6m-3 5h3m-6 0h.01M12 16h3m-6 0h.01M10 3v4h4V3h-4Z"
-                />
+                <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                <path d="M6 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0" />
+                <path d="M17 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0" />
+                <path d="M17 17h-11v-14h-2" />
+                <path d="M6 5l14 1l-1 7h-13" />
               </svg>
 
               <p className="text-xl">Gọi món</p>
@@ -231,8 +198,109 @@ const NavBar = () => {
           </div>
         )}
 
+        {/* Thực đơn */}
+        {hasPermission(loginUser?.role.name, "/home/menu") && (
+          <div
+            className={`rounded-md w-full h-12 hover:bg-[#454545] ${
+              pathname === "/home/menu" ? "bg-[#383838] text-[#dcf70f]" : ""
+            }`}
+          >
+            <Link
+              className="flex items-center gap-2 w-full h-full"
+              href="/home/menu"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="w-5 h-5 ml-3"
+              >
+                <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                <path d="M4 11h16a1 1 0 0 1 1 1v.5c0 1.5 -2.517 5.573 -4 6.5v1a1 1 0 0 1 -1 1h-8a1 1 0 0 1 -1 -1v-1c-1.687 -1.054 -4 -5 -4 -6.5v-.5a1 1 0 0 1 1 -1z" />
+                <path d="M19 7l-14 1" />
+                <path d="M19 2l-14 3" />
+              </svg>
+
+              <p className="text-xl">Thực đơn</p>
+            </Link>
+          </div>
+        )}
+
+        {/* Hóa đơn */}
+        {hasPermission(loginUser?.role.name, "/home/bill") && (
+          <div
+            className={`rounded-md w-full h-12 hover:bg-[#454545] ${
+              pathname === "/home/bill" ? "bg-[#383838] text-[#dcf70f]" : ""
+            }`}
+          >
+            <Link
+              className="flex items-center gap-2 w-full h-full"
+              href="/home/bill"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="w-5 h-5 ml-3"
+              >
+                <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                <path d="M5 21v-16a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v16l-3 -2l-2 2l-2 -2l-2 2l-2 -2l-3 2m4 -14h6m-6 4h6m-2 4h2" />
+              </svg>
+
+              <p className="text-xl">Hóa đơn</p>
+            </Link>
+          </div>
+        )}
+
+        {/* Phòng/bàn */}
+        {hasPermission(loginUser?.role.name, "/home/tableandroom") && (
+          <div
+            className={`rounded-md w-full h-12 hover:bg-[#454545] ${
+              pathname.startsWith("/home/tableandroom")
+                ? "bg-[#383838] text-[#dcf70f]"
+                : ""
+            }`}
+          >
+            <Link
+              className="flex items-center gap-2 w-full h-full"
+              href="/home/tableandroom"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="w-5 h-5 ml-3"
+              >
+                <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                <path d="M14 12v.01" />
+                <path d="M3 21h18" />
+                <path d="M6 21v-16a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v16" />
+              </svg>
+              <p className="text-xl">Phòng/bàn</p>
+            </Link>
+          </div>
+        )}
+
         {/* Nhân viên */}
-        {hasPermission(loginUser?.role.name, "/home/staff-management") && (
+        {hasPermission(loginUser?.role.name, "/home/staff-schedule") && (
           <div className="relative rounded-md w-full hover:bg-[#2b2b2b]">
             <div
               onClick={() => setToggle((prev) => !prev)}
@@ -293,149 +361,166 @@ const NavBar = () => {
             {toggle && (
               <div className="w-full p-2 font-[500] text-base">
                 {/** Quản lý nhân viên */}
-                <div
-                  className={`rounded-md w-full h-12 hover:bg-[#454545] ${
-                    pathname === "/home/staff-management"
-                      ? "bg-[#383838] text-[#dcf70f]"
-                      : ""
-                  }`}
-                >
-                  <Link
-                    className="flex items-center gap-2 w-full h-full"
-                    href="/home/staff-management"
+                {hasPermission(
+                  loginUser?.role.name,
+                  "/home/staff-management"
+                ) && (
+                  <div
+                    className={`rounded-md w-full h-12 hover:bg-[#454545] ${
+                      pathname === "/home/staff-management"
+                        ? "bg-[#383838] text-[#dcf70f]"
+                        : ""
+                    }`}
                   >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="24"
-                      height="24"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      className="icon icon-tabler icons-tabler-outline icon-tabler-subtask w-5 h-5 ml-3"
+                    <Link
+                      className="flex items-center gap-2 w-full h-full"
+                      href="/home/staff-management"
                     >
-                      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-                      <path d="M6 9l6 0" />
-                      <path d="M4 5l4 0" />
-                      <path d="M6 5v11a1 1 0 0 0 1 1h5" />
-                      <path d="M12 7m0 1a1 1 0 0 1 1 -1h6a1 1 0 0 1 1 1v2a1 1 0 0 1 -1 1h-6a1 1 0 0 1 -1 -1z" />
-                      <path d="M12 15m0 1a1 1 0 0 1 1 -1h6a1 1 0 0 1 1 1v2a1 1 0 0 1 -1 1h-6a1 1 0 0 1 -1 -1z" />
-                    </svg>
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="24"
+                        height="24"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="icon icon-tabler icons-tabler-outline icon-tabler-subtask w-5 h-5 ml-3"
+                      >
+                        <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                        <path d="M6 9l6 0" />
+                        <path d="M4 5l4 0" />
+                        <path d="M6 5v11a1 1 0 0 0 1 1h5" />
+                        <path d="M12 7m0 1a1 1 0 0 1 1 -1h6a1 1 0 0 1 1 1v2a1 1 0 0 1 -1 1h-6a1 1 0 0 1 -1 -1z" />
+                        <path d="M12 15m0 1a1 1 0 0 1 1 -1h6a1 1 0 0 1 1 1v2a1 1 0 0 1 -1 1h-6a1 1 0 0 1 -1 -1z" />
+                      </svg>
 
-                    <p className="text-xl">Quản lý</p>
-                  </Link>
-                </div>
+                      <p className="text-xl">Quản lý</p>
+                    </Link>
+                  </div>
+                )}
 
                 {/** Lịch làm việc */}
-                <div
-                  className={`rounded-md w-full h-12 hover:bg-[#454545] ${
-                    pathname === "/home/staff-schedule"
-                      ? "bg-[#383838] text-[#dcf70f]"
-                      : ""
-                  }`}
-                >
-                  <Link
-                    className="flex items-center gap-2 w-full h-full"
-                    href="/home/staff-schedule"
+                {hasPermission(
+                  loginUser?.role.name,
+                  "/home/staff-schedule"
+                ) && (
+                  <div
+                    className={`rounded-md w-full h-12 hover:bg-[#454545] ${
+                      pathname === "/home/staff-schedule"
+                        ? "bg-[#383838] text-[#dcf70f]"
+                        : ""
+                    }`}
                   >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="24"
-                      height="24"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      className="icon icon-tabler icons-tabler-outline icon-tabler-calendar-plus w-5 h-5 ml-3"
+                    <Link
+                      className="flex items-center gap-2 w-full h-full"
+                      href="/home/staff-schedule"
                     >
-                      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-                      <path d="M12.5 21h-6.5a2 2 0 0 1 -2 -2v-12a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v5" />
-                      <path d="M16 3v4" />
-                      <path d="M8 3v4" />
-                      <path d="M4 11h16" />
-                      <path d="M16 19h6" />
-                      <path d="M19 16v6" />
-                    </svg>
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="24"
+                        height="24"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="icon icon-tabler icons-tabler-outline icon-tabler-calendar-plus w-5 h-5 ml-3"
+                      >
+                        <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                        <path d="M12.5 21h-6.5a2 2 0 0 1 -2 -2v-12a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v5" />
+                        <path d="M16 3v4" />
+                        <path d="M8 3v4" />
+                        <path d="M4 11h16" />
+                        <path d="M16 19h6" />
+                        <path d="M19 16v6" />
+                      </svg>
 
-                    <p className="text-xl">Lịch làm việc</p>
-                  </Link>
-                </div>
+                      <p className="text-xl">Lịch làm việc</p>
+                    </Link>
+                  </div>
+                )}
 
                 {/** Chấm công */}
-                <div
-                  className={`rounded-md w-full h-12 hover:bg-[#454545] ${
-                    pathname === "/home/staff-attendance"
-                      ? "bg-[#383838] text-[#dcf70f]"
-                      : ""
-                  }`}
-                >
-                  <Link
-                    className="flex items-center gap-2 w-full h-full"
-                    href="/home/staff-attendance"
+                {hasPermission(
+                  loginUser?.role.name,
+                  "/home/staff-attendance"
+                ) && (
+                  <div
+                    className={`rounded-md w-full h-12 hover:bg-[#454545] ${
+                      pathname === "/home/staff-attendance"
+                        ? "bg-[#383838] text-[#dcf70f]"
+                        : ""
+                    }`}
                   >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="24"
-                      height="24"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      className="icon icon-tabler icons-tabler-outline icon-tabler-calendar-check w-5 h-5 ml-3"
+                    <Link
+                      className="flex items-center gap-2 w-full h-full"
+                      href="/home/staff-attendance"
                     >
-                      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-                      <path d="M11.5 21h-5.5a2 2 0 0 1 -2 -2v-12a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v6" />
-                      <path d="M16 3v4" />
-                      <path d="M8 3v4" />
-                      <path d="M4 11h16" />
-                      <path d="M15 19l2 2l4 -4" />
-                    </svg>
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="24"
+                        height="24"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="icon icon-tabler icons-tabler-outline icon-tabler-calendar-check w-5 h-5 ml-3"
+                      >
+                        <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                        <path d="M11.5 21h-5.5a2 2 0 0 1 -2 -2v-12a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v6" />
+                        <path d="M16 3v4" />
+                        <path d="M8 3v4" />
+                        <path d="M4 11h16" />
+                        <path d="M15 19l2 2l4 -4" />
+                      </svg>
 
-                    <p className="text-xl">Chấm công</p>
-                  </Link>
-                </div>
+                      <p className="text-xl">Chấm công</p>
+                    </Link>
+                  </div>
+                )}
 
                 {/** Bảng tính lương */}
-                <div
-                  className={`rounded-md w-full h-12 hover:bg-[#454545] ${
-                    pathname === "/home/staff-payroll"
-                      ? "bg-[#383838] text-[#dcf70f]"
-                      : ""
-                  }`}
-                >
-                  <Link
-                    className="flex items-center gap-2 w-full h-full"
-                    href="/home/staff-payroll"
+                {hasPermission(loginUser?.role.name, "/home/staff-payroll") && (
+                  <div
+                    className={`rounded-md w-full h-12 hover:bg-[#454545] ${
+                      pathname === "/home/staff-payroll"
+                        ? "bg-[#383838] text-[#dcf70f]"
+                        : ""
+                    }`}
                   >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="24"
-                      height="24"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      className="icon icon-tabler icons-tabler-outline icon-tabler-coins w-5 h-5 ml-3"
+                    <Link
+                      className="flex items-center gap-2 w-full h-full"
+                      href="/home/staff-payroll"
                     >
-                      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-                      <path d="M9 14c0 1.657 2.686 3 6 3s6 -1.343 6 -3s-2.686 -3 -6 -3s-6 1.343 -6 3z" />
-                      <path d="M9 14v4c0 1.656 2.686 3 6 3s6 -1.344 6 -3v-4" />
-                      <path d="M3 6c0 1.072 1.144 2.062 3 2.598s4.144 .536 6 0c1.856 -.536 3 -1.526 3 -2.598c0 -1.072 -1.144 -2.062 -3 -2.598s-4.144 -.536 -6 0c-1.856 .536 -3 1.526 -3 2.598z" />
-                      <path d="M3 6v10c0 .888 .772 1.45 2 2" />
-                      <path d="M3 11c0 .888 .772 1.45 2 2" />
-                    </svg>
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="24"
+                        height="24"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="icon icon-tabler icons-tabler-outline icon-tabler-coins w-5 h-5 ml-3"
+                      >
+                        <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                        <path d="M9 14c0 1.657 2.686 3 6 3s6 -1.343 6 -3s-2.686 -3 -6 -3s-6 1.343 -6 3z" />
+                        <path d="M9 14v4c0 1.656 2.686 3 6 3s6 -1.344 6 -3v-4" />
+                        <path d="M3 6c0 1.072 1.144 2.062 3 2.598s4.144 .536 6 0c1.856 -.536 3 -1.526 3 -2.598c0 -1.072 -1.144 -2.062 -3 -2.598s-4.144 -.536 -6 0c-1.856 .536 -3 1.526 -3 2.598z" />
+                        <path d="M3 6v10c0 .888 .772 1.45 2 2" />
+                        <path d="M3 11c0 .888 .772 1.45 2 2" />
+                      </svg>
 
-                    <p className="text-xl">Bảng tính lương</p>
-                  </Link>
-                </div>
+                      <p className="text-xl">Bảng tính lương</p>
+                    </Link>
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -477,18 +562,18 @@ const NavBar = () => {
           </div>
         )}
 
-        {/* Phòng/bàn */}
-        {hasPermission(loginUser?.role.name, "/home/tableandroom") && (
+        {/* Nhà cung cấp */}
+        {hasPermission(loginUser?.role.name, "/home/supplier-management") && (
           <div
             className={`rounded-md w-full h-12 hover:bg-[#454545] ${
-              pathname.startsWith("/home/tableandroom")
+              pathname.startsWith("/home/supplier-management")
                 ? "bg-[#383838] text-[#dcf70f]"
                 : ""
             }`}
           >
             <Link
               className="flex items-center gap-2 w-full h-full"
-              href="/home/tableandroom"
+              href="/home/supplier-management"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -503,11 +588,12 @@ const NavBar = () => {
                 className="w-5 h-5 ml-3"
               >
                 <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-                <path d="M14 12v.01" />
-                <path d="M3 21h18" />
-                <path d="M6 21v-16a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v16" />
+                <path d="M10 14a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" />
+                <path d="M5.001 8h13.999a2 2 0 0 1 1.977 2.304l-1.255 7.152a3 3 0 0 1 -2.966 2.544h-9.512a3 3 0 0 1 -2.965 -2.544l-1.255 -7.152a2 2 0 0 1 1.977 -2.304z" />
+                <path d="M17 10l-2 -6" />
+                <path d="M7 10l2 -6" />
               </svg>
-              <p className="text-xl">Phòng/bàn</p>
+              <p className="text-xl">Nhà cung cấp</p>
             </Link>
           </div>
         )}

@@ -1,125 +1,13 @@
-/*
-  Gọi API ở dòng 131
-*/
-
 "use client";
 
 import { getAllOrders } from "@/app/api-client/OrderService";
-import { getStatisticByCustomerAndDate, getStatisticByRevenueAndDate } from "@/app/api-client/StatisticService";
-import { GetOrderRequest, OrderEntity } from "@/app/home/order-taking/entity";
+import {
+  getStatisticByCustomerAndDate,
+  getStatisticByRevenueAndDate,
+} from "@/app/api-client/StatisticService";
+import { GetOrderRequest } from "@/app/home/order-taking/entity";
 import { formatDateToString, formatDateToYYYYMMDD } from "@/utils/timeUtils";
 import { useCallback, useEffect, useState } from "react";
-
-const sampleOrders: OrderEntity[] = [
-  {
-    id: 1,
-    customerId: 1,
-    userId: 1,
-    orderStatus: "CHECK_IN",
-    totalCost: 125000,
-    numberOfPeople: 2,
-    note: "Không ớt",
-    checkInTime: "2024-04-01T12:00:00",
-    checkOutTime: "2024-04-01T13:00:00",
-    paymentId: 1,
-    paymentMethod: "CASH",
-    orderItems: [
-      {
-        id: 1,
-        orderId: 1,
-        menuItemId: 1,
-        orderedQuantity: 3,
-        reservedQuantity: 0,
-        price: 125000,
-        status: "PROCESSING",
-      },
-      {
-        id: 2,
-        orderId: 1,
-        menuItemId: 2,
-        orderedQuantity: 2,
-        reservedQuantity: 0,
-        price: 12000,
-        status: "PROCESSING",
-      },
-      {
-        id: 3,
-        orderId: 1,
-        menuItemId: 3,
-        orderedQuantity: 2,
-        reservedQuantity: 1,
-        price: 1200000,
-        status: "PROCESSING",
-      },
-    ],
-    orderTables: [
-      {
-        id: 1,
-        orderId: 1,
-        tableId: 1,
-      },
-    ],
-  },
-  {
-    id: 2,
-    customerId: 2,
-    userId: 2,
-    orderStatus: "CHECK_IN",
-    totalCost: 125000,
-    numberOfPeople: 2,
-    note: "Không ớt",
-    checkInTime: "2024-04-01T12:00:00",
-    checkOutTime: "2024-04-01T13:00:00",
-    paymentId: 1,
-    paymentMethod: "CASH",
-    orderItems: [
-      {
-        id: 4,
-        orderId: 2,
-        menuItemId: 1,
-        orderedQuantity: 2,
-        reservedQuantity: 0,
-        price: 125000,
-        status: "PROCESSING",
-      },
-      {
-        id: 5,
-        orderId: 2,
-        menuItemId: 2,
-        orderedQuantity: 2,
-        reservedQuantity: 0,
-        price: 12000,
-        status: "PROCESSING",
-      },
-      {
-        id: 6,
-        orderId: 2,
-        menuItemId: 3,
-        orderedQuantity: 2,
-        reservedQuantity: 1,
-        price: 1200000,
-        status: "PROCESSING",
-      },
-    ],
-    orderTables: [
-      {
-        id: 2,
-        orderId: 2,
-        tableId: 3,
-      },
-    ],
-  },
-];
-
-const sampleRevenueIn2Days = [
-  { date: new Date("12-06-2024"), revenue: 8000000 },
-  { date: new Date("12-07-2024"), revenue: 400000 },
-];
-
-const sampleCustomerIn2Days = [
-  { date: new Date("12-06-2024"), count: 40 },
-  { date: new Date("12-07-2024"), count: 80 },
-];
 
 const Statistics = () => {
   const [todayRevenue, setTodayRevenue] = useState<number>(0);
@@ -149,117 +37,112 @@ const Statistics = () => {
       const endTime = new Date(); // Thời gian hiện tại
 
       // Cập nhật lại startTime và endTime trong request nếu chưa có
-      setGetOrderRequest(prevState => ({
+      setGetOrderRequest((prevState) => ({
         ...prevState,
         startTime: formatDateToString(startTime),
         endTime: formatDateToString(endTime),
       }));
     }
 
-    let queryParams = `page=${getOrderRequest.page || 1}&page_size=${getOrderRequest.pageSize || 10}`;
+    let queryParams = `page=${getOrderRequest.page || 1}&page_size=${
+      getOrderRequest.pageSize || 10
+    }`;
 
     // Thêm thời gian vào queryParams (bắt buộc)
-    queryParams = queryParams.concat(`&start_time=${getOrderRequest.startTime}`);
+    queryParams = queryParams.concat(
+      `&start_time=${getOrderRequest.startTime}`
+    );
     queryParams = queryParams.concat(`&end_time=${getOrderRequest.endTime}`);
 
     // Thêm các tham số khác (tuỳ chọn)
     if (getOrderRequest.orderStatus?.size > 0) {
-      queryParams = queryParams.concat(`&order_status=${Array.from(getOrderRequest.orderStatus).join(",")}`);
+      queryParams = queryParams.concat(
+        `&order_status=${Array.from(getOrderRequest.orderStatus).join(",")}`
+      );
     }
     if (getOrderRequest.paymentMethod) {
-      queryParams = queryParams.concat(`&payment_method=${getOrderRequest.paymentMethod}`);
+      queryParams = queryParams.concat(
+        `&payment_method=${getOrderRequest.paymentMethod}`
+      );
     }
     if (getOrderRequest.userName) {
-      queryParams = queryParams.concat(`&user_name=${getOrderRequest.userName}`);
+      queryParams = queryParams.concat(
+        `&user_name=${getOrderRequest.userName}`
+      );
     }
     if (getOrderRequest.customerName) {
-      queryParams = queryParams.concat(`&customer_name=${getOrderRequest.customerName}`);
+      queryParams = queryParams.concat(
+        `&customer_name=${getOrderRequest.customerName}`
+      );
     }
     if (getOrderRequest.note) {
       queryParams = queryParams.concat(`&note=${getOrderRequest.note}`);
     }
     if (getOrderRequest.tableIds?.size > 0) {
-      queryParams = queryParams.concat(`&table_ids=${Array.from(getOrderRequest.tableIds).join(",")}`);
+      queryParams = queryParams.concat(
+        `&table_ids=${Array.from(getOrderRequest.tableIds).join(",")}`
+      );
     }
 
     return queryParams;
   }, [getOrderRequest]);
 
-
   useEffect(() => {
     const fetchDashboardData = async (queryParams: string) => {
-      // Gọi doanh thu hôm nay và hôm qua
       const endDate = new Date();
       const startDate = new Date(new Date().setDate(endDate.getDate() - 1));
       const queryForRevenueAndCustomer = `start_date=${formatDateToYYYYMMDD(
         startDate
       )}&end_date=${formatDateToYYYYMMDD(endDate)}`;
-      console.log("queryForRevenueAndCustomer", queryForRevenueAndCustomer)
+      console.log("queryForRevenueAndCustomer", queryForRevenueAndCustomer);
 
-      setTodayRevenue(sampleRevenueIn2Days[1].revenue);
-      setGrowthRevenue(
-        ((sampleRevenueIn2Days[1].revenue - sampleRevenueIn2Days[0].revenue) /
-          sampleRevenueIn2Days[0].revenue) *
-          100
-      );
-
+      // Gọi doanh thu hôm nay và hôm qua
       try {
-        getStatisticByRevenueAndDate(queryForRevenueAndCustomer).then((revenueData) => {
-          setTodayRevenue(revenueData[1].revenue);
-          setGrowthRevenue(
-            ((revenueData[1].revenue - revenueData[0].revenue) / revenueData[0].revenue) * 100
-          );
-        });
-
+        getStatisticByRevenueAndDate(queryForRevenueAndCustomer).then(
+          (revenueData) => {
+            setTodayRevenue(revenueData.revenueStatistics[1].revenue);
+            setGrowthRevenue(
+              ((revenueData.revenueStatistics[1].revenue -
+                revenueData.revenueStatistics[0].revenue) /
+                revenueData.revenueStatistics[0].revenue) *
+                100
+            );
+          }
+        );
       } catch (error) {
         console.error("Error fetching revenue data:", error);
       }
 
       // Gọi số lượng khách hàng hôm nay và hôm qua
-      setTodayCustomer(sampleCustomerIn2Days[1].count);
-      setGrowthCustomer(
-        ((sampleCustomerIn2Days[1].count - sampleCustomerIn2Days[0].count) /
-          sampleCustomerIn2Days[0].count) *
-          100
-      );
-
       try {
-        getStatisticByCustomerAndDate(queryForRevenueAndCustomer).then((customerData) => {
-          setTodayCustomer(customerData[1].count);
-          setGrowthCustomer(
-            ((customerData[1].count - customerData[0].count) / customerData[0].count) * 100
-          );
-        });
-
+        getStatisticByCustomerAndDate(queryForRevenueAndCustomer).then(
+          (customerData) => {
+            setTodayCustomer(customerData.customerStatistics[1].count);
+            setGrowthCustomer(
+              ((customerData.customerStatistics[1].count -
+                customerData.customerStatistics[0].count) /
+                customerData.customerStatistics[0].count) *
+                100
+            );
+          }
+        );
       } catch (error) {
         console.error("Error fetching customer data:", error);
       }
 
       // Gọi tổng số order đang ở trạng thái CHECK_IN
-      const startTime = new Date(0); // Bắt đầu từ epoch
-      const endTime = new Date();
-      const queryForOrders = `start_time=${startTime.toISOString()}&end_time=${endTime.toISOString()}&order_status=CHECK_IN&page_size=1000`;
-
-      setTotalProcessingOrder(sampleOrders.length);
-      setTotalProcessingCost(
-        sampleOrders.reduce((total, order) => {
-          return total + order.totalCost;
-        }, 0)
-      );
-      setTotalProcessingPeople(
-        sampleOrders.reduce((total, order) => {
-          return total + order.numberOfPeople;
-        }, 0)
-      );
       try {
         getAllOrders(queryParams).then((orders) => {
-          console.log("getAllOrder", queryParams)
+          console.log("getAllOrder", queryParams);
           setTotalProcessingOrder(orders.second.length);
           setTotalProcessingCost(
             orders.second.reduce((total, order) => total + order.totalCost, 0)
           );
           setTotalProcessingPeople(
-            orders.second.reduce((total, order) => total + order.numberOfPeople, 0)
+            orders.second.reduce(
+              (total, order) => total + order.numberOfPeople,
+              0
+            )
           );
         });
       } catch (error) {
@@ -269,7 +152,6 @@ const Statistics = () => {
 
     fetchDashboardData(buildQueryParams());
   }, [buildQueryParams]);
-
 
   return (
     <div className="grid grid-cols-2 grid-rows-2 gap-6 mr-3 mb-6 basis-1/3 min-h-[280px]">
@@ -291,11 +173,12 @@ const Statistics = () => {
         <div className="flex items-end">
           <div className="font-extrabold text-2xl">₫{todayRevenue}</div>
           <div
-            className={`ml-6 font-bold ${growthRevenue > 0 ? "text-[#72ada9]" : "text-[#d57c72]"
-              }`}
+            className={`ml-6 font-bold ${
+              growthRevenue > 0 ? "text-[#72ada9]" : "text-[#d57c72]"
+            }`}
           >
             <span className={growthRevenue > 0 ? "" : "hidden"}>+</span>
-            {growthRevenue}%
+            {growthRevenue.toFixed(0)}%
           </div>
         </div>
       </div>
@@ -316,11 +199,12 @@ const Statistics = () => {
         <div className="flex items-end">
           <div className="font-extrabold text-2xl">{todayCustomer}</div>
           <div
-            className={`ml-6 font-bold ${growthCustomer > 0 ? "text-[#72ada9]" : "text-[#d57c72]"
-              }`}
+            className={`ml-6 font-bold ${
+              growthCustomer > 0 ? "text-[#72ada9]" : "text-[#d57c72]"
+            }`}
           >
             <span className={growthCustomer > 0 ? "" : "hidden"}>+</span>
-            {growthCustomer}%
+            {growthCustomer.toFixed(0)}%
           </div>
         </div>
       </div>

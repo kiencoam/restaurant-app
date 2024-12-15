@@ -1,8 +1,15 @@
 import { getDetailCustomer } from "@/app/api-client/CustomerService";
 import { OrderEntity } from "@/app/api-client/OrderService";
 import { PageInfo } from "@/app/api-client/PageInfo";
-import { getPaymentsByIds, PaymentEntity } from "@/app/api-client/PaymentService";
-import { getAllUsers, getDetailUser, UserEntity } from "@/app/api-client/UserService";
+import {
+  getPaymentsByIds,
+  PaymentEntity,
+} from "@/app/api-client/PaymentService";
+import {
+  getAllUsers,
+  getDetailUser,
+  UserEntity,
+} from "@/app/api-client/UserService";
 import { formatDateToString } from "@/utils/timeUtils";
 import React, { useEffect, useState } from "react";
 
@@ -17,25 +24,22 @@ export default function BillList({
   handleRowClick: (paymentId: number) => void;
   expandedRow: number | null;
 }) {
-
   const [users, setUsers] = useState<UserEntity[]>([]);
 
   const [payments, setPayments] = useState<PaymentEntity[]>([]);
-
 
   // get user list
   useEffect(() => {
     const userIds = new Set(bills.map((bill) => bill.userId));
     userIds.forEach((userId) => {
       getDetailUser(userId).then((res) => setUsers((prev) => [...prev, res]));
-    })
+    });
   }, [bills]);
 
   // get payment list
   useEffect(() => {
     const paymentIds = new Set(bills.map((bill) => bill.paymentId));
     getPaymentsByIds(Array.from(paymentIds)).then((res) => setPayments(res));
-    
   }, [bills]);
 
   console.log("payments", payments);
@@ -93,8 +97,18 @@ export default function BillList({
                 <td className="px-4 py-2 border-b">{bill.checkOutTime}</td>
                 <td className="px-4 py-2 border-b">{bill.customerId}</td>
                 <td className="px-4 py-2 border-b">{bill.totalCost}</td>
-                <td className="px-4 py-2 border-b">{payments.find(payment => payment.id === bill.paymentId)?.promotion}</td>
-                <td className="px-4 py-2 border-b">{payments.find(payment => payment.id === bill.paymentId)?.needToPay}</td>
+                <td className="px-4 py-2 border-b">
+                  {
+                    payments.find((payment) => payment.id === bill.paymentId)
+                      ?.promotion
+                  }
+                </td>
+                <td className="px-4 py-2 border-b">
+                  {
+                    payments.find((payment) => payment.id === bill.paymentId)
+                      ?.needToPay
+                  }
+                </td>
               </tr>
               {expandedRow === bill.paymentId && (
                 <tr>
@@ -130,7 +144,9 @@ export default function BillList({
                                   Giờ đến
                                   <input
                                     type="text"
-                                    value={formatDateToString(new Date(bill.checkInTime))}
+                                    value={formatDateToString(
+                                      new Date(bill.checkInTime)
+                                    )}
                                     className="w-full border-b-2 bg-gray-50 mt-2 outline-none focus:border-b-black"
                                     disabled
                                   />
@@ -139,7 +155,9 @@ export default function BillList({
                                   Phòng/bàn
                                   <input
                                     type="text"
-                                    value={bill.orderTables.map((ot) => ot.table.name).join(",")}
+                                    value={bill.orderTables
+                                      .map((ot) => ot.table.name)
+                                      .join(",")}
                                     className="w-full border-b-2 bg-gray-50 mt-2 outline-none focus:border-b-black"
                                     disabled
                                   />
@@ -152,7 +170,9 @@ export default function BillList({
                                   Giờ đi
                                   <input
                                     type="text"
-                                    value={formatDateToString(new Date(bill.checkOutTime))}
+                                    value={formatDateToString(
+                                      new Date(bill.checkOutTime)
+                                    )}
                                     className="w-full border-b-2 bg-gray-50 mt-2 outline-none focus:border-b-black"
                                     disabled
                                   />
@@ -183,7 +203,11 @@ export default function BillList({
                                 Người tạo đơn
                                 <input
                                   type="text"
-                                  value={users.find((user) => user.id === bill.userId)?.name}
+                                  value={
+                                    users.find(
+                                      (user) => user.id === bill.userId
+                                    )?.name
+                                  }
                                   className="w-full border-b-2 bg-gray-50 mt-2 outline-none focus:border-b-black"
                                   disabled
                                 />
@@ -245,7 +269,7 @@ export default function BillList({
                                         {orderItem.id}
                                       </td>
                                       <td className="px-4 py-2 border-b ">
-                                        {orderItem.id}
+                                        {orderItem.menuItem.title}
                                       </td>
                                       <td className="px-4 py-2 border-b text-right">
                                         {orderItem.orderedQuantity}
