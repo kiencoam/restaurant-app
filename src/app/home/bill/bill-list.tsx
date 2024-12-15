@@ -1,37 +1,44 @@
-import React, { useState } from "react";
+import { getDetailCustomer } from "@/app/api-client/CustomerService";
+import { OrderEntity } from "@/app/api-client/OrderService";
+import { PageInfo } from "@/app/api-client/PageInfo";
+import { getPaymentsByIds, PaymentEntity } from "@/app/api-client/PaymentService";
+import { getAllUsers, getDetailUser, UserEntity } from "@/app/api-client/UserService";
+import { formatDateToString } from "@/utils/timeUtils";
+import React, { useEffect, useState } from "react";
 
 export default function BillList({
   bills,
-  masterChecked,
   checkedRows,
-  handleMasterCheckboxChange,
-  handleRowCheckboxChange,
   handleRowClick,
   expandedRow,
+}: {
+  bills: OrderEntity[];
+  checkedRows: Record<string, boolean>;
+  handleRowClick: (paymentId: number) => void;
+  expandedRow: number | null;
 }) {
-  // Pagination state
-  // const [currentPage, setCurrentPage] = useState(1);
-  // const [rowsPerPage, setRowsPerPage] = useState(5);
 
-  // // Calculate total pages
-  // const totalPages = Math.ceil(bills.length / rowsPerPage);
+  const [users, setUsers] = useState<UserEntity[]>([]);
 
-  // // Get current page rows
-  // const startIndex = (currentPage - 1) * rowsPerPage;
-  // const currentRowsBills = bills.slice(startIndex, startIndex + rowsPerPage);
+  const [payments, setPayments] = useState<PaymentEntity[]>([]);
 
-  // // Handle page change
-  // const changePage = (newPage) => {
-  //   if (newPage >= 1 && newPage <= totalPages) {
-  //     setCurrentPage(newPage);
-  //   }
-  // };
 
-  // //Handle rowsPerPage change
-  // const changeRowsPerPage = (rows) => {
-  //   setRowsPerPage(rows);
-  // };
+  // get user list
+  useEffect(() => {
+    const userIds = new Set(bills.map((bill) => bill.userId));
+    userIds.forEach((userId) => {
+      getDetailUser(userId).then((res) => setUsers((prev) => [...prev, res]));
+    })
+  }, [bills]);
 
+  // get payment list
+  useEffect(() => {
+    const paymentIds = new Set(bills.map((bill) => bill.paymentId));
+    getPaymentsByIds(Array.from(paymentIds)).then((res) => setPayments(res));
+    
+  }, [bills]);
+
+  console.log("payments", payments);
   return (
     <div>
       <table className="min-w-full bg-white border border-gray-200 mt-6">
@@ -85,9 +92,9 @@ export default function BillList({
                 <td className="px-4 py-2 border-b">{bill.paymentId}</td>
                 <td className="px-4 py-2 border-b">{bill.checkOutTime}</td>
                 <td className="px-4 py-2 border-b">{bill.customerId}</td>
-                <td className="px-4 py-2 border-b">{bill.totalPrice}</td>
-                <td className="px-4 py-2 border-b">{bill.promotion}</td>
-                <td className="px-4 py-2 border-b">{bill.needToPay}</td>
+                <td className="px-4 py-2 border-b">{bill.totalCost}</td>
+                <td className="px-4 py-2 border-b">{payments.find(payment => payment.id === bill.paymentId)?.promotion}</td>
+                <td className="px-4 py-2 border-b">{payments.find(payment => payment.id === bill.paymentId)?.needToPay}</td>
               </tr>
               {expandedRow === bill.paymentId && (
                 <tr>
@@ -123,7 +130,7 @@ export default function BillList({
                                   Giờ đến
                                   <input
                                     type="text"
-                                    value={bill.checkInTime}
+                                    value={formatDateToString(new Date(bill.checkInTime))}
                                     className="w-full border-b-2 bg-gray-50 mt-2 outline-none focus:border-b-black"
                                     disabled
                                   />
@@ -132,7 +139,7 @@ export default function BillList({
                                   Phòng/bàn
                                   <input
                                     type="text"
-                                    value={bill.orderTables}
+                                    value={bill.orderTables.map((ot) => ot.table.name).join(",")}
                                     className="w-full border-b-2 bg-gray-50 mt-2 outline-none focus:border-b-black"
                                     disabled
                                   />
@@ -145,7 +152,7 @@ export default function BillList({
                                   Giờ đi
                                   <input
                                     type="text"
-                                    value={bill.checkOutTime}
+                                    value={formatDateToString(new Date(bill.checkOutTime))}
                                     className="w-full border-b-2 bg-gray-50 mt-2 outline-none focus:border-b-black"
                                     disabled
                                   />
@@ -167,7 +174,7 @@ export default function BillList({
                                 Khách hàng
                                 <input
                                   type="text"
-                                  value={bill.customerId}
+                                  value={bill.customer.name}
                                   className="w-full border-b-2 bg-gray-50 mt-2 outline-none focus:border-b-black"
                                   disabled
                                 />
@@ -176,7 +183,7 @@ export default function BillList({
                                 Người tạo đơn
                                 <input
                                   type="text"
-                                  value={bill.userId}
+                                  value={users.find((user) => user.id === bill.userId)?.name}
                                   className="w-full border-b-2 bg-gray-50 mt-2 outline-none focus:border-b-black"
                                   disabled
                                 />

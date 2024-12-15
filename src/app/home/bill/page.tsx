@@ -1,7 +1,6 @@
 "use client";
 import React, { useState, useRef, useEffect } from "react";
 import { OrderEntity, OrderItemEntity, OrderTableEntity, TableEntity } from "../order-taking/entity";
-import { CustomerEntity, initOrders } from "./data";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import BillList from "./bill-list";
@@ -12,11 +11,11 @@ import { getAllOrders } from "@/app/api-client/OrderService";
 export type GetOrderRequest = {
   page?: number;
   page_size?: number;
-  order_status?: Set<string>;
+  order_status?: string[];
   start_time: string;
   end_time: string;
   payment_method?: string;
-  table_ids?: Set<number>;
+  table_ids?: number[];
   user_name?: string;
   customer_name?: string;
   note?: string;
@@ -60,10 +59,10 @@ const BillPage = () => {
     page_size: 5,
     start_time: formatDateToString(startDate),
     end_time: formatDateToString(endDate),
-    order_status: new Set("COMPLETED"),
+    order_status: ["COMPLETED"],
   });
 
-  //console.log(tables)
+  console.log(orders);
 
   const changePage = (newPage) => {
     if (newPage >= 1 && newPage <= pageInfo.totalPage) {
@@ -95,7 +94,7 @@ const BillPage = () => {
 
   const isAnyRowChecked = Object.values(checkedRows).some(Boolean);
 
-  const handleRowClick = (id) => {
+  const handleRowClick = (id: number) => {
     if (expandedRow === id) {
       setExpandedRow(null); // Collapse the row if it's already expanded
     } else {
@@ -108,7 +107,7 @@ const BillPage = () => {
     setMasterChecked(newMasterChecked);
 
     const updatedCheckedRows = {};
-    initOrders.forEach((order) => {
+    orders.forEach((order) => {
       updatedCheckedRows[order.id] = newMasterChecked;
     });
     setCheckedRows(updatedCheckedRows);
@@ -153,6 +152,9 @@ const BillPage = () => {
   useEffect(() => {
     const query = Object.entries(filter)
       .map(([key, value]) => {
+        if (Array.isArray(value)) {
+          return `${key}=${value.join(",")}`;
+        }
         if (value) {
           return `${key}=${value}`;
         }
@@ -234,6 +236,7 @@ const BillPage = () => {
               className="p-2 bg-transparent outline-none w-60"
               type="text"
               placeholder="Tên, điện thoại khách hàng"
+              onChange={(e) => setFilter({ ...filter, customer_name: e.target.value })}
             />
           </div>
 
@@ -275,7 +278,6 @@ const BillPage = () => {
                       onChange={handleStartDateChange}
                       selectsStart
                       startDate={startDate}
-                      endDate={endDate}
                     />
                   </label>
                   <label className="flex items-center space-x-4 mt-2">
@@ -286,7 +288,6 @@ const BillPage = () => {
                       selected={endDate}
                       onChange={handleEndDateChange}
                       selectsEnd
-                      startDate={startDate}
                       endDate={endDate}
                       minDate={startDate}
                     />
@@ -300,10 +301,7 @@ const BillPage = () => {
       <div className="px-6">
         <BillList
           bills={orders}
-          masterChecked={masterChecked}
           checkedRows={checkedRows}
-          handleMasterCheckboxChange={handleMasterCheckboxChange}
-          handleRowCheckboxChange={handleRowCheckboxChange}
           handleRowClick={handleRowClick}
           expandedRow={expandedRow}
         />
