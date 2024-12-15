@@ -76,11 +76,9 @@ const ActivitiesLog = () => {
       const query = `page=0&page_size=${10}&from_date=${formatDate(
         new Date("2024-01-01")
       )}&to_date=${formatDate(endTime)}`;
-      console.log("act query", query);
       try {
         getAllActivityLogs(query).then((res) => {
           setActivities(res.second);
-          console.log("activity", res.second);
         });
       } catch (error) {
         console.error("Error fetching activity logs:", error);

@@ -1,13 +1,12 @@
 "use client";
 
-import { getAllOrders } from "@/app/api-client/OrderService";
+import { getAllOrders, OrderEntity } from "@/app/api-client/OrderService";
 import {
   getStatisticByCustomerAndDate,
   getStatisticByRevenueAndDate,
 } from "@/app/api-client/StatisticService";
-import { GetOrderRequest } from "@/app/home/order-taking/entity";
 import { formatDateToString, formatDateToYYYYMMDD } from "@/utils/timeUtils";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 
 const Statistics = () => {
   const [todayRevenue, setTodayRevenue] = useState<number>(0);
@@ -17,78 +16,9 @@ const Statistics = () => {
   const [totalProcessingOrder, setTotalProcessingOrder] = useState<number>(0);
   const [totalProcessingCost, setTotalProcessingCost] = useState<number>(0);
   const [totalProcessingPeople, setTotalProcessingPeople] = useState<number>(0);
-  const [getOrderRequest, setGetOrderRequest] = useState<GetOrderRequest>({
-    page: 1,
-    pageSize: 15,
-    orderStatus: new Set(),
-    startTime: formatDateToString(new Date(0)),
-    endTime: formatDateToString(new Date()),
-    paymentMethod: "",
-    tableIds: new Set(),
-    userName: "",
-    customerName: "",
-    note: "",
-  });
-  const buildQueryParams = useCallback(() => {
-    // Kiểm tra nếu không có startTime và endTime, trả về lỗi
-    if (!getOrderRequest.startTime || !getOrderRequest.endTime) {
-      // Tính toán thời gian nếu không có
-      const startTime = new Date(0); // Bắt đầu từ epoch
-      const endTime = new Date(); // Thời gian hiện tại
-
-      // Cập nhật lại startTime và endTime trong request nếu chưa có
-      setGetOrderRequest((prevState) => ({
-        ...prevState,
-        startTime: formatDateToString(startTime),
-        endTime: formatDateToString(endTime),
-      }));
-    }
-
-    let queryParams = `page=${getOrderRequest.page || 1}&page_size=${
-      getOrderRequest.pageSize || 10
-    }`;
-
-    // Thêm thời gian vào queryParams (bắt buộc)
-    queryParams = queryParams.concat(
-      `&start_time=${getOrderRequest.startTime}`
-    );
-    queryParams = queryParams.concat(`&end_time=${getOrderRequest.endTime}`);
-
-    // Thêm các tham số khác (tuỳ chọn)
-    if (getOrderRequest.orderStatus?.size > 0) {
-      queryParams = queryParams.concat(
-        `&order_status=${Array.from(getOrderRequest.orderStatus).join(",")}`
-      );
-    }
-    if (getOrderRequest.paymentMethod) {
-      queryParams = queryParams.concat(
-        `&payment_method=${getOrderRequest.paymentMethod}`
-      );
-    }
-    if (getOrderRequest.userName) {
-      queryParams = queryParams.concat(
-        `&user_name=${getOrderRequest.userName}`
-      );
-    }
-    if (getOrderRequest.customerName) {
-      queryParams = queryParams.concat(
-        `&customer_name=${getOrderRequest.customerName}`
-      );
-    }
-    if (getOrderRequest.note) {
-      queryParams = queryParams.concat(`&note=${getOrderRequest.note}`);
-    }
-    if (getOrderRequest.tableIds?.size > 0) {
-      queryParams = queryParams.concat(
-        `&table_ids=${Array.from(getOrderRequest.tableIds).join(",")}`
-      );
-    }
-
-    return queryParams;
-  }, [getOrderRequest]);
 
   useEffect(() => {
-    const fetchDashboardData = async (queryParams: string) => {
+    const fetchDashboardData = async () => {
       const endDate = new Date();
       const startDate = new Date(new Date().setDate(endDate.getDate() - 1));
       const queryForRevenueAndCustomer = `start_date=${formatDateToYYYYMMDD(
@@ -135,16 +65,27 @@ const Statistics = () => {
       }
 
       // Gọi tổng số order đang ở trạng thái CHECK_IN
+      const queryForOrders = `order_status=CHECKED_IN&page=0&page_size=100&start_time=1970-01-01 08:00:00&end_time=${formatDateToString(
+        new Date()
+      )}`;
       try {
-        getAllOrders(queryParams).then((orders) => {
-          console.log("getAllOrder", queryParams);
+        getAllOrders(queryForOrders).then((orders) => {
           setTotalProcessingOrder(orders.second.length);
           setTotalProcessingCost(
-            orders.second.reduce((total, order) => total + order.totalCost, 0)
+            orders.second.reduce(
+              (total: number, order: OrderEntity) =>
+                total +
+                order.orderItems.reduce(
+                  (totalCost: number, orderItem) => totalCost + orderItem.price,
+                  0
+                ),
+              0
+            )
           );
           setTotalProcessingPeople(
             orders.second.reduce(
-              (total, order) => total + order.numberOfPeople,
+              (total: number, order: OrderEntity) =>
+                total + order.numberOfPeople,
               0
             )
           );
@@ -154,8 +95,8 @@ const Statistics = () => {
       }
     };
 
-    fetchDashboardData(buildQueryParams());
-  }, [buildQueryParams]);
+    fetchDashboardData();
+  }, []);
 
   return (
     <div className="grid grid-cols-2 grid-rows-2 gap-6 mr-3 mb-6 basis-1/3 min-h-[280px]">
