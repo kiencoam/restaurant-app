@@ -1,6 +1,10 @@
+/*
+  Gọi API ở dòng 112
+*/
 "use client";
 
-import { MenuItemStatistic } from "@/app/api-client/StatisticService";
+import { getStatisticByMenuItem, MenuItemStatistic } from "@/app/api-client/StatisticService";
+import { formatDateToString } from "@/utils/timeUtils";
 import { useState, useEffect } from "react";
 
 const sampleMostPopularByMonth = [
@@ -109,32 +113,34 @@ export function PopularDish() {
   const [selectedMode, setSelectedMode] = useState("weekly");
   const [mostPopular, setMostPopular] = useState<MenuItemStatistic[]>([]);
 
-  // Khởi tạo
-  useEffect(() => {
-    /* Gọi API */
-    const endDate = new Date();
-    const startDate = new Date(new Date().setDate(endDate.getDate() - 7));
-    const query = `start_date=${startDate.toISOString()}&end_date=${endDate.toISOString()}&category=PRICE`;
-    // data = getStatisticByMenuItem(query);
-    setMostPopular(sampleMostPopularByWeek);
-  }, []);
-
   // Chuyển chế độ xem
   useEffect(() => {
-    /* Gọi API */
+  const fetchMostPopularItems = async () => {
     const endDate = new Date();
-    if (selectedMode === "weekly") {
-      const startDate = new Date(new Date().setDate(endDate.getDate() - 7));
-      const query = `start_date=${startDate.toISOString()}&end_date=${endDate.toISOString()}&category=PRICE`;
-      // data = getStatisticByMenuItem(query);
-      setMostPopular(sampleMostPopularByWeek);
-    } else {
-      const startDate = new Date(new Date().setMonth(endDate.getMonth() - 1));
-      const query = `start_date=${startDate.toISOString()}&end_date=${endDate.toISOString()}`;
-      // data = getStatisticByMenuItem(query);
-      setMostPopular(sampleMostPopularByMonth);
+    const startDate = new Date(
+      selectedMode === "weekly"
+        ? endDate.setDate(new Date().getDate() - 7) 
+        : endDate.setMonth(new Date().getMonth() - 1) 
+    );
+
+    const startDateFormatted = formatDateToString(startDate);
+    const endDateFormatted = formatDateToString(new Date());
+
+    const query = `start_time=${startDateFormatted}&end_time=${endDateFormatted}&category=PRICE&limit=10`;
+    console.log("getStatisticByMenuItem", query);
+    try {
+      getStatisticByMenuItem(query).then((res) => {
+        console.log(res);
+        setMostPopular(res.menuItemStatistics);
+      });
+      
+    } catch (error) {
+      console.error("Error fetching most popular items:", error);
     }
-  }, [selectedMode]);
+  };
+
+  fetchMostPopularItems();
+}, [selectedMode]); // Chạy lại khi selectedMode thay đổi
 
   return (
     <section className="bg-white p-4 shadow-sm ml-3 mt-6 h-[280px]">
@@ -142,21 +148,19 @@ export function PopularDish() {
         <div className="font-extrabold text-xl">Món ăn phổ biến</div>
         <div className="flex h-10 w-48 text-[#898a84] text-sm bg-[#f7f7f7] font-semibold rounded-md p-1 gap-2">
           <button
-            className={`basis-1/2 rounded-md transition-all duration-500 ${
-              selectedMode == "weekly"
-                ? "text-[#fafafa] bg-[#2b2b2b] shadow-sm"
-                : ""
-            }`}
+            className={`basis-1/2 rounded-md transition-all duration-500 ${selectedMode == "weekly"
+              ? "text-[#fafafa] bg-[#2b2b2b] shadow-sm"
+              : ""
+              }`}
             onClick={() => setSelectedMode("weekly")}
           >
             Theo tuần
           </button>
           <button
-            className={`basis-1/2 rounded-md transition-all duration-500 ${
-              selectedMode == "monthly"
-                ? "text-[#fafafa] bg-[#2b2b2b] shadow-sm"
-                : ""
-            }`}
+            className={`basis-1/2 rounded-md transition-all duration-500 ${selectedMode == "monthly"
+              ? "text-[#fafafa] bg-[#2b2b2b] shadow-sm"
+              : ""
+              }`}
             onClick={() => setSelectedMode("monthly")}
           >
             Theo tháng
