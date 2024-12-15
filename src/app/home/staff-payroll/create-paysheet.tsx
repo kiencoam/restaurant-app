@@ -2,31 +2,36 @@ import React, { useState } from "react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 
-import { createSalaryPeriod, CreateSalaryPeriodRequest } from "@/app/api-client/SalaryPeriodService";
+import {
+  createSalaryPeriod,
+  CreateSalaryPeriodRequest,
+} from "@/app/api-client/SalaryPeriodService";
 import { GetSalaryPeriodRequest } from "./page";
 import { formatDateToYYYYMMDD } from "@/utils/timeUtils";
-
+import { error } from "console";
 
 type Props = {
   toggleNewPaysheet: () => void;
   setPeriodFilter: React.Dispatch<React.SetStateAction<GetSalaryPeriodRequest>>;
 };
 
-export default function CreatePaysheet({ toggleNewPaysheet, setPeriodFilter }: Props) {
-  const [newSalaryPeriod, setNewSalaryPeriod] = useState<CreateSalaryPeriodRequest>({
-    title: "",
-    fromDate: null,
-    toDate: null,
-  });
+export default function CreatePaysheet({
+  toggleNewPaysheet,
+  setPeriodFilter,
+}: Props) {
+  const [newSalaryPeriod, setNewSalaryPeriod] =
+    useState<CreateSalaryPeriodRequest>({
+      title: "",
+      fromDate: null,
+      toDate: null,
+    });
 
   const [startDate, setStartDate] = useState<Date | null>(null);
   const [endDate, setEndDate] = useState<Date | null>(null);
 
-
   const handleTitleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setNewSalaryPeriod({ ...newSalaryPeriod, title: event.target.value });
   };
-
 
   const handleStartDateChange = (date: Date | null) => {
     setStartDate(date);
@@ -44,26 +49,34 @@ export default function CreatePaysheet({ toggleNewPaysheet, setPeriodFilter }: P
     });
   };
 
-
-
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
-    console.log("new", newSalaryPeriod)
-    createSalaryPeriod(newSalaryPeriod).then((res) => {
-      console.log("Submitting salary period:", res);
-      setPeriodFilter(prev => ({ ...prev }));
-    })
-    .catch((error) => {
-      alert("Tạo bảng lương thất bại !")
-    })
-
+    console.log("new", newSalaryPeriod);
+    if (
+      !newSalaryPeriod.title ||
+      !newSalaryPeriod.fromDate ||
+      !newSalaryPeriod.toDate
+    ) {
+      alert("Vui lòng điền đầy đủ thông tin trước khi lưu!");
+      return;
+    }
+    try {
+      createSalaryPeriod(newSalaryPeriod).then((res) => {
+        console.log("Submitting salary period:", res);
+        setPeriodFilter((prev) => ({ ...prev }));
+      });
+    } catch (error) {
+      alert("Đã có bảng lương trong khoảng thời gian này !");
+    }
     toggleNewPaysheet();
   };
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
       <div className="bg-[#f7fafc] p-8 rounded-lg shadow-lg w-2/5">
-        <div className="text-2xl font-bold mb-6 text-center">Thêm bảng tính lương</div>
+        <div className="text-2xl font-bold mb-6 text-center">
+          Thêm bảng tính lương
+        </div>
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Title Input */}
           <div className="flex flex-col space-y-2">
@@ -80,7 +93,9 @@ export default function CreatePaysheet({ toggleNewPaysheet, setPeriodFilter }: P
 
           <div className="flex flex-col space-y-2">
             <label className="text-gray-700 font-medium">Kỳ làm việc</label>
-            <div className="flex space-x-2 w-full"> {/* Using flex and space-x-2 for spacing */}
+            <div className="flex space-x-2 w-full">
+              {" "}
+              {/* Using flex and space-x-2 for spacing */}
               <DatePicker
                 className="border p-2 rounded focus:outline-none focus:ring-2 focus:ring-black w-full"
                 selected={startDate}
@@ -101,9 +116,6 @@ export default function CreatePaysheet({ toggleNewPaysheet, setPeriodFilter }: P
               />
             </div>
           </div>
-
-
-
 
           {/* Optional: Scope of application (Commented for now) */}
           {/* <div className="flex space-x-12 items-center">

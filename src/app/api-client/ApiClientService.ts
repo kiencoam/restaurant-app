@@ -42,7 +42,7 @@ export async function postData(endpoint: string, data: any) {
 
     if (!response.ok) {
       console.log(response);
-      alert((await response.json()).metadata.message);
+      alert((await response?.json()).metadata.message);
     }
 
     return await response.json();

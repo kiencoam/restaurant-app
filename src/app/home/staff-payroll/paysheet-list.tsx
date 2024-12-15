@@ -1,11 +1,27 @@
+//lỗi update status và payment method
 import { PageInfo } from "@/app/api-client/PageInfo";
-import { SalaryPeriodEntity, UpdateSalaryPeriodStatusRequest } from "@/app/api-client/SalaryPeriodService";
+import {
+  asyncCalculateSalaryPeriod,
+  paymentSalaryPeriod,
+  PaymentSalaryPeriodRequest,
+  SalaryPeriodEntity,
+  updateSalaryPeriodStatus,
+  UpdateSalaryPeriodStatusRequest,
+} from "@/app/api-client/SalaryPeriodService";
 import React, { useEffect, useState } from "react";
 import { Tooltip } from "react-tooltip";
 import { GetSalaryDetailRequest, GetSalaryPeriodRequest } from "./page";
-import { getAllSalaryDetails } from "@/app/api-client/SalaryDetailService";
-import { SalaryDetailStatusEnum } from '@/app/constants/SalaryDetailStatusEnum'
-import { SalaryPeriodStatusEnum } from '@/app/constants/SalaryPeriodStatusEnum'
+import {
+  getAllSalaryDetails,
+  PaymentSalaryDetailRequest,
+  SalaryDetailEntity,
+} from "@/app/api-client/SalaryDetailService";
+import { SalaryDetailStatusEnum } from "@/app/constants/SalaryDetailStatusEnum";
+import { SalaryPeriodStatusEnum } from "@/app/constants/SalaryPeriodStatusEnum";
+import {
+  formatDateToString,
+  formatTimeToYYYYMMDDTHHMM,
+} from "@/utils/timeUtils";
 
 type PaysheetListProps = {
   salaryPeriods: SalaryPeriodEntity[];
@@ -24,25 +40,107 @@ type PaysheetListProps = {
 
 export default function PaysheetList({
   salaryPeriods,
+  setSalaryPeriods,
   masterChecked,
   checkedRows,
   handleMasterCheckboxChange,
   handleRowCheckboxChange,
   handleRowClick,
   expandedRow,
-  setPeriodFilter
+  setPeriodFilter,
 }: PaysheetListProps) {
+  //FOR PERIOD
+  const [status, setStatus] = useState("");
 
-  //update chỉ có string ?
-  const [updatedSalaryPeriod, setUpdatedSalaryPeriod] = useState<UpdateSalaryPeriodStatusRequest | null>(null);
-
-  const [salaryDetails, setSalaryDetails] = useState<SalaryPeriodEntity[]>([])
+  //FOR DETAIL
+  const [salaryDetails, setSalaryDetails] = useState<SalaryDetailEntity[]>([]);
 
   const [detailFilter, setDetailFilter] = useState<GetSalaryDetailRequest>({
     page: 0,
     page_size: 5,
   });
 
+  const [updatedSalaryPeriod, setUpdatedSalaryPeriod] =
+    useState<PaymentSalaryPeriodRequest>({
+      paymentMethod: "CASH",
+      note: "",
+      paymentSalaryDetails: [] as PaymentSalaryDetailRequest[],
+    });
+
+  const [currentDetailPage, setCurrentDetailPage] = useState(1);
+
+  const [rowsPerDetailPage, setRowsPerDetailPage] = useState(5);
+
+  const [detailPageInfo, setDetailPageInfo] = useState<PageInfo>({
+    totalPage: null,
+    totalRecord: null,
+    pageSize: null,
+    nextPage: null,
+    previousPage: null,
+  });
+
+  //For DETAIL
+
+  const handlePaidSalaryChange = (
+    salaryPeriodId,
+    salaryDetailId,
+    newValue,
+    paymentMethod = null
+  ) => {
+    setUpdatedSalaryPeriod((prevPaysheets) => {
+      let updatedDetails = (prevPaysheets.paymentSalaryDetails || []).map(
+        (detail) =>
+          detail.salaryDetailId === salaryDetailId
+            ? { ...detail, paidSalary: newValue }
+            : detail
+      );
+
+      // if (
+      //   !updatedDetails.some(
+      //     (detail) => detail.salaryDetailId === salaryDetailId
+      //   )
+      // ) {
+      //   updatedDetails = [
+      //     ...updatedDetails,
+      //     { salaryDetailId: salaryDetailId, paidSalary: newValue },
+      //   ];
+      // }
+
+      return {
+        ...prevPaysheets,
+        paymentSalaryDetails: updatedDetails,
+        ...(paymentMethod !== null && { paymentMethod }),
+      };
+    });
+  };
+
+  const changeDetailPage = (newPage) => {
+    if (newPage >= 1 && newPage <= detailPageInfo.totalPage) {
+      setCurrentDetailPage(newPage);
+      handleDetailPageNumberChange(newPage - 1);
+    }
+  };
+
+  //Handle rowsPerPage change
+  const changeRowsPerDetailPage = (pageSize) => {
+    setRowsPerDetailPage(pageSize);
+    handleDetailPageSizeChange(pageSize);
+  };
+
+  const handleDetailPageSizeChange = (value: number) => {
+    setDetailFilter({
+      ...detailFilter,
+      page_size: value,
+      page: 0,
+    });
+  };
+
+  const handleDetailPageNumberChange = (value: number) => {
+    setDetailFilter({
+      ...detailFilter,
+      page: value,
+    });
+  };
 
   //Lấy tất cả SalaryDetails
   useEffect(() => {
@@ -53,60 +151,34 @@ export default function PaysheetList({
         }
       })
       .join("&");
-    getAllSalaryDetails(query).then((data) => {
-      console.log("Salary Detail", data.second)
-      setSalaryDetails(data.second);
-    })
-    // console.log(query)
+    if (detailFilter.salary_period_id) {
+      getAllSalaryDetails(query).then((data) => {
+        setSalaryDetails(data.second);
+        setDetailPageInfo(data.first);
+        console.log(data.second);
+      });
+    }
   }, [detailFilter]);
 
-  const handlePaidSalaryChange = (paysheetId, salaryDetailId, newValue) => {
-    setUpdatedSalaryPeriod((prevPaysheets) =>
-      prevPaysheets.map((paysheet) =>
-        paysheet.id === paysheetId
-          ? {
-            ...paysheet,
-            salaryDetails: paysheet.salaryDetails.map((detail) =>
-              detail.id === salaryDetailId
-                ? { ...detail, paidSalary: newValue }
-                : detail
-            ),
-          }
-          : paysheet
-      )
-    );
+  const handleSubmit = (paysheetId) => {
+    paymentSalaryPeriod(paysheetId, updatedSalaryPeriod).then((res) => {
+      console.log("payment", res);
+      updateSalaryPeriodStatus(paysheetId, { status: "DONE" }).then((res) => {
+        console.log("status:", res);
+        setDetailFilter((prev) => ({ ...prev }));
+        setPeriodFilter((prev) => ({ ...prev }));
+      });
+    });
   };
 
-  const handleNameChange = (paysheetId, newName) => {
-    setUpdatedPaysheets((prevPaysheets) =>
-      prevPaysheets.map((paysheet) =>
-        paysheet.id === paysheetId ? { ...paysheet, title: newName } : paysheet
-      )
-    );
-  };
-
-  const handleStatusChange = (paysheetId, newStatus) => {
-    setUpdatedPaysheets((prevPaysheets) =>
-      prevPaysheets.map((paysheet) =>
-        paysheet.id === paysheetId
-          ? { ...paysheet, status: newStatus }
-          : paysheet
-      )
-    );
-  };
-
-  // Pagination state
-
-
-  // Calculate total pages
-  // const totalPages = Math.ceil(updatedPaysheets.length / rowsPerPage);
-
-  // // Get current page rows
-  // const startIndex = (currentPage - 1) * rowsPerPage;
-  // const currentRowsPaysheets = updatedPaysheets.slice(
-  //   startIndex,
-  //   startIndex + rowsPerPage
-
+  // const handleAsyncCalculate = (id) => {
+  //   asyncCalculateSalaryPeriod(id).then((res) => {
+  //     setSalaryPeriods((prev) =>
+  //       prev.map((item) => (item.id === id ? { ...item, ...res } : item))
+  //     );
+  //     console.log("async", res);
+  //   });
+  // };
 
   return (
     <div>
@@ -133,8 +205,9 @@ export default function PaysheetList({
             <React.Fragment key={paysheet.id}>
               <tr
                 key={paysheet.id}
-                className={` border-b-2 cursor-pointer ${checkedRows[paysheet.id] ? "bg-gray-100" : ""
-                  }`}
+                className={` border-b-2 cursor-pointer ${
+                  checkedRows[paysheet.id] ? "bg-gray-100" : ""
+                }`}
                 onClick={(e) => {
                   const target = e.target as HTMLElement; // Cast to HTMLElement
 
@@ -148,6 +221,23 @@ export default function PaysheetList({
                     return;
                   }
                   handleRowClick(paysheet.id); // Expand or collapse row
+                  setPeriodFilter((prev) => ({ ...prev }));
+                  setDetailFilter((prev) => ({
+                    ...prev,
+                    salary_period_id: paysheet.id,
+                  }));
+                  setUpdatedSalaryPeriod((prev) => ({
+                    ...prev,
+                    paymentMethod:
+                      paysheet.salaryDetails[0].paymentMethod ||
+                      prev.paymentMethod,
+                    paymentSalaryDetails: paysheet.salaryDetails.map(
+                      (prev) => ({
+                        salaryDetailId: prev.id,
+                        paidSalary: prev.paidSalary,
+                      })
+                    ),
+                  }));
                 }}
               >
                 <td className="px-4 py-2 border-b">
@@ -207,13 +297,8 @@ export default function PaysheetList({
                                   <input
                                     type="text"
                                     value={paysheet.title}
-                                    onChange={(e) =>
-                                      handleNameChange(
-                                        paysheet.id,
-                                        e.target.value
-                                      )
-                                    }
                                     className="w-full border-b-2 bg-gray-50 mt-2 outline-none focus:border-b-black"
+                                    disabled
                                   />
                                 </label>
                                 <label className="w-52">
@@ -259,16 +344,30 @@ export default function PaysheetList({
                                 Trạng thái
                                 <select
                                   value={paysheet.status}
+                                  className="w-full border-b-2 bg-gray-50 mt-2 outline-none focus:border-b-black"
+                                  disabled
+                                >
+                                  <option value="PROCESSING">Tạm tính</option>
+                                  <option value="DONE">Đã chốt lương</option>
+                                </select>
+                              </label>
+                              <label className="w-52">
+                                Hình thức thanh toán
+                                <select
+                                  value={updatedSalaryPeriod.paymentMethod}
                                   onChange={(e) =>
-                                    handleStatusChange(
+                                    handlePaidSalaryChange(
                                       paysheet.id,
+                                      null,
+                                      null,
                                       e.target.value
                                     )
                                   }
                                   className="w-full border-b-2 bg-gray-50 mt-2 outline-none focus:border-b-black"
+                                  disabled={paysheet.status === "DONE"}
                                 >
-                                  <option value="PROCESSING">Tạm tính</option>
-                                  <option value="DONE">Đã chốt lương</option>
+                                  <option value="CASH">Tiền mặt</option>
+                                  <option value="BANK">Chuyển khoản</option>
                                 </select>
                               </label>
                             </div>
@@ -280,67 +379,158 @@ export default function PaysheetList({
                               <table className="min-w-full bg-white border border-gray-200">
                                 <thead>
                                   <tr className="bg-[#f7fafc] border-b-2">
-                                    <th className="px-4 py-2 border-b text-left">
+                                    <th className="px-4 py-2 border-b text-left text-sm font-semibold text-gray-700">
                                       Mã phiếu
                                     </th>
-                                    <th className="px-4 py-2 border-b text-left">
+                                    <th className="px-4 py-2 border-b text-left text-sm font-semibold text-gray-700">
                                       Tên nhân viên
                                     </th>
-                                    <th className="px-4 py-2 border-b text-right w-[140px]">
+                                    <th className="px-4 py-2 border-b text-right w-[140px] text-sm font-semibold text-gray-700">
                                       Tổng lương
                                     </th>
-                                    <th className="px-4 py-2 border-b text-right w-[140px]">
+                                    <th className="px-4 py-2 border-b text-right w-[140px] text-sm font-semibold text-gray-700">
                                       Đã trả NV
                                     </th>
                                   </tr>
                                 </thead>
                                 <tbody>
-                                  {paysheet.salaryDetails.map(
-                                    (salaryDetail) => (
-                                      <tr key={salaryDetail.id}>
-                                        <td className="px-4 py-2 border-b">
-                                          {salaryDetail.code}
-                                        </td>
-                                        <td className="px-4 py-2 border-b">
-                                          {salaryDetail.userName}
-                                        </td>
-                                        <td className="px-4 py-2 border-b text-right">
-                                          {salaryDetail.totalSalary}
-                                        </td>
-                                        <td className="px-4 py-2 border-b">
-                                          <input
-                                            type="text"
-                                            value={salaryDetail.paidSalary}
-                                            onChange={(e) =>
-                                              handlePaidSalaryChange(
-                                                paysheet.id,
-                                                salaryDetail.id,
-                                                e.target.value
-                                              )
-                                            }
-                                            className="w-full border-b-2 outline-none focus:border-b-black text-right"
-                                          />
-                                        </td>
-                                      </tr>
-                                    )
-                                  )}
+                                  {salaryDetails.map((salaryDetail) => (
+                                    <tr
+                                      key={salaryDetail.id}
+                                      className="hover:bg-gray-50"
+                                    >
+                                      <td className="px-4 py-2 border-b text-sm text-gray-700">
+                                        {salaryDetail.code}
+                                      </td>
+                                      <td className="px-4 py-2 border-b text-sm text-gray-700">
+                                        {salaryDetail.userName}
+                                      </td>
+                                      <td className="px-4 py-2 border-b text-right text-sm text-gray-700">
+                                        {salaryDetail.totalSalary.toLocaleString()}
+                                        ₫
+                                      </td>
+                                      <td className="px-4 py-2 border-b text-right text-sm">
+                                        <input
+                                          type="text"
+                                          value={
+                                            salaryDetail.status !== "PAID"
+                                              ? updatedSalaryPeriod.paymentSalaryDetails.find(
+                                                  (it) =>
+                                                    it.salaryDetailId ===
+                                                    salaryDetail.id
+                                                )?.paidSalary
+                                              : salaryDetail.paidSalary
+                                          }
+                                          onChange={(e) =>
+                                            handlePaidSalaryChange(
+                                              paysheet.id,
+                                              salaryDetail.id,
+                                              e.target.value
+                                            )
+                                          }
+                                          disabled={paysheet.status === "DONE"}
+                                          className="w-full border rounded px-2 py-1 outline-none focus:ring-2 focus:ring-blue-500 text-right"
+                                        />
+                                      </td>
+                                    </tr>
+                                  ))}
                                 </tbody>
                               </table>
                             </div>
+                            <div className="flex items-center space-x-8 mt-4">
+                              <div className="flex">
+                                <div>Số nhân viên: </div>
+                                <select
+                                  className="bg-[#f7f7f7] outline-none"
+                                  value={rowsPerDetailPage}
+                                  onChange={(e) => {
+                                    changeRowsPerDetailPage(
+                                      Number(e.target.value)
+                                    );
+                                    setCurrentDetailPage(1);
+                                  }}
+                                >
+                                  {/* <option defaultValue={rowsPerPage}>{rowsPerPage}</option> */}
+                                  {/* <option value={1}>1</option> */}
+                                  <option value={5}>5</option>
+                                  <option value={10}>10</option>
+                                  <option value={15}>15</option>
+                                  <option value={20}>20</option>
+                                </select>
+                              </div>
+                              <div className="flex space-x-2">
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    changeDetailPage(currentDetailPage - 1); // Cập nhật số trang
+                                    setDetailFilter((prevParams) => ({
+                                      ...prevParams, // Giữ lại các tham số cũ
+                                      page: currentDetailPage - 2, // Cập nhật page theo currentPage - 1
+                                    }));
+                                  }}
+                                  disabled={currentDetailPage === 1}
+                                >
+                                  <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    height="24px"
+                                    viewBox="0 -960 960 960"
+                                    width="24px"
+                                    fill="#000000"
+                                  >
+                                    <path d="m313-440 224 224-57 56-320-320 320-320 57 56-224 224h487v80H313Z" />
+                                  </svg>
+                                </button>
+                                {salaryDetails.length > 0 && (
+                                  <span>
+                                    Page{" "}
+                                    {Math.min(
+                                      currentDetailPage,
+                                      detailPageInfo.totalPage
+                                    )}{" "}
+                                    of {detailPageInfo.totalPage}
+                                  </span>
+                                )}
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    changeDetailPage(currentDetailPage + 1); // Cập nhật số trang
+                                    setDetailFilter((prevParams) => ({
+                                      ...prevParams, // Giữ lại các tham số cũ
+                                      page: currentDetailPage, // Cập nhật page theo currentPage + 1
+                                    }));
+                                  }}
+                                  disabled={
+                                    currentDetailPage ===
+                                    detailPageInfo.totalPage
+                                  }
+                                >
+                                  <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    height="24px"
+                                    viewBox="0 -960 960 960"
+                                    width="24px"
+                                    fill="#000000"
+                                  >
+                                    <path d="M647-440H160v-80h487L423-744l57-56 320 320-320 320-57-56 224-224Z" />
+                                  </svg>
+                                </button>
+                              </div>
+                            </div>
                           </div>
                         </div>
-                        {/* <div className="flex pt-2 items-center space-x-4">
+                        <div className="flex pt-2 items-center space-x-4">
                           <div>
                             Dữ liệu được tải lại vào:
                             <span className="font-bold">
                               {" "}
-                              {paysheet.updatedTime}
+                              {formatDateToString(new Date())}
                             </span>
                           </div>
                           <button
                             type="button"
                             data-tooltip-id="my-tooltip"
                             data-tooltip-content="Tải lại bảng lương để xem dữ liệu mới nhất"
+                            // onClick={() => handleAsyncCalculate(paysheet.id)}
                           >
                             <Tooltip id="my-tooltip" />
                             <svg
@@ -353,11 +543,15 @@ export default function PaysheetList({
                               <path d="M160-160v-80h110l-16-14q-52-46-73-105t-21-119q0-111 66.5-197.5T400-790v84q-72 26-116 88.5T240-478q0 45 17 87.5t53 78.5l10 10v-98h80v240H160Zm400-10v-84q72-26 116-88.5T720-482q0-45-17-87.5T650-648l-10-10v98h-80v-240h240v80H690l16 14q49 49 71.5 106.5T800-482q0 111-66.5 197.5T560-170Z" />
                             </svg>
                           </button>
-                        </div> */}
+                        </div>
                         <div className="flex justify-end ">
                           <div className="flex gap-2">
                             <button
-                              onClick={() => handleRowClick(paysheet.id)}
+                              type="submit"
+                              onClick={() => {
+                                handleSubmit(paysheet.id);
+                                handleRowClick(paysheet.id);
+                              }}
                               className="border rounded-md px-2 shadow-sm bg-black text-white"
                             >
                               Lưu

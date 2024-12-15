@@ -3,36 +3,41 @@
 import React, { useState, useRef, useEffect } from "react";
 import CreatePaysheet from "./create-paysheet";
 import PaysheetList from "./paysheet-list";
-import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { PageInfo } from "@/app/api-client/PageInfo";
 import { GetStaffRequest } from "../staff-management/page";
 import { getAllUsers, UserEntity } from "@/app/api-client/UserService";
-import { getAll, SalaryPeriodEntity } from "@/app/api-client/SalaryPeriodService";
-import { getAllSalaryDetails } from "@/app/api-client/SalaryDetailService";
+import {
+  deleteSalaryPeriod,
+  getAll,
+  SalaryPeriodEntity,
+} from "@/app/api-client/SalaryPeriodService";
+import { SalaryPeriodStatusEnum } from "@/app/constants/SalaryPeriodStatusEnum";
+import { DeleteModal } from "@/components/DeleteModal";
 
 export type GetSalaryPeriodRequest = {
-  page: number,
-  page_size: number,
-  title?: string,
-  status?: string,
-}
+  page: number;
+  page_size: number;
+  title?: string;
+  status?: string;
+};
 
 export type GetSalaryDetailRequest = {
-  page: number,
-  page_size: number,
-  user_id?: number,
-  salary_period_id?: number,
-  status?: string,
-}
+  page: number;
+  page_size: number;
+  user_id?: number;
+  salary_period_id?: number;
+  status?: string;
+};
 
 const PaysheetPage = () => {
-
   const [users, setUsers] = useState<UserEntity[]>([]);
 
-  const [salaryPeriods, setSalaryPeriods] = useState<SalaryPeriodEntity[]>([])
+  const [salaryPeriods, setSalaryPeriods] = useState<SalaryPeriodEntity[]>([]);
 
   const [masterChecked, setMasterChecked] = useState(false);
+
+  const [deleteModal, setDeleteModal] = useState(false);
 
   const [isNewPaysheet, setIsNewPaysheet] = useState(false);
 
@@ -45,16 +50,10 @@ const PaysheetPage = () => {
   const filterRef = useRef(null);
 
   const [expandedRow, setExpandedRow] = useState(null);
-  //"Tên bảng lương, tên nhân viên"
-  const [searchParam, setSearchParam] = useState("");
 
   const [currentPage, setCurrentPage] = useState(1);
 
   const [rowsPerPage, setRowsPerPage] = useState(5);
-
-  const [startDate, setStartDate] = useState(new Date("2014/01/01"));
-
-  const [endDate, setEndDate] = useState(new Date("2025/12/31"));
 
   const [pageInfo, setPageInfo] = useState<PageInfo>({
     totalPage: null,
@@ -63,15 +62,6 @@ const PaysheetPage = () => {
     nextPage: null,
     previousPage: null,
   });
-
-
-  const handleStartDateChange = (date) => {
-    setStartDate(date);
-  };
-
-  const handleEndDateChange = (date) => {
-    setEndDate(date);
-  };
 
   const [periodFilter, setPeriodFilter] = useState<GetSalaryPeriodRequest>({
     page: 0,
@@ -95,16 +85,16 @@ const PaysheetPage = () => {
     setPeriodFilter({
       ...periodFilter,
       page_size: value,
-      page: 0
-    })
-  }
+      page: 0,
+    });
+  };
 
   const handlePageNumberChange = (value: number) => {
     setPeriodFilter({
       ...periodFilter,
-      page: value
-    })
-  }
+      page: value,
+    });
+  };
 
   const isAnyRowChecked = Object.values(checkedRows).some(Boolean);
 
@@ -139,7 +129,7 @@ const PaysheetPage = () => {
     setMasterChecked(newMasterChecked);
 
     const updatedCheckedRows = {};
-    users.forEach((staff) => {
+    salaryPeriods.forEach((staff) => {
       updatedCheckedRows[staff.id] = newMasterChecked;
     });
     setCheckedRows(updatedCheckedRows);
@@ -147,9 +137,9 @@ const PaysheetPage = () => {
 
   useEffect(() => {
     // Sync master checkbox with individual row checkboxes
-    const allChecked = users.every((staff) => checkedRows[staff.id]);
+    const allChecked = salaryPeriods.every((staff) => checkedRows[staff.id]);
     setMasterChecked(allChecked);
-  }, [checkedRows]);
+  }, [checkedRows, salaryPeriods]);
 
   const handleRowCheckboxChange = (id) => {
     const updatedCheckedRows = {
@@ -159,25 +149,24 @@ const PaysheetPage = () => {
     setCheckedRows(updatedCheckedRows);
   };
 
-
   const handleFilterChange = (e, field) => {
     let newValue = e.target.value;
-    if (newValue === "") {
-      newValue = null;
-    } else {
-      newValue = Number(newValue);
-    }
+    // if (newValue === "") {
+    //   newValue = null;
+    // } else {
+    //   newValue = Number(newValue);
+    // }
 
     setPeriodFilter({
       ...periodFilter,
-      [field]: newValue
-    })
-  }
+      [field]: newValue,
+    });
+  };
 
   //userFilter
   const [filter, setFilter] = useState<GetStaffRequest>({
     page: 0,
-    page_size: 5
+    page_size: 5,
   });
 
   //Lấy tất cả User
@@ -189,10 +178,9 @@ const PaysheetPage = () => {
         }
       })
       .join("&");
-    console.log("user:", query)
     getAllUsers(query).then((data) => {
       setUsers(data.second);
-    })
+    });
     // console.log(query)
   }, [filter]);
 
@@ -205,63 +193,102 @@ const PaysheetPage = () => {
         }
       })
       .join("&");
-    console.log("SalaryPeriodsQuery", query)
     getAll(query).then((data) => {
       setPageInfo(data.first);
       setSalaryPeriods(data.second);
-    })
+    });
     // console.log(query)
   }, [periodFilter]);
+
+  const handleDeletePeriod = () => {
+    const selectedIds = Object.keys(checkedRows)
+      .filter((id) => checkedRows[id])
+      .map((id) => Number(id));
+    console.log(selectedIds);
+
+    if (selectedIds.length === 0) {
+      alert("Không có bảng lương nào được chọn để xóa.");
+      return;
+    }
+    // Call API deleteSalaryPeriod
+    Promise.all(selectedIds.map((id) => deleteSalaryPeriod(id)))
+      .then(() => {
+        // alert("Xóa thành công!");
+        const newCheckedRows = { ...checkedRows };
+        selectedIds.forEach((id) => {
+          delete newCheckedRows[id];
+        });
+        setCheckedRows(newCheckedRows);
+        setPeriodFilter((prev) => ({ ...prev })); // Kích hoạt useEffect
+      })
+      .catch((error) => {
+        alert("Có lỗi khi xóa bảng lương.");
+        console.error(error);
+      });
+    setDeleteModal(false);
+  };
 
   return (
     <div className="w-full h-screen font-nunito bg-[#f7f7f7]">
       <div className="flex p-6 justify-between items-center">
         <div className="text-2xl font-extrabold">Bảng lương</div>
         <div className="flex items-center gap-2">
-          {isAnyRowChecked && (
-            <li
-              className="lg:px-8 relative flex items-center space-x-1"
-              onMouseEnter={() => setFlyOutActions(true)}
-              onMouseLeave={() => setFlyOutActions(false)}
-            >
-              <a
-                className="text-slate-800 hover:text-slate-900"
-                aria-expanded={flyOutActions}
+          <ul>
+            {isAnyRowChecked && (
+              <li
+                className="lg:px-8 relative flex items-center space-x-1"
+                onMouseEnter={() => setFlyOutActions(true)}
+                onMouseLeave={() => setFlyOutActions(false)}
               >
-                Thao tác
-              </a>
-              <button
-                className="shrink-0 p-1"
-                aria-expanded={flyOutActions}
-                onClick={(e) => {
-                  e.preventDefault();
-                  setFlyOutActions(!flyOutActions);
-                }}
-              >
-                <span className="sr-only">Show submenu for Flyout Menu</span>
-                <svg
-                  className="w-3 h-3 fill-slate-500"
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="12"
-                  height="12"
+                <a
+                  className="text-slate-800 hover:text-slate-900"
+                  aria-expanded={flyOutActions}
                 >
-                  <path d="M10 2.586 11.414 4 6 9.414.586 4 2 2.586l4 4z" />
-                </svg>
-              </button>
+                  Thao tác
+                </a>
+                <button
+                  className="shrink-0 p-1"
+                  aria-expanded={flyOutActions}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setFlyOutActions(!flyOutActions);
+                  }}
+                >
+                  <span className="sr-only">Show submenu for Flyout Menu</span>
+                  <svg
+                    className="w-3 h-3 fill-slate-500"
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="12"
+                    height="12"
+                  >
+                    <path d="M10 2.586 11.414 4 6 9.414.586 4 2 2.586l4 4z" />
+                  </svg>
+                </button>
 
-              {/* 2nd level menu */}
-              {flyOutActions && (
-                <ul className="origin-top-right absolute top-full left-1/2 -translate-x-1/2 w-[120px] bg-white border border-slate-200 p-2 rounded-lg shadow-xl">
-                  <li>
-                    <button className="text-slate-800 text-center w-[100px] hover:bg-slate-50 p-2">
-                      Xóa
-                    </button>
-                  </li>
-                </ul>
-                /* Thêm action ở đây */
-              )}
-            </li>
-          )}
+                {/* 2nd level menu */}
+                {flyOutActions && (
+                  <ul className="origin-top-right absolute top-full left-1/2 -translate-x-1/2 w-[120px] bg-white border border-slate-200 p-2 rounded-lg shadow-xl">
+                    <li>
+                      <button
+                        className="text-slate-800 text-center w-[100px] hover:bg-slate-50 p-2"
+                        onClick={() => setDeleteModal(true)}
+                      >
+                        Xóa
+                      </button>
+                    </li>
+                  </ul>
+                )}
+              </li>
+            )}
+
+            {/* Modal xác nhận xóa */}
+            <DeleteModal
+              type="bảng lương"
+              isOpen={deleteModal}
+              onClose={() => setDeleteModal(false)}
+              onDelete={handleDeletePeriod}
+            />
+          </ul>
           <div className="flex items-center border text-sm rounded-md bg-[#f7fafc] px-2 shadow-sm">
             <svg
               className="w-5 h-5"
@@ -280,7 +307,8 @@ const PaysheetPage = () => {
             <input
               className="p-2 bg-transparent outline-none w-60"
               type="text"
-              placeholder="Tên bảng lương, tên nhân viên"
+              placeholder="Tên bảng lương"
+              onChange={(e) => handleFilterChange(e, "title")}
             />
           </div>
 
@@ -312,39 +340,47 @@ const PaysheetPage = () => {
                 className="absolute mt-2 w-48 bg-white border border-gray-300 rounded-md shadow-lg divide-y-2"
               >
                 <div className="p-2">
-                  <p className="font-bold m-2 px-2">Thời gian</p>
-                  <label className="flex items-center space-x-2 mt-2">
-                    <DatePicker
-                      dateFormat="dd/MM/yyyy"
-                      className="border-b-2 focus:border-b-black w-full outline-none"
-                      selected={startDate}
-                      onChange={handleStartDateChange}
-                      selectsStart
-                      startDate={startDate}
-                      endDate={endDate}
-                    />
-                  </label>
-                  <label className="flex items-center space-x-2 mt-2">
-                    <DatePicker
-                      dateFormat="dd/MM/yyyy"
-                      className="border-b-2 focus:border-b-black w-full outline-none"
-                      selected={endDate}
-                      onChange={handleEndDateChange}
-                      selectsEnd
-                      startDate={startDate}
-                      endDate={endDate}
-                      minDate={startDate}
-                    />
-                  </label>
-                </div>
-                <div className="p-2">
                   <p className="font-bold m-2 px-2">Trạng thái</p>
-                  <label className="flex items-center space-x-2 mt-2">
-                    <input type="checkbox" className="form-checkbox" />
+                  <label className="flex items-center space-x-2">
+                    <input
+                      type="radio"
+                      name="salaryStatus"
+                      value=""
+                      checked={periodFilter.status === ""}
+                      onChange={(e) => handleFilterChange(e, "status")}
+                      className="form-radio"
+                    />
+                    <span>Tất cả</span>
+                  </label>
+
+                  {/* Chọn Tạm tính */}
+                  <label className="flex items-center space-x-2">
+                    <input
+                      type="radio"
+                      name="salaryStatus"
+                      value={SalaryPeriodStatusEnum.Processing}
+                      checked={
+                        periodFilter.status ===
+                        SalaryPeriodStatusEnum.Processing
+                      }
+                      onChange={(e) => handleFilterChange(e, "status")}
+                      className="form-radio"
+                    />
                     <span>Tạm tính</span>
                   </label>
-                  <label className="flex items-center space-x-2 mt-2">
-                    <input type="checkbox" className="form-checkbox" />
+
+                  {/* Chọn Đã chốt lương */}
+                  <label className="flex items-center space-x-2">
+                    <input
+                      type="radio"
+                      name="salaryStatus"
+                      value={SalaryPeriodStatusEnum.Done}
+                      checked={
+                        periodFilter.status === SalaryPeriodStatusEnum.Done
+                      }
+                      onChange={(e) => handleFilterChange(e, "status")}
+                      className="form-radio"
+                    />
                     <span>Đã chốt lương</span>
                   </label>
                 </div>
@@ -373,11 +409,11 @@ const PaysheetPage = () => {
             <CreatePaysheet
               toggleNewPaysheet={toggleNewPaysheet}
               setPeriodFilter={setPeriodFilter}
-            // filterUser={filterUser}
-            // searchUser={searchUser}
-            // setSearchUser={setSearchUser}
-            // newPaysheet={newPaysheet}
-            // setNewPaysheet={setNewPaysheet}
+              // filterUser={filterUser}
+              // searchUser={searchUser}
+              // setSearchUser={setSearchUser}
+              // newPaysheet={newPaysheet}
+              // setNewPaysheet={setNewPaysheet}
             />
           )}
         </div>
@@ -396,7 +432,8 @@ const PaysheetPage = () => {
           handlePageSizeChange={handlePageSizeChange}
           handlePageNumberChange={handlePageNumberChange}
           setPeriodFilter={setPeriodFilter}
-        /><div className="flex items-center space-x-8 mt-4">
+        />
+        <div className="flex items-center space-x-8 mt-4">
           <div className="flex">
             <div>Số bản ghi: </div>
             <select
@@ -405,7 +442,6 @@ const PaysheetPage = () => {
               onChange={(e) => {
                 changeRowsPerPage(Number(e.target.value));
                 setCurrentPage(1);
-
               }}
             >
               {/* <option defaultValue={rowsPerPage}>{rowsPerPage}</option> */}
@@ -420,7 +456,7 @@ const PaysheetPage = () => {
             <button
               onClick={() => {
                 changePage(currentPage - 1); // Cập nhật số trang
-                setPeriodFilter(prevParams => ({
+                setPeriodFilter((prevParams) => ({
                   ...prevParams, // Giữ lại các tham số cũ
                   page: currentPage - 2, // Cập nhật page theo currentPage - 1
                 }));
@@ -437,15 +473,16 @@ const PaysheetPage = () => {
                 <path d="m313-440 224 224-57 56-320-320 320-320 57 56-224 224h487v80H313Z" />
               </svg>
             </button>
-            {salaryPeriods.length > 0 &&
+            {salaryPeriods.length > 0 && (
               <span>
-                Page {Math.min(currentPage, pageInfo.totalPage)} of {pageInfo.totalPage}
+                Page {Math.min(currentPage, pageInfo.totalPage)} of{" "}
+                {pageInfo.totalPage}
               </span>
-            }
+            )}
             <button
               onClick={() => {
                 changePage(currentPage + 1); // Cập nhật số trang
-                setPeriodFilter(prevParams => ({
+                setPeriodFilter((prevParams) => ({
                   ...prevParams, // Giữ lại các tham số cũ
                   page: currentPage, // Cập nhật page theo currentPage + 1
                 }));
@@ -462,7 +499,6 @@ const PaysheetPage = () => {
                 <path d="M647-440H160v-80h487L423-744l57-56 320 320-320 320-57-56 224-224Z" />
               </svg>
             </button>
-
           </div>
         </div>
       </div>

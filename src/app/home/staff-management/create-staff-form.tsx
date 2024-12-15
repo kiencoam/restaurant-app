@@ -1,6 +1,10 @@
 //Phải comment một số tsx input vì backend chưa có !
 //Fix roleId, uncomment toggleNewStaff
-import { createUser, CreateUserRequest, UserEntity } from "@/app/api-client/UserService";
+import {
+  createUser,
+  CreateUserRequest,
+  UserEntity,
+} from "@/app/api-client/UserService";
 import { useContext, useState } from "react";
 import { GetStaffRequest } from "./page";
 import { loginUserContext } from "@/components/LoginUserProvider";
@@ -10,7 +14,7 @@ type Props = {
   toggleNewStaff: () => void;
   pageSize: number;
   setFilter: React.Dispatch<React.SetStateAction<GetStaffRequest>>;
-}
+};
 
 const RoleEnum = {
   Admin: "ADMIN",
@@ -38,14 +42,17 @@ const RoleIdDisplay = {
 };
 
 export default function CreateStaffForm({
-  toggleNewStaff, setStaffs, pageSize, setFilter
+  toggleNewStaff,
+  setStaffs,
+  pageSize,
+  setFilter,
 }: Props) {
   const [isCharsVisible, changeCharsVisibility] = useState(false);
 
   let role = useContext(loginUserContext).role;
-  //tạm thời
-  role = "ADMIN"
-  
+  // //tạm thời
+  // role = "ADMIN";
+
   const toggleCharsVisibility = () => {
     changeCharsVisibility(!isCharsVisible);
   };
@@ -58,10 +65,10 @@ export default function CreateStaffForm({
     phoneNumber: "",
     gender: "MALE",
     dateOfBirth: "",
-    roleId: 1,
+    roleId: 4,
     cccd: "",
     cvImg: "",
-    position: "ADMIN",
+    position: "WAITER",
     salaryType: "DAYLY",
     salaryPerHour: 0,
     salaryPerMonth: 0,
@@ -77,7 +84,10 @@ export default function CreateStaffForm({
     return `${year}-${formattedMonth}-${formattedDay}`;
   }
 
-  const handleNewStaffChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>, field: string) => {
+  const handleNewStaffChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
+    field: string
+  ) => {
     let newValue = e.target.value;
     setNewStaff({
       ...newStaff,
@@ -87,19 +97,19 @@ export default function CreateStaffForm({
 
   //lỗi khi lưu bị refresh lại và có lỗi
   const handleCreateStaff = async (e) => {
-    e.preventDefault()
+    e.preventDefault();
     const finalNewStaff = {
       ...newStaff,
       dateOfBirth: convertDateToISOFormat(newStaff.dateOfBirth),
       roleId: RoleIdDisplay[newStaff.position],
-    }
+    };
     console.log("Payload sent to API:", finalNewStaff);
     console.log("Staff create");
     try {
       createUser(finalNewStaff).then((res) => {
-        // res.status = StaffStatusEnum.Active; 
+        // res.status = StaffStatusEnum.Active;
         console.log("Staff created:", res);
-        setFilter(prev => ({ ...prev })); // Kích hoạt useEffect
+        setFilter((prev) => ({ ...prev })); // Kích hoạt useEffect
         toggleNewStaff();
       });
     } catch (error) {
@@ -243,12 +253,17 @@ export default function CreateStaffForm({
                 value={newStaff.position}
                 onChange={(e) => handleNewStaffChange(e, "position")}
               >
-                {Object.entries(RoleEnum).map(([key, value]) => (
-                  ((role === "MANAGER" && value !== "ADMIN" && value !== "MANAGER") || role === "ADMIN") &&
-                  <option key={value} value={value}>
-                    {RoleDisplay[value]}
-                  </option>
-                ))}
+                {Object.entries(RoleEnum).map(
+                  ([key, value]) =>
+                    ((role === "MANAGER" &&
+                      value !== "ADMIN" &&
+                      value !== "MANAGER") ||
+                      role === "ADMIN") && (
+                      <option key={value} value={value}>
+                        {RoleDisplay[value]}
+                      </option>
+                    )
+                )}
               </select>
             </label>
             <label className="w-1/2">
@@ -270,8 +285,7 @@ export default function CreateStaffForm({
               <select
                 className="w-full border-b-2 bg-gray-50 mt-2 outline-none focus:border-b-black"
                 onChange={(e) => handleNewStaffChange(e, "status")}
-              // value={newStaff.status || "IN"}
-
+                // value={newStaff.status || "IN"}
               >
                 <option value="IN">Đang làm việc</option>
                 <option value="OUT">Đã nghỉ</option>
@@ -293,16 +307,18 @@ export default function CreateStaffForm({
 
           {/* Hàng 7: Lương theo giờ và Lương theo tháng */}
           <div className="flex space-x-4">
-            {newStaff.salaryType === "HOURLY" ? <label className="w-1/2">
-              Lương theo giờ
-              <input
-                type="text"
-                className="w-full border-b-2 bg-gray-50 mt-2 outline-none focus:border-b-black"
-                value={newStaff.salaryPerHour}
-                onChange={(e) => handleNewStaffChange(e, "salaryPerHour")}
-                required
-              />
-            </label> :
+            {newStaff.salaryType === "HOURLY" ? (
+              <label className="w-1/2">
+                Lương theo giờ
+                <input
+                  type="text"
+                  className="w-full border-b-2 bg-gray-50 mt-2 outline-none focus:border-b-black"
+                  value={newStaff.salaryPerHour}
+                  onChange={(e) => handleNewStaffChange(e, "salaryPerHour")}
+                  required
+                />
+              </label>
+            ) : (
               <label className="w-1/2">
                 Lương theo tháng
                 <input
@@ -313,7 +329,7 @@ export default function CreateStaffForm({
                   required
                 />
               </label>
-            }
+            )}
             <label className="w-1/2">
               Ghi chú
               <input
@@ -355,4 +371,3 @@ export default function CreateStaffForm({
     </div>
   );
 }
-

@@ -47,9 +47,10 @@ export default function StaffList({
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(5);
 
-  //let role = useContext(loginUserContext).role;
-  //tạm thời
-  let role = "MANAGER";
+  let currRole = useContext(loginUserContext).role;
+  let currId = useContext(loginUserContext).id;
+  // currRole = "MANAGER";
+  // currId = 12;
 
   // Calculate total pages
   const totalPages = Math.ceil(staffs.length / rowsPerPage);
@@ -191,13 +192,14 @@ export default function StaffList({
                 </td>
                 <td className="px-4 py-2 border-b">{staff.name}</td>
                 <td className="px-4 py-2 border-b">{staff.phoneNumber}</td>
-                <td className="px-4 py-2 border-b">{staff.position}</td>
+                <td className="px-4 py-2 border-b">{staff.role.description}</td>
               </tr>
               {expandedRow === staff.id &&
-                ((role === "MANAGER" &&
+                ((currRole === "MANAGER" &&
                   staff.position !== "ADMIN" &&
                   staff.position !== "MANAGER") ||
-                  role === "ADMIN") && (
+                  currRole === "ADMIN" ||
+                  staff.id === currId) && (
                   <tr>
                     <td colSpan={5} className="bg-gray-50 p-4">
                       {/* Detailed information and editable fields */}
