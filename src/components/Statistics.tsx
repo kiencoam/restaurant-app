@@ -1,8 +1,14 @@
+/*
+  Gọi API ở dòng 131
+*/
+
 "use client";
 
-import { OrderEntity } from "@/app/home/order-taking/entity";
-import { formatDateToYYYYMMDD } from "@/utils/timeUtils";
-import { useEffect, useState } from "react";
+import { getAllOrders } from "@/app/api-client/OrderService";
+import { getStatisticByCustomerAndDate, getStatisticByRevenueAndDate } from "@/app/api-client/StatisticService";
+import { GetOrderRequest, OrderEntity } from "@/app/home/order-taking/entity";
+import { formatDateToString, formatDateToYYYYMMDD } from "@/utils/timeUtils";
+import { useCallback, useEffect, useState } from "react";
 
 const sampleOrders: OrderEntity[] = [
   {
@@ -123,49 +129,147 @@ const Statistics = () => {
   const [totalProcessingOrder, setTotalProcessingOrder] = useState<number>(0);
   const [totalProcessingCost, setTotalProcessingCost] = useState<number>(0);
   const [totalProcessingPeople, setTotalProcessingPeople] = useState<number>(0);
+  const [getOrderRequest, setGetOrderRequest] = useState<GetOrderRequest>({
+    page: 1,
+    pageSize: 15,
+    orderStatus: new Set(),
+    startTime: formatDateToString(new Date(0)),
+    endTime: formatDateToString(new Date()),
+    paymentMethod: "",
+    tableIds: new Set(),
+    userName: "",
+    customerName: "",
+    note: "",
+  });
+  const buildQueryParams = useCallback(() => {
+    // Kiểm tra nếu không có startTime và endTime, trả về lỗi
+    if (!getOrderRequest.startTime || !getOrderRequest.endTime) {
+      // Tính toán thời gian nếu không có
+      const startTime = new Date(0); // Bắt đầu từ epoch
+      const endTime = new Date(); // Thời gian hiện tại
+
+      // Cập nhật lại startTime và endTime trong request nếu chưa có
+      setGetOrderRequest(prevState => ({
+        ...prevState,
+        startTime: formatDateToString(startTime),
+        endTime: formatDateToString(endTime),
+      }));
+    }
+
+    let queryParams = `page=${getOrderRequest.page || 1}&page_size=${getOrderRequest.pageSize || 10}`;
+
+    // Thêm thời gian vào queryParams (bắt buộc)
+    queryParams = queryParams.concat(`&start_time=${getOrderRequest.startTime}`);
+    queryParams = queryParams.concat(`&end_time=${getOrderRequest.endTime}`);
+
+    // Thêm các tham số khác (tuỳ chọn)
+    if (getOrderRequest.orderStatus?.size > 0) {
+      queryParams = queryParams.concat(`&order_status=${Array.from(getOrderRequest.orderStatus).join(",")}`);
+    }
+    if (getOrderRequest.paymentMethod) {
+      queryParams = queryParams.concat(`&payment_method=${getOrderRequest.paymentMethod}`);
+    }
+    if (getOrderRequest.userName) {
+      queryParams = queryParams.concat(`&user_name=${getOrderRequest.userName}`);
+    }
+    if (getOrderRequest.customerName) {
+      queryParams = queryParams.concat(`&customer_name=${getOrderRequest.customerName}`);
+    }
+    if (getOrderRequest.note) {
+      queryParams = queryParams.concat(`&note=${getOrderRequest.note}`);
+    }
+    if (getOrderRequest.tableIds?.size > 0) {
+      queryParams = queryParams.concat(`&table_ids=${Array.from(getOrderRequest.tableIds).join(",")}`);
+    }
+
+    return queryParams;
+  }, [getOrderRequest]);
+
 
   useEffect(() => {
-    /* Gọi API */
-    // Gọi doanh thu trong ngày hôm nay và hôm qua
-    const endDate = new Date();
-    const startDate = new Date(new Date().setDate(endDate.getDate() - 1));
-    const queryForRevenueAndCustomer = `start_date=${formatDateToYYYYMMDD(
-      startDate
-    )}&end_date=${formatDateToYYYYMMDD(endDate)}`;
-    // getStatisticByRevenueAndDate(queryForRevenueAndCustomer);
-    setTodayRevenue(sampleRevenueIn2Days[1].revenue);
-    setGrowthRevenue(
-      ((sampleRevenueIn2Days[1].revenue - sampleRevenueIn2Days[0].revenue) /
-        sampleRevenueIn2Days[0].revenue) *
-        100
-    );
+    const fetchDashboardData = async (queryParams: string) => {
+      // Gọi doanh thu hôm nay và hôm qua
+      const endDate = new Date();
+      const startDate = new Date(new Date().setDate(endDate.getDate() - 1));
+      const queryForRevenueAndCustomer = `start_date=${formatDateToYYYYMMDD(
+        startDate
+      )}&end_date=${formatDateToYYYYMMDD(endDate)}`;
+      console.log("queryForRevenueAndCustomer", queryForRevenueAndCustomer)
 
-    // Gọi số lượng khách hàng trong ngày hôm nay và hôm qua
-    // getStatisticByCustomerAndDate(queryForRevenueAndCustomer);;
-    setTodayCustomer(sampleCustomerIn2Days[1].count);
-    setGrowthCustomer(
-      ((sampleCustomerIn2Days[1].count - sampleCustomerIn2Days[0].count) /
-        sampleCustomerIn2Days[0].count) *
-        100
-    );
+      setTodayRevenue(sampleRevenueIn2Days[1].revenue);
+      setGrowthRevenue(
+        ((sampleRevenueIn2Days[1].revenue - sampleRevenueIn2Days[0].revenue) /
+          sampleRevenueIn2Days[0].revenue) *
+          100
+      );
 
-    // Gọi tổng số order đang ở trạng thái CHECK_IN
-    const startTime = new Date(0);
-    const endTime = new Date();
-    const queryForOrders = `start_time=${startTime.toISOString()}&end_time=${endTime.toISOString()}&order_status=CHECK_IN&page_size=1000`;
-    // getAllOrders
-    setTotalProcessingOrder(sampleOrders.length);
-    setTotalProcessingCost(
-      sampleOrders.reduce((total, order) => {
-        return total + order.totalCost;
-      }, 0)
-    );
-    setTotalProcessingPeople(
-      sampleOrders.reduce((total, order) => {
-        return total + order.numberOfPeople;
-      }, 0)
-    );
-  }, []);
+      try {
+        getStatisticByRevenueAndDate(queryForRevenueAndCustomer).then((revenueData) => {
+          setTodayRevenue(revenueData[1].revenue);
+          setGrowthRevenue(
+            ((revenueData[1].revenue - revenueData[0].revenue) / revenueData[0].revenue) * 100
+          );
+        });
+
+      } catch (error) {
+        console.error("Error fetching revenue data:", error);
+      }
+
+      // Gọi số lượng khách hàng hôm nay và hôm qua
+      setTodayCustomer(sampleCustomerIn2Days[1].count);
+      setGrowthCustomer(
+        ((sampleCustomerIn2Days[1].count - sampleCustomerIn2Days[0].count) /
+          sampleCustomerIn2Days[0].count) *
+          100
+      );
+
+      try {
+        getStatisticByCustomerAndDate(queryForRevenueAndCustomer).then((customerData) => {
+          setTodayCustomer(customerData[1].count);
+          setGrowthCustomer(
+            ((customerData[1].count - customerData[0].count) / customerData[0].count) * 100
+          );
+        });
+
+      } catch (error) {
+        console.error("Error fetching customer data:", error);
+      }
+
+      // Gọi tổng số order đang ở trạng thái CHECK_IN
+      const startTime = new Date(0); // Bắt đầu từ epoch
+      const endTime = new Date();
+      const queryForOrders = `start_time=${startTime.toISOString()}&end_time=${endTime.toISOString()}&order_status=CHECK_IN&page_size=1000`;
+
+      setTotalProcessingOrder(sampleOrders.length);
+      setTotalProcessingCost(
+        sampleOrders.reduce((total, order) => {
+          return total + order.totalCost;
+        }, 0)
+      );
+      setTotalProcessingPeople(
+        sampleOrders.reduce((total, order) => {
+          return total + order.numberOfPeople;
+        }, 0)
+      );
+      try {
+        getAllOrders(queryParams).then((orders) => {
+          console.log("getAllOrder", queryParams)
+          setTotalProcessingOrder(orders.second.length);
+          setTotalProcessingCost(
+            orders.second.reduce((total, order) => total + order.totalCost, 0)
+          );
+          setTotalProcessingPeople(
+            orders.second.reduce((total, order) => total + order.numberOfPeople, 0)
+          );
+        });
+      } catch (error) {
+        console.error("Error fetching orders data:", error);
+      }
+    };
+
+    fetchDashboardData(buildQueryParams());
+  }, [buildQueryParams]);
+
 
   return (
     <div className="grid grid-cols-2 grid-rows-2 gap-6 mr-3 mb-6 basis-1/3 min-h-[280px]">
@@ -187,9 +291,8 @@ const Statistics = () => {
         <div className="flex items-end">
           <div className="font-extrabold text-2xl">₫{todayRevenue}</div>
           <div
-            className={`ml-6 font-bold ${
-              growthRevenue > 0 ? "text-[#72ada9]" : "text-[#d57c72]"
-            }`}
+            className={`ml-6 font-bold ${growthRevenue > 0 ? "text-[#72ada9]" : "text-[#d57c72]"
+              }`}
           >
             <span className={growthRevenue > 0 ? "" : "hidden"}>+</span>
             {growthRevenue}%
@@ -213,9 +316,8 @@ const Statistics = () => {
         <div className="flex items-end">
           <div className="font-extrabold text-2xl">{todayCustomer}</div>
           <div
-            className={`ml-6 font-bold ${
-              growthCustomer > 0 ? "text-[#72ada9]" : "text-[#d57c72]"
-            }`}
+            className={`ml-6 font-bold ${growthCustomer > 0 ? "text-[#72ada9]" : "text-[#d57c72]"
+              }`}
           >
             <span className={growthCustomer > 0 ? "" : "hidden"}>+</span>
             {growthCustomer}%
