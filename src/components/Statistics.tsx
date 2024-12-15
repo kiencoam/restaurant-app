@@ -102,10 +102,12 @@ const Statistics = () => {
           (revenueData) => {
             setTodayRevenue(revenueData.revenueStatistics[1].revenue);
             setGrowthRevenue(
-              ((revenueData.revenueStatistics[1].revenue -
-                revenueData.revenueStatistics[0].revenue) /
-                revenueData.revenueStatistics[0].revenue) *
-                100
+              revenueData.revenueStatistics[0].revenue == 0
+                ? 100
+                : ((revenueData.revenueStatistics[1].revenue -
+                    revenueData.revenueStatistics[0].revenue) /
+                    revenueData.revenueStatistics[0].revenue) *
+                    100
             );
           }
         );
@@ -119,10 +121,12 @@ const Statistics = () => {
           (customerData) => {
             setTodayCustomer(customerData.customerStatistics[1].count);
             setGrowthCustomer(
-              ((customerData.customerStatistics[1].count -
-                customerData.customerStatistics[0].count) /
-                customerData.customerStatistics[0].count) *
-                100
+              customerData.customerStatistics[0].count == 0
+                ? 100
+                : ((customerData.customerStatistics[1].count -
+                    customerData.customerStatistics[0].count) /
+                    customerData.customerStatistics[0].count) *
+                    100
             );
           }
         );
