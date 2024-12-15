@@ -50,7 +50,7 @@ export default function PaysheetList({
   setPeriodFilter,
 }: PaysheetListProps) {
   //FOR PERIOD
-  const [status, setStatus] = useState("");
+  const [status, setStatus] = useState("PROCESSING");
 
   //FOR DETAIL
   const [salaryDetails, setSalaryDetails] = useState<SalaryDetailEntity[]>([]);
@@ -160,25 +160,34 @@ export default function PaysheetList({
     }
   }, [detailFilter]);
 
-  const handleSubmit = (paysheetId) => {
+  const handleSubmit = (paysheetId, status) => {
     paymentSalaryPeriod(paysheetId, updatedSalaryPeriod).then((res) => {
       console.log("payment", res);
-      updateSalaryPeriodStatus(paysheetId, { status: "DONE" }).then((res) => {
+      updateSalaryPeriodStatus(paysheetId, { status: status }).then((res) => {
         console.log("status:", res);
         setDetailFilter((prev) => ({ ...prev }));
         setPeriodFilter((prev) => ({ ...prev }));
+        setUpdatedSalaryPeriod((prev) => ({
+          ...prev,
+          paymentSalaryDetails: prev.paymentSalaryDetails.map((detail) => ({
+            ...detail,
+            paidSalary: 0,
+          })),
+        }));
       });
     });
   };
 
-  // const handleAsyncCalculate = (id) => {
-  //   asyncCalculateSalaryPeriod(id).then((res) => {
-  //     setSalaryPeriods((prev) =>
-  //       prev.map((item) => (item.id === id ? { ...item, ...res } : item))
-  //     );
-  //     console.log("async", res);
-  //   });
-  // };
+  const handleAsyncCalculate = (id) => {
+    asyncCalculateSalaryPeriod(id).then((res) => {
+      setSalaryPeriods((prev) =>
+        prev.map((item) => (item.id === id ? { ...item, ...res } : item))
+      );
+      setDetailFilter((prev) => ({ ...prev }));
+      setPeriodFilter((prev) => ({ ...prev }));
+      console.log("async", res);
+    });
+  };
 
   return (
     <div>
@@ -226,18 +235,22 @@ export default function PaysheetList({
                     ...prev,
                     salary_period_id: paysheet.id,
                   }));
+                  if (paysheet.status) {
+                    setStatus(() => paysheet.status);
+                  }
                   setUpdatedSalaryPeriod((prev) => ({
                     ...prev,
                     paymentMethod:
                       paysheet.salaryDetails[0].paymentMethod ||
                       prev.paymentMethod,
-                    paymentSalaryDetails: paysheet.salaryDetails.map(
-                      (prev) => ({
-                        salaryDetailId: prev.id,
-                        paidSalary: prev.paidSalary,
-                      })
-                    ),
+                    paymentSalaryDetails: paysheet.salaryDetails
+                      .filter((detail) => detail.status !== "PAID")
+                      .map((detail) => ({
+                        salaryDetailId: detail.id,
+                        paidSalary: 0,
+                      })),
                   }));
+                  console.log(updatedSalaryPeriod);
                 }}
               >
                 <td className="px-4 py-2 border-b">
@@ -254,8 +267,12 @@ export default function PaysheetList({
                 <td className="px-4 py-2 border-b">
                   {paysheet.fromDate} - {paysheet.toDate}
                 </td>
-                <td className="px-4 py-2 border-b">{paysheet.totalSalary}</td>
-                <td className="px-4 py-2 border-b">{paysheet.paidSalary}</td>
+                <td className="px-4 py-2 border-b">
+                  {paysheet.totalSalary.toLocaleString("en-US")}₫
+                </td>
+                <td className="px-4 py-2 border-b">
+                  {paysheet.paidSalary.toLocaleString("en-US")}₫
+                </td>
                 <td className="px-4 py-2 border-b">
                   {paysheet.status === "PROCESSING"
                     ? "Tạm tính"
@@ -305,7 +322,9 @@ export default function PaysheetList({
                                   Tổng lương
                                   <input
                                     type="text"
-                                    value={paysheet.totalSalary}
+                                    value={paysheet.totalSalary.toLocaleString(
+                                      "en-US"
+                                    )}
                                     className="w-full border-b-2 bg-gray-50 mt-2 outline-none focus:border-b-black"
                                     disabled
                                   />
@@ -331,7 +350,9 @@ export default function PaysheetList({
                                   Đã trả
                                   <input
                                     type="text"
-                                    value={paysheet.paidSalary}
+                                    value={paysheet.paidSalary.toLocaleString(
+                                      "en-US"
+                                    )}
                                     className="w-full border-b-2 bg-gray-50 mt-2 outline-none focus:border-b-black"
                                     disabled
                                   />
@@ -343,9 +364,10 @@ export default function PaysheetList({
                               <label className="w-52">
                                 Trạng thái
                                 <select
-                                  value={paysheet.status}
+                                  value={status}
+                                  onChange={(e) => setStatus(e.target.value)}
+                                  disabled={paysheet.status === "DONE"}
                                   className="w-full border-b-2 bg-gray-50 mt-2 outline-none focus:border-b-black"
-                                  disabled
                                 >
                                   <option value="PROCESSING">Tạm tính</option>
                                   <option value="DONE">Đã chốt lương</option>
@@ -391,6 +413,9 @@ export default function PaysheetList({
                                     <th className="px-4 py-2 border-b text-right w-[140px] text-sm font-semibold text-gray-700">
                                       Đã trả NV
                                     </th>
+                                    <th className="px-4 py-2 border-b text-right w-[140px] text-sm font-semibold text-gray-700">
+                                      Cộng thêm
+                                    </th>
                                   </tr>
                                 </thead>
                                 <tbody>
@@ -406,20 +431,28 @@ export default function PaysheetList({
                                         {salaryDetail.userName}
                                       </td>
                                       <td className="px-4 py-2 border-b text-right text-sm text-gray-700">
-                                        {salaryDetail.totalSalary.toLocaleString()}
+                                        {salaryDetail.totalSalary.toLocaleString(
+                                          "en-US"
+                                        )}
+                                        ₫
+                                      </td>
+                                      <td className="px-4 py-2 border-b text-right text-sm text-gray-700">
+                                        {salaryDetail.paidSalary.toLocaleString(
+                                          "en-US"
+                                        )}
                                         ₫
                                       </td>
                                       <td className="px-4 py-2 border-b text-right text-sm">
                                         <input
-                                          type="text"
+                                          type="number"
+                                          min="0"
+                                          placeholder="0"
                                           value={
-                                            salaryDetail.status !== "PAID"
-                                              ? updatedSalaryPeriod.paymentSalaryDetails.find(
-                                                  (it) =>
-                                                    it.salaryDetailId ===
-                                                    salaryDetail.id
-                                                )?.paidSalary
-                                              : salaryDetail.paidSalary
+                                            updatedSalaryPeriod.paymentSalaryDetails.find(
+                                              (it) =>
+                                                it.salaryDetailId ===
+                                                salaryDetail.id
+                                            )?.paidSalary
                                           }
                                           onChange={(e) =>
                                             handlePaidSalaryChange(
@@ -428,7 +461,10 @@ export default function PaysheetList({
                                               e.target.value
                                             )
                                           }
-                                          disabled={paysheet.status === "DONE"}
+                                          disabled={
+                                            salaryDetail.status === "PAID" ||
+                                            paysheet.status === "DONE"
+                                          }
                                           className="w-full border rounded px-2 py-1 outline-none focus:ring-2 focus:ring-blue-500 text-right"
                                         />
                                       </td>
@@ -530,7 +566,8 @@ export default function PaysheetList({
                             type="button"
                             data-tooltip-id="my-tooltip"
                             data-tooltip-content="Tải lại bảng lương để xem dữ liệu mới nhất"
-                            // onClick={() => handleAsyncCalculate(paysheet.id)}
+                            onClick={() => handleAsyncCalculate(paysheet.id)}
+                            disabled={paysheet.status === "DONE"}
                           >
                             <Tooltip id="my-tooltip" />
                             <svg
@@ -547,12 +584,13 @@ export default function PaysheetList({
                         <div className="flex justify-end ">
                           <div className="flex gap-2">
                             <button
-                              type="submit"
+                              type="button"
                               onClick={() => {
-                                handleSubmit(paysheet.id);
+                                handleSubmit(paysheet.id, status);
                                 handleRowClick(paysheet.id);
                               }}
                               className="border rounded-md px-2 shadow-sm bg-black text-white"
+                              disabled={paysheet.status === "DONE"}
                             >
                               Lưu
                             </button>
