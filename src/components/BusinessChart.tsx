@@ -9,52 +9,88 @@ import {
   formatDateToVietnameseFormat,
   formatDateToYYYYMMDD,
 } from "@/utils/timeUtils";
+import {
+  getStatisticByRevenueAndDate,
+  getStatisticByRevenueAndHour,
+} from "@/app/api-client/StatisticService";
 
 const sampleRevenuePerDate = [
-  { date: new Date("12-03-2024"), revenue: 1000000 },
-  { date: new Date("12-04-2024"), revenue: 4000000 },
-  { date: new Date("12-05-2024"), revenue: 1000000 },
-  { date: new Date("12-06-2024"), revenue: 400000 },
-  { date: new Date("12-07-2024"), revenue: 8000000 },
+  { date: "12-03-2024", revenue: 1000000 },
+  { date: "12-04-2024", revenue: 4000000 },
+  { date: "12-05-2024", revenue: 1000000 },
+  { date: "12-06-2024", revenue: 400000 },
+  { date: "12-07-2024", revenue: 8000000 },
 ];
 
 const sampleRevenuePerHours = [
-  { hour: new Date("12-03-2024 08:00"), revenue: 4000000 },
-  { hour: new Date("12-03-2024 09:00"), revenue: 3000000 },
-  { hour: new Date("12-03-2024 10:00"), revenue: 7000000 },
-  { hour: new Date("12-03-2024 11:00"), revenue: 500000 },
-  { hour: new Date("12-03-2024 12:00"), revenue: 800000 },
-  { hour: new Date("12-03-2024 13:00"), revenue: 1000000 },
-  { hour: new Date("12-03-2024 14:00"), revenue: 4000000 },
-  { hour: new Date("12-03-2024 15:00"), revenue: 1000000 },
+  { hour: 0, revenue: 400000 },
+  { hour: 1, revenue: 300000 },
+  { hour: 2, revenue: 700000 },
+  { hour: 3, revenue: 500000 },
+  { hour: 4, revenue: 800000 },
+  { hour: 5, revenue: 100000 },
+  { hour: 6, revenue: 400000 },
+  { hour: 7, revenue: 100000 },
+  { hour: 8, revenue: 100000 },
+  { hour: 9, revenue: 400000 },
+  { hour: 10, revenue: 8000000 },
+  { hour: 11, revenue: 4000000 },
+  { hour: 12, revenue: 1000000 },
+  { hour: 13, revenue: 1000000 },
+  { hour: 14, revenue: 4000000 },
+  { hour: 15, revenue: 8000000 },
+  { hour: 16, revenue: 4000000 },
+  { hour: 17, revenue: 1000000 },
+  { hour: 18, revenue: 1000000 },
+  { hour: 19, revenue: 4000000 },
+  { hour: 20, revenue: 8000000 },
+  { hour: 21, revenue: 4000000 },
+  { hour: 22, revenue: 1000000 },
+  { hour: 23, revenue: 1000000 },
 ];
 
 export function BusinessChart() {
   const [selectedMode, setSelectedMode] = useState("daily");
-  const [revenuePerDate, setRevenuePerDate] = useState(sampleRevenuePerDate);
-  const [revenuePerHours, setRevenuePerHours] = useState(sampleRevenuePerHours);
+  const [revenuePerDate, setRevenuePerDate] = useState<
+    { date: string; revenue: number }[]
+  >([]);
+  const [revenuePerHours, setRevenuePerHours] = useState<
+    { hour: number; revenue: number }[]
+  >([]);
 
   useEffect(() => {
-    /* Gọi API **/
     const endTime = new Date();
     const startDate = new Date(new Date().setDate(endTime.getDate() - 4));
     const queryForDate = `start_date=${formatDateToYYYYMMDD(
       startDate
     )}&end_date=${formatDateToYYYYMMDD(endTime)}`;
-    // const data = await getStatisticByRevenueAndDate(queryForDate);
-    // setRevenuePerDate(data.map((item) => ({ date: new Date(item.date), revenue: item.revenue })));
+    try {
+      getStatisticByRevenueAndDate(queryForDate).then((dateData) => {
+        setRevenuePerDate(dateData.revenueStatistics);
+      });
+    } catch (error) {
+      console.error("Error fetching revenue by date:", error);
+    }
 
-    const startTime = new Date(new Date().setDate(endTime.getHours() - 7));
-    const queryForHours = `start_date=${formatDateToString(
-      startTime
-    )}&end_date=${formatDateToString(endTime)}`;
-    // const data = await getStatisticByRevenueAndHour(queryForHours);
-    // setRevenuePerHours(data.map((item) => ({ hour: new Date(item.hour), revenue: item.revenue }));
+    const queryForTime = `start_date=${formatDateToYYYYMMDD(
+      endTime
+    )}&end_date=${formatDateToYYYYMMDD(endTime)}`;
+    try {
+      getStatisticByRevenueAndHour(queryForTime).then((hourData) => {
+        setRevenuePerHours(
+          hourData.revenueStatistics
+            .filter((item) => item.hour <= new Date().getHours())
+            .slice(-8)
+        );
+      });
+    } catch (error) {
+      console.error("Error fetching revenue by hours:", error);
+    }
   }, []);
 
   const dataPerDate: ChartData<"line"> = {
     labels: revenuePerDate.map((data) =>
-      formatDateToVietnameseFormat(data.date)
+      formatDateToVietnameseFormat(new Date(data.date))
     ),
     datasets: [
       {
@@ -84,7 +120,7 @@ export function BusinessChart() {
   };
 
   const dataPerHours: ChartData<"line"> = {
-    labels: revenuePerHours.map((data) => formatDateToTimeString(data.hour)),
+    labels: revenuePerHours.map((data) => `${data.hour}h`),
     datasets: [
       {
         label: "",

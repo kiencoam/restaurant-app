@@ -9,56 +9,89 @@ import {
   formatDateToVietnameseFormat,
   formatDateToYYYYMMDD,
 } from "@/utils/timeUtils";
+import {
+  getStatisticByCustomerAndDate,
+  getStatisticByCustomerAndHour,
+} from "@/app/api-client/StatisticService";
 
 const sampleCustomerPerDate = [
-  { date: new Date("12-04-2024"), count: 40 },
-  { date: new Date("12-03-2024"), count: 10 },
-  { date: new Date("12-05-2024"), count: 10 },
-  { date: new Date("12-06-2024"), count: 40 },
-  { date: new Date("12-07-2024"), count: 80 },
+  { date: "12-07-2024", count: 80 },
+  { date: "12-04-2024", count: 40 },
+  { date: "12-03-2024", count: 10 },
+  { date: "12-05-2024", count: 10 },
+  { date: "12-06-2024", count: 40 },
 ];
 
 const sampleCustomersPerHours = [
-  { hour: new Date("12-03-2024 08:00"), count: 40 },
-  { hour: new Date("12-03-2024 09:00"), count: 30 },
-  { hour: new Date("12-03-2024 10:00"), count: 70 },
-  { hour: new Date("12-03-2024 11:00"), count: 50 },
-  { hour: new Date("12-03-2024 12:00"), count: 80 },
-  { hour: new Date("12-03-2024 13:00"), count: 10 },
-  { hour: new Date("12-03-2024 14:00"), count: 40 },
-  { hour: new Date("12-03-2024 15:00"), count: 10 },
+  { hour: 0, count: 40 },
+  { hour: 1, count: 30 },
+  { hour: 2, count: 70 },
+  { hour: 3, count: 50 },
+  { hour: 4, count: 80 },
+  { hour: 5, count: 10 },
+  { hour: 6, count: 40 },
+  { hour: 7, count: 10 },
+  { hour: 8, count: 10 },
+  { hour: 9, count: 40 },
+  { hour: 10, count: 80 },
+  { hour: 11, count: 40 },
+  { hour: 12, count: 10 },
+  { hour: 13, count: 10 },
+  { hour: 14, count: 40 },
+  { hour: 15, count: 80 },
+  { hour: 16, count: 40 },
+  { hour: 17, count: 10 },
+  { hour: 18, count: 10 },
+  { hour: 19, count: 40 },
+  { hour: 20, count: 80 },
+  { hour: 21, count: 40 },
+  { hour: 22, count: 10 },
+  { hour: 23, count: 10 },
 ];
 
 export function CustomerChart() {
   const [selectedMode, setSelectedMode] = useState("daily");
-  const [customersPerDate, setCustomersPerDate] = useState(
-    sampleCustomerPerDate
-  );
-  const [customersPerHours, setCustomersPerHours] = useState(
-    sampleCustomersPerHours
-  );
+  const [customersPerDate, setCustomersPerDate] = useState<
+    { date: string; count: number }[]
+  >([]);
+  const [customersPerHours, setCustomersPerHours] = useState<
+    { hour: number; count: number }[]
+  >([]);
 
   useEffect(() => {
-    /* Gọi API **/
     const endTime = new Date();
     const startDate = new Date(new Date().setDate(endTime.getDate() - 4));
     const queryForDate = `start_date=${formatDateToYYYYMMDD(
       startDate
     )}&end_date=${formatDateToYYYYMMDD(endTime)}`;
-    // const data = await getStatisticByCustomerAndHour(queryForDate);
-    // setCustomerPerDate(data.map((item) => ({ date: new Date(item.date), count: item.count })));
+    try {
+      getStatisticByCustomerAndDate(queryForDate).then((res) => {
+        setCustomersPerDate(res.customerStatistics);
+      });
+    } catch (error) {
+      console.error("Error fetching customer data by date:", error);
+    }
 
-    const startTime = new Date(new Date().setDate(endTime.getHours() - 7));
-    const queryForHours = `start_date=${formatDateToString(
-      startTime
-    )}&end_date=${formatDateToString(endTime)}`;
-    // const data = await getStatisticByCustomerAndHour(queryForHours);
-    // setCustomerPerHours(data.map((item) => ({ hour: new Date(item.hour), count: item.count }));
+    const queryForTime = `start_date=${formatDateToYYYYMMDD(
+      endTime
+    )}&end_date=${formatDateToYYYYMMDD(endTime)}`;
+
+    try {
+      getStatisticByCustomerAndHour(queryForTime).then((res) => {
+        return setCustomersPerHours(
+          res.customerStatistics
+            .filter((item) => item.hour <= new Date().getHours())
+            .slice(-8)
+        );
+      });
+    } catch (error) {
+      console.error("Error fetching customer data by time:", error);
+    }
   }, []);
 
   const dataPerDate: ChartData<"bar"> = {
     labels: customersPerDate.map((data) =>
-      formatDateToVietnameseFormat(data.date)
+      formatDateToVietnameseFormat(new Date(data.date))
     ),
     datasets: [
       {
@@ -72,7 +105,7 @@ export function CustomerChart() {
   };
 
   const dataPerHours: ChartData<"bar"> = {
-    labels: customersPerHours.map((data) => formatDateToTimeString(data.hour)),
+    labels: customersPerHours.map((data) => `${data.hour}h`),
     datasets: [
       {
         label: "Reservations",
@@ -139,6 +172,7 @@ export function CustomerChart() {
             size: 14, // Adjust font size for Y-axis
             family: "Nunito", // Custom font for Y-axis labels
           },
+          maxTicksLimit: 8,
         },
       },
     },

@@ -1,14 +1,14 @@
 import apiClientService from "./ApiClientService";
 
-const baseUrl = "http://127.0.0.1:8080/api/v1/statistics/";
+const baseUrl = "http://127.0.0.1:8080/api/v1/statistics";
 
 export type CustomerStatisticPerDate = {
-  date: Date; // LocalDate chuyển thành string yyyy-mm-dd trong TypeScript
+  date: string; // LocalDate chuyển thành string yyyy-mm-dd trong TypeScript
   count: number;
 };
 
 export type CustomerStatisticPerHour = {
-  hour: Date;
+  hour: number;
   count: number;
 };
 
@@ -20,12 +20,12 @@ export type MenuItemStatistic = {
 };
 
 export type RevenueStatisticPerDate = {
-  date: Date;
+  date: string;
   revenue: number;
 };
 
 export type RevenueStatisticPerHour = {
-  hour: Date;
+  hour: number;
   revenue: number;
 };
 

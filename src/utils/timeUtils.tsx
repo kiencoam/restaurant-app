@@ -24,7 +24,7 @@ export function convertToISODateTime(input: string): string {
 }
 
 // convert from yyyy-MM-dd HH:mm:ss to HH:mm:ss dd-MM-yyyy x
-// convert date to yyyy-MM-dd HH:mm:ss 
+// convert date to yyyy-MM-dd HH:mm:ss
 export function formatDateToString(date: Date): string {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -66,7 +66,7 @@ export const formatDateToYYYYMMDD = (date: Date) => {
 
 export function formatDateToVietnameseFormat(date: Date) {
   const daysOfWeek = [
-    "Chủ Nhật",
+    "CN",
     "Thứ 2",
     "Thứ 3",
     "Thứ 4",
@@ -130,16 +130,17 @@ export function formatToDDMMYYYY(dateInput) {
   if (!dateInput) return null;
 
   // Chuyển đổi dateInput sang đối tượng Date nếu cần
-  const date = typeof dateInput === 'string' || typeof dateInput === 'number'
-    ? new Date(dateInput)
-    : dateInput;
+  const date =
+    typeof dateInput === "string" || typeof dateInput === "number"
+      ? new Date(dateInput)
+      : dateInput;
 
   if (isNaN(date)) {
-    throw new Error('Invalid date input');
+    throw new Error("Invalid date input");
   }
 
-  const day = String(date.getDate()).padStart(2, '0'); // Lấy ngày, thêm '0' nếu cần
-  const month = String(date.getMonth() + 1).padStart(2, '0'); // Lấy tháng (tháng 0-11, nên +1)
+  const day = String(date.getDate()).padStart(2, "0"); // Lấy ngày, thêm '0' nếu cần
+  const month = String(date.getMonth() + 1).padStart(2, "0"); // Lấy tháng (tháng 0-11, nên +1)
   const year = date.getFullYear(); // Lấy năm
 
   return `${day}/${month}/${year}`;

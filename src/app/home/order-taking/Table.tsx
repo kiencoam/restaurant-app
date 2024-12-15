@@ -59,7 +59,9 @@ export function Table({
             <button
               key={table.id}
               className={`bg-[#f5f5f5] h-28 w-28 p-2 font-semibold flex flex-col justify-between active:border-2 active:border-[#f5f5f5f5] ${
-                selectedTableIds.includes(table.id) ? "border border-green-500" : ""
+                selectedTableIds.includes(table.id)
+                  ? "border-2 border-green-500"
+                  : ""
               }`}
               onClick={() => handleSelectTable(table.id)}
               disabled={!tableOccupiedIds.includes(table.id)}
