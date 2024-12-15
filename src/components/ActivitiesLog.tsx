@@ -6,6 +6,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { ActivityLogEntity, getAllActivityLogs } from "@/app/api-client/ActivityLogService";
+import { formatDateToString } from "@/utils/timeUtils";
 
 const sampleActivities: ActivityLogEntity[] = [
   {
@@ -70,7 +71,7 @@ const ActivitiesLog = () => {
     const numberOfLogs = 1000;
     // Hàm gọi API
     const fetchActivityLogs = async () => {
-      const query = `page=0&page_size=${20}&from_date=${formatDate(new Date(0))}&to_date=${formatDate(endTime)}`;
+      const query = `page=0&page_size=${10}&from_date=${formatDate(new Date("2024-01-01"))}&to_date=${formatDate(endTime)}`;
       console.log("act query", query)
       try {
         getAllActivityLogs(query).then((res) => {
@@ -129,7 +130,7 @@ const ActivitiesLog = () => {
                 {activity.amount}₫
               </div>
               <div className="text-[#999999] text-md font-flux">
-                {activity.createdAt}
+                {formatDateToString(new Date(activity.createdAt))}
               </div>
             </div>
           ))}

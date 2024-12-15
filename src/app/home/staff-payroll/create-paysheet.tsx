@@ -87,6 +87,7 @@ export default function CreatePaysheet({
               onChange={handleTitleChange}
               className="border p-2 rounded focus:outline-none focus:ring-2 focus:ring-black"
               placeholder="Nhập tên bảng lương"
+              required
             />
           </div>
 
@@ -102,6 +103,7 @@ export default function CreatePaysheet({
                 dateFormat="dd/MM/yyyy"
                 placeholderText="Ngày bắt đầu"
                 isClearable
+                required
               />
               <DatePicker
                 className="border p-2 rounded focus:outline-none focus:ring-2 focus:ring-black w-full"
@@ -110,6 +112,7 @@ export default function CreatePaysheet({
                 dateFormat="dd/MM/yyyy"
                 placeholderText="Ngày kết thúc"
                 isClearable
+                required
               />
             </div>
           </div>

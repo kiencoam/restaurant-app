@@ -1,427 +1,100 @@
 "use client";
 import React, { useState, useRef, useEffect } from "react";
 import { OrderEntity, OrderItemEntity, OrderTableEntity, TableEntity } from "../order-taking/entity";
-import { CustomerEntity} from "./data";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import BillList from "./bill-list";
+import { PageInfo } from "@/app/api-client/PageInfo";
+import { formatDateToString } from "@/utils/timeUtils";
+import { getAllOrders } from "@/app/api-client/OrderService";
 
-const tables: TableEntity[] = [
-  {
-    id: 1,
-    name: "Bàn 1",
-    capacity: 4,
-    type: "NORMAL",
-    location: "Tầng 1",
-    isActive: true,
-  },
-  {
-    id: 2,
-    name: "Bàn 2",
-    capacity: 4,
-    type: "NORMAL",
-    location: "Tầng 2",
-    isActive: true,
-  },
-  {
-    id: 3,
-    name: "Bàn 3",
-    capacity: 4,
-    type: "NORMAL",
-    location: "Tầng 3",
-    isActive: true,
-  },
-  {
-    id: 4,
-    name: "Bàn 4",
-    capacity: 4,
-    type: "NORMAL",
-    location: "Tầng 1",
-    isActive: true,
-  },
-  {
-    id: 5,
-    name: "Bàn 5",
-    capacity: 4,
-    type: "NORMAL",
-    location: "Tầng 2",
-    isActive: true,
-  },
-  {
-    id: 6,
-    name: "Bàn 6",
-    capacity: 4,
-    type: "NORMAL",
-    location: "Tầng 3",
-    isActive: true,
-  },
-  {
-    id: 7,
-    name: "Phòng VIP 1",
-    capacity: 4,
-    type: "NORMAL",
-    location: "VIP 1",
-    isActive: true,
-  },
-  {
-    id: 8,
-    name: "Phòng VIP 2",
-    capacity: 4,
-    type: "NORMAL",
-    location: "VIP 2",
-    isActive: true,
-  },
-  {
-    id: 9,
-    name: "Bàn 9",
-    capacity: 4,
-    type: "NORMAL",
-    location: "Tầng 1",
-    isActive: true,
-  },
-  {
-    id: 10,
-    name: "Bàn 10",
-    capacity: 4,
-    type: "NORMAL",
-    location: "Tầng 2",
-    isActive: true,
-  },
-];
-
-const initOrders: OrderEntity[] = [
-  {
-    id: 1,
-    customerId: 1,
-    userId: 1,
-    orderStatus: "CONFIRMED",
-    totalCost: 125000,
-    numberOfPeople: 2,
-    note: "Không ớt",
-    checkInTime: "2024-04-01T12:00:00",
-    checkOutTime: "2024-04-01T13:00:00",
-    paymentId: 1,
-    totalPrice: 12500,
-    promotion: 0,
-    needToPay: 12500,
-    paymentMethod: "CASH",
-    orderItems: [
-      {
-        id: 1,
-        orderId: 1,
-        menuItemId: 1,
-        orderedQuantity: 3,
-        reservedQuantity: 0,
-        price: 125000,
-        status: "PROCESSING",
-      },
-      {
-        id: 2,
-        orderId: 1,
-        menuItemId: 2,
-        orderedQuantity: 2,
-        reservedQuantity: 0,
-        price: 12000,
-        status: "PROCESSING",
-      },
-      {
-        id: 3,
-        orderId: 1,
-        menuItemId: 3,
-        orderedQuantity: 2,
-        reservedQuantity: 1,
-        price: 1200000,
-        status: "PROCESSING",
-      },
-    ],
-    orderTables: [
-      {
-        id: 1,
-        orderId: 1,
-        tableId: 1,
-      },
-    ],
-  },
-  {
-    id: 2,
-    customerId: 2,
-    userId: 2,
-    orderStatus: "CHECKED_IN",
-    totalCost: 125000,
-    numberOfPeople: 2,
-    note: "Không ớt",
-    checkInTime: "2024-04-01T12:00:00",
-    checkOutTime: "2024-04-01T13:00:00",
-    paymentId: 2,
-    totalPrice: 12500,
-    promotion: 500,
-    needToPay: 12000,
-    paymentMethod: "CASH",
-    orderItems: [
-      {
-        id: 4,
-        orderId: 2,
-        menuItemId: 1,
-        orderedQuantity: 2,
-        reservedQuantity: 0,
-        price: 125000,
-        status: "PROCESSING",
-      },
-      {
-        id: 5,
-        orderId: 2,
-        menuItemId: 2,
-        orderedQuantity: 2,
-        reservedQuantity: 0,
-        price: 12000,
-        status: "PROCESSING",
-      },
-      {
-        id: 6,
-        orderId: 2,
-        menuItemId: 3,
-        orderedQuantity: 2,
-        reservedQuantity: 1,
-        price: 1200000,
-        status: "PROCESSING",
-      },
-    ],
-    orderTables: [
-      {
-        id: 2,
-        orderId: 2,
-        tableId: 3,
-      },
-    ],
-  },
-  {
-    id: 3,
-    customerId: 3,
-    userId: 3,
-    orderStatus: "ABANDONED",
-    totalCost: 125000,
-    numberOfPeople: 2,
-    note: "Không ớt",
-    checkInTime: "2024-04-01T12:00:00",
-    checkOutTime: "2024-04-01T13:00:00",
-    paymentId: 3,
-    totalPrice: 12500,
-    promotion: 0,
-    needToPay: 12500,
-    paymentMethod: "CASH",
-    orderItems: [
-      {
-        id: 7,
-        orderId: 3,
-        menuItemId: 1,
-        orderedQuantity: 2,
-        reservedQuantity: 0,
-        price: 125000,
-        status: "PROCESSING",
-      },
-      {
-        id: 8,
-        orderId: 3,
-        menuItemId: 2,
-        orderedQuantity: 2,
-        reservedQuantity: 0,
-        price: 12000,
-        status: "PROCESSING",
-      },
-      {
-        id: 9,
-        orderId: 3,
-        menuItemId: 3,
-        orderedQuantity: 2,
-        reservedQuantity: 1,
-        price: 1200000,
-        status: "PROCESSING",
-      },
-    ],
-    orderTables: [
-      {
-        id: 3,
-        orderId: 3,
-        tableId: 5,
-      },
-    ],
-  },
-  {
-    id: 4,
-    customerId: 4,
-    userId: 4,
-    orderStatus: "CANCELLED",
-    totalCost: 125000,
-    numberOfPeople: 2,
-    note: "Không ớt",
-    checkInTime: "2024-04-01T12:00:00",
-    checkOutTime: "2024-04-01T13:00:00",
-    paymentId: 4,
-    totalPrice: 12500,
-    promotion: 0,
-    needToPay: 12500,
-    paymentMethod: "CASH",
-    orderItems: [
-      {
-        id: 10,
-        orderId: 4,
-        menuItemId: 1,
-        orderedQuantity: 2,
-        reservedQuantity: 0,
-        price: 125000,
-        status: "PROCESSING",
-      },
-      {
-        id: 11,
-        orderId: 4,
-        menuItemId: 2,
-        orderedQuantity: 2,
-        reservedQuantity: 0,
-        price: 12000,
-        status: "PROCESSING",
-      },
-      {
-        id: 12,
-        orderId: 4,
-        menuItemId: 3,
-        orderedQuantity: 2,
-        reservedQuantity: 1,
-        price: 1200000,
-        status: "PROCESSING",
-      },
-    ],
-    orderTables: [
-      {
-        id: 4,
-        orderId: 4,
-        tableId: 7,
-      },
-    ],
-  },
-  {
-    id: 5,
-    customerId: 5,
-    userId: 5,
-    orderStatus: "COMPLETED",
-    totalCost: 125000,
-    numberOfPeople: 2,
-    note: "Không ớt",
-    checkInTime: "2024-04-01T12:00:00",
-    checkOutTime: "2024-04-01T13:00:00",
-    paymentId: 5,
-    totalPrice: 12500,
-    promotion: 0,
-    needToPay: 12500,
-    paymentMethod: "CASH",
-    orderItems: [
-      {
-        id: 13,
-        orderId: 5,
-        menuItemId: 1,
-        orderedQuantity: 2,
-        reservedQuantity: 0,
-        price: 125000,
-        status: "PROCESSING",
-      },
-      {
-        id: 14,
-        orderId: 5,
-        menuItemId: 2,
-        orderedQuantity: 2,
-        reservedQuantity: 0,
-        price: 12000,
-        status: "PROCESSING",
-      },
-      {
-        id: 15,
-        orderId: 5,
-        menuItemId: 3,
-        orderedQuantity: 2,
-        reservedQuantity: 1,
-        price: 1200000,
-        status: "PROCESSING",
-      },
-    ],
-    orderTables: [
-      {
-        id: 5,
-        orderId: 5,
-        tableId: 9,
-      },
-    ],
-  },
-];
-
-const customers: CustomerEntity[] = [
-  {
-    id: 1,
-    name: "Nguyễn Văn A",
-    phoneNumber: "0123456789",
-    email: "nguyenvana@gmail.com",
-    address: "Hà Nội",
-    dob: "1990-01-01",
-    gender: "male",
-    totalCost: "1000000",
-  },
-  {
-    id: 6,
-    name: "Nguyễn Văn An",
-    phoneNumber: "0123456789",
-    email: "nguyenvana@gmail.com",
-    address: "Hà Nội",
-    dob: "1990-01-01",
-    gender: "male",
-    totalCost: "1000000",
-  },
-  {
-    id: 7,
-    name: "Nguyễn Văn Anh",
-    phoneNumber: "0123456789",
-    email: "nguyenvana@gmail.com",
-    address: "Hà Nội",
-    dob: "1990-01-01",
-    gender: "male",
-    totalCost: "1000000",
-  },
-  {
-    id: 2,
-    name: "Nguyễn Văn B",
-    phoneNumber: "0123456789",
-    email: "",
-  },
-  {
-    id: 3,
-    name: "Nguyễn Văn C",
-    phoneNumber: "0123456789",
-    email: "",
-  },
-  {
-    id: 4,
-    name: "Nguyễn Văn D",
-    phoneNumber: "0123456789",
-  },
-  {
-    id: 5,
-    name: "Nguyễn Văn E",
-    phoneNumber: "0123456789",
-  },
-];
+export type GetOrderRequest = {
+  page?: number;
+  page_size?: number;
+  order_status?: string[];
+  start_time: string;
+  end_time: string;
+  payment_method?: string;
+  table_ids?: number[];
+  user_name?: string;
+  customer_name?: string;
+  note?: string;
+};
 
 const BillPage = () => {
+  const [orders, setOrders] = useState<OrderEntity[]>([]);
+
   const [masterChecked, setMasterChecked] = useState(false);
+
   const [isNewPaysheet, setIsNewPaysheet] = useState(false);
+
   const [checkedRows, setCheckedRows] = useState({});
+
   const [flyOutActions, setFlyOutActions] = useState(false);
+
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+
   const filterRef = useRef(null);
+
   const [expandedRow, setExpandedRow] = useState(null);
 
   const [startDate, setStartDate] = useState(new Date("2014/01/01"));
+
   const [endDate, setEndDate] = useState(new Date("2025/12/31"));
+
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const [rowsPerPage, setRowsPerPage] = useState(5);
+
+  const [pageInfo, setPageInfo] = useState<PageInfo>({
+    totalPage: null,
+    totalRecord: null,
+    pageSize: null,
+    nextPage: null,
+    previousPage: null,
+  });
+
+  const [filter, setFilter] = useState<GetOrderRequest>({
+    page: 0,
+    page_size: 5,
+    start_time: formatDateToString(startDate),
+    end_time: formatDateToString(endDate),
+    order_status: ["COMPLETED"],
+  });
+
+  console.log(orders);
+
+  const changePage = (newPage) => {
+    if (newPage >= 1 && newPage <= pageInfo.totalPage) {
+      setCurrentPage(newPage);
+      handlePageNumberChange(newPage - 1);
+    }
+  };
+
+  //Handle rowsPerPage change
+  const changeRowsPerPage = (pageSize) => {
+    setRowsPerPage(pageSize);
+    handlePageSizeChange(pageSize);
+  };
+
+  const handlePageSizeChange = (value: number) => {
+    setFilter({
+      ...filter,
+      page_size: value,
+      page: 0
+    })
+  }
+
+  const handlePageNumberChange = (value: number) => {
+    setFilter({
+      ...filter,
+      page: value
+    })
+  }
 
   const isAnyRowChecked = Object.values(checkedRows).some(Boolean);
 
-  const handleRowClick = (id) => {
+  const handleRowClick = (id: number) => {
     if (expandedRow === id) {
       setExpandedRow(null); // Collapse the row if it's already expanded
     } else {
@@ -434,17 +107,17 @@ const BillPage = () => {
     setMasterChecked(newMasterChecked);
 
     const updatedCheckedRows = {};
-    initOrders.forEach((order) => {
+    orders.forEach((order) => {
       updatedCheckedRows[order.id] = newMasterChecked;
     });
     setCheckedRows(updatedCheckedRows);
   };
 
-  useEffect(() => {
-    // Sync master checkbox with individual row checkboxes
-    const allChecked = initOrders.every((ỏder) => checkedRows[ỏder.id]);
-    setMasterChecked(allChecked);
-  }, [checkedRows]);
+  // useEffect(() => {
+  //   // Sync master checkbox with individual row checkboxes
+  //   const allChecked = initOrders.every((order) => checkedRows[order.id]);
+  //   setMasterChecked(allChecked);
+  // }, [checkedRows]);
 
   const handleRowCheckboxChange = (id) => {
     const updatedCheckedRows = {
@@ -460,11 +133,40 @@ const BillPage = () => {
 
   const handleStartDateChange = (date) => {
     setStartDate(date);
+    setCurrentPage(1);
+    setFilter({
+      ...filter,
+      page: 0
+    })
   };
 
   const handleEndDateChange = (date) => {
     setEndDate(date);
+    setCurrentPage(1);
+    setFilter({
+      ...filter,
+      page: 0
+    })
   };
+
+  useEffect(() => {
+    const query = Object.entries(filter)
+      .map(([key, value]) => {
+        if (Array.isArray(value)) {
+          return `${key}=${value.join(",")}`;
+        }
+        if (value) {
+          return `${key}=${value}`;
+        }
+      })
+      .join("&");
+    console.log(query)
+    getAllOrders(query).then((data) => {
+      setPageInfo(data.first);
+      setOrders(data.second);
+    })
+    // console.log(query)
+  }, [filter]);
 
   return (
     <div className="w-full h-screen font-nunito bg-[#f7f7f7]">
@@ -491,7 +193,7 @@ const BillPage = () => {
                   setFlyOutActions(!flyOutActions);
                 }}
               >
-                <span className="sr-only">Show submenu for "Flyout Menu"</span>
+                <span className="sr-only">Show submenu for &quot;Flyout Menu&quot;</span>
                 <svg
                   className="w-3 h-3 fill-slate-500"
                   xmlns="http://www.w3.org/2000/svg"
@@ -534,6 +236,7 @@ const BillPage = () => {
               className="p-2 bg-transparent outline-none w-60"
               type="text"
               placeholder="Tên, điện thoại khách hàng"
+              onChange={(e) => setFilter({ ...filter, customer_name: e.target.value })}
             />
           </div>
 
@@ -575,7 +278,6 @@ const BillPage = () => {
                       onChange={handleStartDateChange}
                       selectsStart
                       startDate={startDate}
-                      endDate={endDate}
                     />
                   </label>
                   <label className="flex items-center space-x-4 mt-2">
@@ -586,7 +288,6 @@ const BillPage = () => {
                       selected={endDate}
                       onChange={handleEndDateChange}
                       selectsEnd
-                      startDate={startDate}
                       endDate={endDate}
                       minDate={startDate}
                     />
@@ -599,14 +300,80 @@ const BillPage = () => {
       </div>
       <div className="px-6">
         <BillList
-          bills={initOrders}
-          masterChecked={masterChecked}
+          bills={orders}
           checkedRows={checkedRows}
-          handleMasterCheckboxChange={handleMasterCheckboxChange}
-          handleRowCheckboxChange={handleRowCheckboxChange}
           handleRowClick={handleRowClick}
           expandedRow={expandedRow}
         />
+        <div className="flex items-center space-x-8 mt-4">
+          <div className="flex">
+            <div>Số bản ghi: </div>
+            <select
+              className="bg-[#f7f7f7] outline-none"
+              value={rowsPerPage}
+              onChange={(e) => {
+                changeRowsPerPage(Number(e.target.value));
+                setCurrentPage(1);
+
+              }}
+            >
+              {/* <option defaultValue={rowsPerPage}>{rowsPerPage}</option> */}
+              {/* <option value={1}>1</option> */}
+              <option value={5}>5</option>
+              <option value={10}>10</option>
+              <option value={15}>15</option>
+              <option value={20}>20</option>
+            </select>
+          </div>
+          <div className="flex space-x-2">
+            <button
+              onClick={() => {
+                changePage(currentPage - 1); // Cập nhật số trang
+                setFilter(prevParams => ({
+                  ...prevParams, // Giữ lại các tham số cũ
+                  page: currentPage - 2, // Cập nhật page theo currentPage - 1
+                }));
+              }}
+              disabled={currentPage === 1}
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                height="24px"
+                viewBox="0 -960 960 960"
+                width="24px"
+                fill="#000000"
+              >
+                <path d="m313-440 224 224-57 56-320-320 320-320 57 56-224 224h487v80H313Z" />
+              </svg>
+            </button>
+            {orders.length > 0 &&
+              <span>
+                Page {Math.min(currentPage, pageInfo.totalPage)} of {pageInfo.totalPage}
+              </span>
+            }
+            <button
+              onClick={() => {
+                changePage(currentPage + 1); // Cập nhật số trang
+                setFilter(prevParams => ({
+                  ...prevParams, // Giữ lại các tham số cũ
+                  page: currentPage, // Cập nhật page theo currentPage + 1
+                }));
+              }}
+              disabled={currentPage === pageInfo.totalPage}
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                height="24px"
+                viewBox="0 -960 960 960"
+                width="24px"
+                fill="#000000"
+              >
+                <path d="M647-440H160v-80h487L423-744l57-56 320 320-320 320-57-56 224-224Z" />
+              </svg>
+            </button>
+
+          </div>
+        </div>
       </div>
     </div>
   );

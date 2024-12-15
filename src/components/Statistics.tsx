@@ -7,7 +7,7 @@
 import { getAllOrders } from "@/app/api-client/OrderService";
 import { getStatisticByCustomerAndDate, getStatisticByRevenueAndDate } from "@/app/api-client/StatisticService";
 import { GetOrderRequest, OrderEntity } from "@/app/home/order-taking/entity";
-import { formatDateToYYYYMMDD } from "@/utils/timeUtils";
+import { formatDateToString, formatDateToYYYYMMDD } from "@/utils/timeUtils";
 import { useCallback, useEffect, useState } from "react";
 
 const sampleOrders: OrderEntity[] = [
@@ -133,8 +133,8 @@ const Statistics = () => {
     page: 1,
     pageSize: 15,
     orderStatus: new Set(),
-    startTime: formatDateToYYYYMMDD(new Date(0)),
-    endTime: formatDateToYYYYMMDD(new Date()),
+    startTime: formatDateToString(new Date(0)),
+    endTime: formatDateToString(new Date()),
     paymentMethod: "",
     tableIds: new Set(),
     userName: "",
@@ -151,8 +151,8 @@ const Statistics = () => {
       // Cập nhật lại startTime và endTime trong request nếu chưa có
       setGetOrderRequest(prevState => ({
         ...prevState,
-        startTime: formatDateToYYYYMMDD(startTime),
-        endTime: formatDateToYYYYMMDD(endTime),
+        startTime: formatDateToString(startTime),
+        endTime: formatDateToString(endTime),
       }));
     }
 
@@ -196,12 +196,12 @@ const Statistics = () => {
       )}&end_date=${formatDateToYYYYMMDD(endDate)}`;
       console.log("queryForRevenueAndCustomer", queryForRevenueAndCustomer)
 
-      // setTodayRevenue(sampleRevenueIn2Days[1].revenue);
-      // setGrowthRevenue(
-      //   ((sampleRevenueIn2Days[1].revenue - sampleRevenueIn2Days[0].revenue) /
-      //     sampleRevenueIn2Days[0].revenue) *
-      //     100
-      // );
+      setTodayRevenue(sampleRevenueIn2Days[1].revenue);
+      setGrowthRevenue(
+        ((sampleRevenueIn2Days[1].revenue - sampleRevenueIn2Days[0].revenue) /
+          sampleRevenueIn2Days[0].revenue) *
+          100
+      );
 
       try {
         getStatisticByRevenueAndDate(queryForRevenueAndCustomer).then((revenueData) => {
@@ -216,12 +216,12 @@ const Statistics = () => {
       }
 
       // Gọi số lượng khách hàng hôm nay và hôm qua
-      // setTodayCustomer(sampleCustomerIn2Days[1].count);
-      // setGrowthCustomer(
-      //   ((sampleCustomerIn2Days[1].count - sampleCustomerIn2Days[0].count) /
-      //     sampleCustomerIn2Days[0].count) *
-      //     100
-      // );
+      setTodayCustomer(sampleCustomerIn2Days[1].count);
+      setGrowthCustomer(
+        ((sampleCustomerIn2Days[1].count - sampleCustomerIn2Days[0].count) /
+          sampleCustomerIn2Days[0].count) *
+          100
+      );
 
       try {
         getStatisticByCustomerAndDate(queryForRevenueAndCustomer).then((customerData) => {
@@ -236,21 +236,21 @@ const Statistics = () => {
       }
 
       // Gọi tổng số order đang ở trạng thái CHECK_IN
-      // const startTime = new Date(0); // Bắt đầu từ epoch
-      // const endTime = new Date();
-      // const queryForOrders = `start_time=${startTime.toISOString()}&end_time=${endTime.toISOString()}&order_status=CHECK_IN&page_size=1000`;
+      const startTime = new Date(0); // Bắt đầu từ epoch
+      const endTime = new Date();
+      const queryForOrders = `start_time=${startTime.toISOString()}&end_time=${endTime.toISOString()}&order_status=CHECK_IN&page_size=1000`;
 
-      // setTotalProcessingOrder(sampleOrders.length);
-      // setTotalProcessingCost(
-      //   sampleOrders.reduce((total, order) => {
-      //     return total + order.totalCost;
-      //   }, 0)
-      // );
-      // setTotalProcessingPeople(
-      //   sampleOrders.reduce((total, order) => {
-      //     return total + order.numberOfPeople;
-      //   }, 0)
-      // );
+      setTotalProcessingOrder(sampleOrders.length);
+      setTotalProcessingCost(
+        sampleOrders.reduce((total, order) => {
+          return total + order.totalCost;
+        }, 0)
+      );
+      setTotalProcessingPeople(
+        sampleOrders.reduce((total, order) => {
+          return total + order.numberOfPeople;
+        }, 0)
+      );
       try {
         getAllOrders(queryParams).then((orders) => {
           console.log("getAllOrder", queryParams)

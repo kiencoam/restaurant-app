@@ -1,10 +1,11 @@
 "use client";
 import React, { useState, useEffect, useRef, useCallback } from "react";
 
-import { getAllProducts, GetProductRequest, ProductEntity, updateProduct, UpdateProductRequest } from "../../api-client/ProductService";
+import { getAllProducts, GetProductRequest, ProductEntity, updateProduct, UpdateProductRequest, deleteProduct } from "../../api-client/ProductService";
 import ProductForm from "./ProductForm";
 import ProductFilterForm from "./ProductFilterForm";
 import ProductList from "./ProductList";
+import { DeleteModal } from "@/components/DeleteModal";
 
 
 const ProductsPage = () => {
@@ -42,12 +43,15 @@ const ProductsPage = () => {
     sortType: "",
   })
 
+  const [deleteModal, setDeleteModal] = useState(false);
+
+
   const handleProductFilterChange = (e, field: string) => {
     setGetProductRequest({
       ...getProductRequest,
       [field]: e.target.value
     })
-    console.log  (getProductRequest)
+    console.log(getProductRequest)
   }
 
   const buildQueryParams = useCallback(() => {
@@ -183,13 +187,42 @@ const ProductsPage = () => {
     // }
   };
 
+  // const handleDeleteSelectedItems = () => {
+  //   const newRows = data.filter((row) => !checkedRows[row.id]);
+  //   setData(newRows);
+  //   setCheckedRows({});
+  //   setMasterChecked(false);
+  //   setShowActionMenu(false);
+  // };
+
   const handleDeleteSelectedItems = () => {
-    // const newRows = data.filter((row) => !checkedRows[row.id]);
-    // setData(newRows);
-    // setCheckedRows({});
-    // setMasterChecked(false);
-    // setShowActionMenu(false);
-  };
+    const selectedIds = Object.keys(checkedRows)
+      .filter(id => checkedRows[id])
+      .map(id => Number(id));
+    console.log(selectedIds)
+
+    if (selectedIds.length === 0) {
+      alert("Không có khách hàng nào được chọn để xóa.");
+      return;
+    }
+
+    Promise.all(selectedIds.map(id => deleteProduct(id)))
+      .then(() => {
+        // alert("Xóa thành công!");
+        const newCheckedRows = { ...checkedRows };
+        selectedIds.forEach(id => {
+          delete newCheckedRows[id];
+        });
+        setCheckedRows(newCheckedRows);
+        setGetProductRequest(prev => ({ ...prev })); // Kích hoạt useEffect
+      })
+      .catch(error => {
+        alert("Có lỗi khi xóa khách hàng.");
+        console.error(error);
+      });
+    setDeleteModal(false);
+
+  }
 
   const startIndex = (currentPage - 1) * pageSize;
 
@@ -199,48 +232,57 @@ const ProductsPage = () => {
         <div className="text-2xl font-extrabold">Hàng hóa</div>
         <div className="flex items-center gap-2">
           {isAnyRowChecked && (
-            <li
-              className="p-4 lg:px-8 relative flex items-center space-x-1"
-              onMouseEnter={() => setFlyOutActions(true)}
-              onMouseLeave={() => setFlyOutActions(false)}
-            >
-              <a
-                className="text-slate-800 hover:text-slate-900"
-                aria-expanded={flyOutActions}
+            <ul>
+              <li
+                className="p-4 lg:px-8 relative flex items-center space-x-1"
+                onMouseEnter={() => setFlyOutActions(true)}
+                onMouseLeave={() => setFlyOutActions(false)}
               >
-                Thao tác
-              </a>
-              <button
-                className="shrink-0 p-1"
-                aria-expanded={flyOutActions}
-                onClick={(e) => {
-                  e.preventDefault();
-                  setFlyOutActions(!flyOutActions);
-                }}
-              >
-                <span className="sr-only">Show submenu for &quot;Flyout Menu&quot;</span>
-                <svg
-                  className="w-3 h-3 fill-slate-500"
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="12"
-                  height="12"
+                <a
+                  className="text-slate-800 hover:text-slate-900"
+                  aria-expanded={flyOutActions}
                 >
-                  <path d="M10 2.586 11.414 4 6 9.414.586 4 2 2.586l4 4z" />
-                </svg>
-              </button>
+                  Thao tác
+                </a>
+                <button
+                  className="shrink-0 p-1"
+                  aria-expanded={flyOutActions}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setFlyOutActions(!flyOutActions);
+                  }}
+                >
+                  <span className="sr-only">Show submenu for &quot;Flyout Menu&quot;</span>
+                  <svg
+                    className="w-3 h-3 fill-slate-500"
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="12"
+                    height="12"
+                  >
+                    <path d="M10 2.586 11.414 4 6 9.414.586 4 2 2.586l4 4z" />
+                  </svg>
+                </button>
 
-              {/* 2nd level menu */}
-              {flyOutActions && (
-                <ul className="origin-top-right absolute top-full left-1/2 -translate-x-1/2 w-[120px] bg-white border border-slate-200 p-2 rounded-lg shadow-xl">
-                  <li>
-                    <button className="text-slate-800 text-center w-[100px] hover:bg-slate-50 p-2">
-                      Xóa hàng
-                    </button>
-                  </li>
-                </ul>
-                /* Thêm action ở đây */
-              )}
-            </li>
+                {/* 2nd level menu */}
+                {flyOutActions && (
+                  <ul className="origin-top-right absolute top-full left-1/2 -translate-x-1/2 w-[120px] bg-white border border-slate-200 p-2 rounded-lg shadow-xl">
+                    <li>
+                      <button className="text-slate-800 text-center w-[100px] hover:bg-slate-50 p-2"
+                        onClick={() => setDeleteModal(true)}
+                      >
+                        Xóa hàng
+                      </button>
+                    </li>
+                  </ul>
+                )}
+              </li>
+              <DeleteModal
+                type="hàng hóa"
+                isOpen={deleteModal}
+                onClose={() => setDeleteModal(false)}
+                onDelete={handleDeleteSelectedItems}
+              />
+            </ul>
           )}
           <div className="flex items-center border text-sm rounded-md bg-[#f7fafc] px-2 shadow-sm">
             <svg
