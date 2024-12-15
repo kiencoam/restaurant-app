@@ -69,7 +69,7 @@ export function Menu({
                 />
               </div>
               <h1 className="text-center font-semibold text-[#7d7d7d]">
-                ₫{item.sellingPrice}
+                ₫{item.sellingPrice.toLocaleString("en-US")}
               </h1>
               <h1 className="text-center font-bold text-[#181818]">
                 {item.title}

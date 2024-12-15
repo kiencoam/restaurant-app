@@ -1,4 +1,8 @@
-import { SupplierEntity, updateSupplier, UpdateSupplierRequest } from "@/app/api-client/SupplierService";
+import {
+  SupplierEntity,
+  updateSupplier,
+  UpdateSupplierRequest,
+} from "@/app/api-client/SupplierService";
 import { formatDateTime } from "@/utils/timeUtils";
 import React, { useState } from "react";
 import { SupplierStatusEnum } from "@/app/constants/SupplierStatusEnum";
@@ -17,7 +21,6 @@ type Props = {
   handlePageSizeChange: (pageSize: number) => void;
   handlePageNumberChange: (page: number) => void;
 };
-
 
 export default function SupplierList({
   suppliers,
@@ -63,17 +66,17 @@ export default function SupplierList({
   };
 
   const getStatus = (s: string): string => {
-    if (s === 'INACTIVE') {
-      return 'Ngừng hoạt động';
-    } else if (s === 'ACTIVE') {
-      return 'Đang hoạt động';
+    if (s === "INACTIVE") {
+      return "Ngừng hoạt động";
+    } else if (s === "ACTIVE") {
+      return "Đang hoạt động";
     } else return "";
-  }
+  };
 
   const handleSaveSupplier = (id: number) => {
-    handleRowClick(id)
+    handleRowClick(id);
     const selectedSupplier = suppliers.find((supplier) => supplier.id === id);
-    console.log(selectedSupplier)
+    console.log(selectedSupplier);
     if (selectedSupplier) {
       const updatedSupplier: UpdateSupplierRequest = {
         name: selectedSupplier.name,
@@ -84,7 +87,6 @@ export default function SupplierList({
         status: selectedSupplier.status,
         //note: selectedSupplier.note,
       };
-
 
       try {
         updateSupplier(id, updatedSupplier).then((res) => {
@@ -112,9 +114,9 @@ export default function SupplierList({
     const newSuppliers = suppliers.map((supplier) =>
       supplier.id === id
         ? {
-          ...supplier,
-          [field]: e.target.value,
-        }
+            ...supplier,
+            [field]: e.target.value,
+          }
         : supplier
     );
 
@@ -145,8 +147,9 @@ export default function SupplierList({
             <React.Fragment key={supllier.id}>
               <tr
                 key={supllier.id}
-                className={` hover:bg-gray-100 border-b-2 cursor-pointer ${checkedRows[supllier.id] ? "bg-gray-100" : ""
-                  }`}
+                className={` hover:bg-gray-100 border-b-2 cursor-pointer ${
+                  checkedRows[supllier.id] ? "bg-gray-100" : ""
+                }`}
                 onClick={(e) => {
                   const target = e.target as HTMLElement; // Cast to HTMLElement
 
@@ -174,10 +177,10 @@ export default function SupplierList({
                 </td>
                 <td className="px-4 py-2 border-b">{supllier.name}</td>
                 <td className="px-4 py-2 border-b text-right">
-                  {supllier.totalDebt}
+                  {supllier.totalDebt.toLocaleString("en-US")}
                 </td>
                 <td className="px-4 py-2 border-b text-right">
-                  {supllier.totalCost}
+                  {supllier.totalCost.toLocaleString("en-US")}
                 </td>
                 <td className="px-4 py-2 border-b">
                   {supllier.status === SupplierStatusEnum.Inactive
@@ -206,8 +209,9 @@ export default function SupplierList({
                             type="text"
                             value={supllier.email}
                             className="w-full border-b-2 bg-gray-50 mt-2 focus:border-b-black outline-none"
-                            onChange={(e) => handleUpdateSupplier(e, supllier.id, 'email')}
-
+                            onChange={(e) =>
+                              handleUpdateSupplier(e, supllier.id, "email")
+                            }
                           />
                         </label>
                       </div>
@@ -219,8 +223,9 @@ export default function SupplierList({
                               type="text"
                               value={supllier.name}
                               className="w-full border-b-2 bg-gray-50 mt-2 focus:border-b-black outline-none"
-                              onChange={(e) => handleUpdateSupplier(e, supllier.id, 'name')}
-
+                              onChange={(e) =>
+                                handleUpdateSupplier(e, supllier.id, "name")
+                              }
                             />
                           </label>
                           <label className="w-64">
@@ -228,7 +233,13 @@ export default function SupplierList({
                             <input
                               type="text"
                               value={supllier.phoneNumber}
-                              onChange={(e) => handleUpdateSupplier(e, supllier.id, 'phoneNumber')}
+                              onChange={(e) =>
+                                handleUpdateSupplier(
+                                  e,
+                                  supllier.id,
+                                  "phoneNumber"
+                                )
+                              }
                               className="w-full border-b-2 bg-gray-50 mt-2 focus:border-b-black outline-none"
                             />
                           </label>
@@ -242,7 +253,9 @@ export default function SupplierList({
                               type="text"
                               value={supllier.address}
                               className="w-full border-b-2 bg-gray-50 mt-2 focus:border-b-black outline-none"
-                              onChange={(e) => handleUpdateSupplier(e, supllier.id, 'address')}
+                              onChange={(e) =>
+                                handleUpdateSupplier(e, supllier.id, "address")
+                              }
                             />
                           </label>
                           <label className="w-64">
@@ -263,7 +276,9 @@ export default function SupplierList({
                             <select
                               className="w-full border-b-2 bg-gray-50 mt-2 outline-none"
                               value={supllier.status}
-                              onChange={(e) => handleUpdateSupplier(e, supllier.id, 'status')}
+                              onChange={(e) =>
+                                handleUpdateSupplier(e, supllier.id, "status")
+                              }
                             >
                               <option value="ACTIVE">Đang hoạt động</option>
                               <option value="INACTIVE">Ngừng hoạt động</option>
@@ -319,7 +334,6 @@ export default function SupplierList({
             onChange={(e) => {
               changeRowsPerPage(Number(e.target.value));
               setCurrentPage(1);
-
             }}
           >
             {/* <option defaultValue={rowsPerPage}>{rowsPerPage}</option> */}
@@ -345,11 +359,12 @@ export default function SupplierList({
               <path d="m313-440 224 224-57 56-320-320 320-320 57 56-224 224h487v80H313Z" />
             </svg>
           </button>
-          {suppliers.length > 0 &&
+          {suppliers.length > 0 && (
             <span>
-              Page {Math.min(currentPage, pageInfo.totalPage)} of {pageInfo.totalPage}
+              Page {Math.min(currentPage, pageInfo.totalPage)} of{" "}
+              {pageInfo.totalPage}
             </span>
-          }
+          )}
           <button
             onClick={() => changePage(currentPage + 1)}
             disabled={currentPage === pageInfo.totalPage}

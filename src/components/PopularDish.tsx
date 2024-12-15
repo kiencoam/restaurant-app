@@ -83,7 +83,9 @@ export function PopularDish() {
             <div className="basis-[25%] text-center text-[#808080]">
               {item.quantity}
             </div>
-            <div className="basis-[25%] text-end">₫{item.revenue}</div>
+            <div className="basis-[25%] text-end">
+              ₫{item.revenue.toLocaleString("en-US")}
+            </div>
           </div>
         ))}
       </div>

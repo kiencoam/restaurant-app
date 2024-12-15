@@ -1,7 +1,3 @@
-/*
-    Gọi API ở dòng 57
-*/
-
 "use client";
 
 import { useEffect, useRef, useState } from "react";
@@ -10,33 +6,6 @@ import {
   getAllActivityLogs,
 } from "@/app/api-client/ActivityLogService";
 import { formatDateToString } from "@/utils/timeUtils";
-
-const sampleActivities: ActivityLogEntity[] = [
-  {
-    id: 1,
-    userId: 1,
-    userName: "Quoc Co",
-    action: "bán đơn hàng",
-    amount: 30000,
-    createdAt: "16:29",
-  },
-  {
-    id: 2,
-    userId: 2,
-    userName: "Hai Dang",
-    action: "nhập hàng",
-    amount: 20000,
-    createdAt: "16:00",
-  },
-  {
-    id: 3,
-    userId: 3,
-    userName: "John Wick",
-    action: "bán đơn hàng",
-    amount: 10000,
-    createdAt: "15:30",
-  },
-];
 
 const ActivitiesLog = () => {
   const [activities, setActivities] = useState<ActivityLogEntity[]>([]);
@@ -70,8 +39,6 @@ const ActivitiesLog = () => {
   }, []);
 
   useEffect(() => {
-    const numberOfLogs = 1000;
-    // Hàm gọi API
     const fetchActivityLogs = async () => {
       const query = `page=0&page_size=${10}&from_date=${formatDate(
         new Date("2024-01-01")
@@ -129,7 +96,7 @@ const ActivitiesLog = () => {
             <div key={activity.id} className="border-b m-2">
               <div className="font-semibold">
                 {activity.userName} vừa {activity.action} với giá trị{" "}
-                {activity.amount}₫
+                {activity.amount.toLocaleString("en-US")}₫
               </div>
               <div className="text-[#999999] text-md font-flux">
                 {formatDateToString(new Date(activity.createdAt))}

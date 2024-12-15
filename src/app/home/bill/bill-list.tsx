@@ -96,7 +96,9 @@ export default function BillList({
                 <td className="px-4 py-2 border-b">{bill.paymentId}</td>
                 <td className="px-4 py-2 border-b">{bill.checkOutTime}</td>
                 <td className="px-4 py-2 border-b">{bill.customerId}</td>
-                <td className="px-4 py-2 border-b">{bill.totalCost}</td>
+                <td className="px-4 py-2 border-b">
+                  {bill.totalCost.toLocaleString("en-US")}
+                </td>
                 <td className="px-4 py-2 border-b">
                   {
                     payments.find((payment) => payment.id === bill.paymentId)
@@ -104,10 +106,9 @@ export default function BillList({
                   }
                 </td>
                 <td className="px-4 py-2 border-b">
-                  {
-                    payments.find((payment) => payment.id === bill.paymentId)
-                      ?.needToPay
-                  }
+                  {payments
+                    .find((payment) => payment.id === bill.paymentId)
+                    ?.needToPay.toLocaleString("en-US")}
                 </td>
               </tr>
               {expandedRow === bill.paymentId && (
@@ -275,11 +276,15 @@ export default function BillList({
                                         {orderItem.orderedQuantity}
                                       </td>
                                       <td className="px-4 py-2 border-b text-right">
-                                        {orderItem.price}
+                                        {orderItem.price.toLocaleString(
+                                          "en-US"
+                                        )}
                                       </td>
                                       <td className="px-4 py-2 border-b text-right">
-                                        {orderItem.price *
-                                          orderItem.orderedQuantity}
+                                        {(
+                                          orderItem.price *
+                                          orderItem.orderedQuantity
+                                        ).toLocaleString("en-US")}
                                       </td>
                                     </tr>
                                   ))}

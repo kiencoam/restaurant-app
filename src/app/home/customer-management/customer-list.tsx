@@ -165,7 +165,9 @@ export default function CustomerList({
                 </td>
                 <td className="px-4 py-2 border-b">{customer.name}</td>
                 <td className="px-4 py-2 border-b">{customer.phoneNumber}</td>
-                <td className="px-4 py-2 border-b">{customer.totalCost}</td>
+                <td className="px-4 py-2 border-b">
+                  {Number(customer.totalCost).toLocaleString("en-US")}
+                </td>
               </tr>
               {expandedRow === customer.id && (
                 <tr>

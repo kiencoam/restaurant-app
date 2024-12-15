@@ -116,7 +116,9 @@ const Statistics = () => {
           </div>
         </div>
         <div className="flex items-end">
-          <div className="font-extrabold text-2xl">₫{todayRevenue}</div>
+          <div className="font-extrabold text-2xl">
+            ₫{todayRevenue.toLocaleString("en-US")}
+          </div>
           <div
             className={`ml-6 font-bold ${
               growthRevenue > 0 ? "text-[#72ada9]" : "text-[#d57c72]"
@@ -173,7 +175,9 @@ const Statistics = () => {
           </div>
         </div>
         <div className="flex items-end">
-          <div className="font-extrabold text-2xl">₫{totalProcessingCost}</div>
+          <div className="font-extrabold text-2xl">
+            ₫{totalProcessingCost.toLocaleString("en-US")}
+          </div>
         </div>
       </div>
       <div className="bg-[#ffffff] px-4 flex flex-col justify-evenly shadow-sm">

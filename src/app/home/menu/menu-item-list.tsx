@@ -98,8 +98,12 @@ export default function MenuItemList({
                   <button>{item.id}</button>
                 </td>
                 <td className="px-4 py-2 border-b">{item.title}</td>
-                <td className="px-4 py-2 border-b">{item.costPrice}</td>
-                <td className="px-4 py-2 border-b">{item.sellingPrice}</td>
+                <td className="px-4 py-2 border-b">
+                  {item.costPrice.toLocaleString("en-US")}
+                </td>
+                <td className="px-4 py-2 border-b">
+                  {item.sellingPrice.toLocaleString("en-US")}
+                </td>
                 <td className="px-4 py-2 border-b">
                   {
                     menuSections.find(

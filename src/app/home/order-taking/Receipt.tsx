@@ -197,13 +197,15 @@ export function Receipt({
                     </svg>
                   </button>
                 </div>
-                <div className="basis-[20%] text-end">₫{item.price}</div>
+                <div className="basis-[20%] text-end">
+                  ₫{item.price.toLocaleString("en-US")}
+                </div>
               </div>
             ))}
           </div>
           <div className="w-full h-16 my-2 border-dotted border-y-2 border-[#adadad] flex justify-between items-center text-xl font-uniform font-bold">
             <div className="tracking-wide">TỔNG</div>
-            <div>₫{totalCost}</div>
+            <div>₫{totalCost.toLocaleString("en-US")}</div>
           </div>
         </div>
 
