@@ -26,11 +26,11 @@ const RoleEnum = {
 
 // Đối tượng ánh xạ bản dịch (hiển thị cho người dùng)
 const RoleDisplay = {
-  ADMIN: "Admin",
-  MANAGER: "Manager",
-  WAITER: "Waiter",
-  CHEF: "Chef",
-  CASHIER: "Cashier",
+  ADMIN: "Quản trị viên",
+  MANAGER: "Quản lý",
+  WAITER: "Phục vụ",
+  CHEF: "Đầu bếp",
+  CASHIER: "Thu ngân",
 };
 
 const RoleIdDisplay = {
@@ -38,7 +38,7 @@ const RoleIdDisplay = {
   MANAGER: 3,
   WAITER: 4,
   CHEF: 2,
-  CASHIER: 6,
+  CASHIER: 5,
 };
 
 export default function CreateStaffForm({
@@ -69,7 +69,7 @@ export default function CreateStaffForm({
     cccd: "",
     cvImg: "",
     position: "WAITER",
-    salaryType: "DAYLY",
+    salaryType: "DAILY",
     salaryPerHour: 0,
     salaryPerMonth: 0,
   });
@@ -300,7 +300,7 @@ export default function CreateStaffForm({
                 required
               >
                 <option value="HOURLY">Theo giờ</option>
-                <option value="DAYLY">Theo tháng</option>
+                <option value="DAILY">Theo tháng</option>
               </select>
             </label>
           </div>

@@ -1,14 +1,15 @@
 "use client";
 
-import { createProduct, CreateProductRequest, ProductEntity } from "@/app/api-client/ProductService";
+import { createProduct, CreateProductRequest, GetProductRequest, ProductEntity } from "@/app/api-client/ProductService";
 import { useState } from "react";
 
 type Props = {
     toggleAddingNewOpen: () => void;
     setProducts: React.Dispatch<React.SetStateAction<ProductEntity[]>>;
+    setGetProductRequest: React.Dispatch<React.SetStateAction<GetProductRequest>>;
 }
 
-export default function ProductForm({ toggleAddingNewOpen, setProducts }: Props) {
+export default function ProductForm({ toggleAddingNewOpen, setProducts, setGetProductRequest }: Props) {
     const [product, setProduct] = useState<CreateProductRequest>({
         name: "",
         description: "",

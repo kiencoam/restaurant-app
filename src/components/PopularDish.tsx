@@ -29,7 +29,7 @@ export function PopularDish() {
       try {
         getStatisticByMenuItem(query).then((res) => {
           console.log(res);
-          setMostPopular(res.menuItemStatistics.reverse());
+          setMostPopular(res.menuItemStatistics?.reverse());
         });
       } catch (error) {
         console.error("Error fetching most popular items:", error);

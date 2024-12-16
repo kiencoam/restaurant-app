@@ -48,15 +48,16 @@ export type UpdateProductRequest = {
 };
 
 export type GetProductRequest = {
-  page: number,
-  pageSize: number,
-  name?: string,
-  status?: string,
-  priceFrom?: number,
-  priceTo?: number,
-  sortBy?: string,
-  sortType?: string,
-}
+  page: number;
+  pageSize: number;
+  name?: string;
+  status?: string;
+  productType?: string;
+  priceFrom?: number;
+  priceTo?: number;
+  sortBy?: string;
+  sortType?: string;
+};
 
 export const getDetailProduct = async (id: number): Promise<ProductEntity> => {
   return await apiClientService.get(`${baseUrl}/${id}`).then((res) => res.data);

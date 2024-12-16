@@ -1,15 +1,21 @@
 "use client";
 import React, { useState, useEffect, useRef, useCallback } from "react";
 
-import { getAllProducts, GetProductRequest, ProductEntity, updateProduct, UpdateProductRequest, deleteProduct } from "../../api-client/ProductService";
+import {
+  getAllProducts,
+  GetProductRequest,
+  ProductEntity,
+  updateProduct,
+  UpdateProductRequest,
+  deleteProduct,
+} from "../../api-client/ProductService";
 import ProductForm from "./ProductForm";
 import ProductFilterForm from "./ProductFilterForm";
 import ProductList from "./ProductList";
 import { DeleteModal } from "@/components/DeleteModal";
-
+import { PageInfo } from "@/app/api-client/PageInfo";
 
 const ProductsPage = () => {
-
   const [products, setProducts] = useState<ProductEntity[]>([]);
 
   const [flyOutActions, setFlyOutActions] = useState(false);
@@ -32,61 +38,110 @@ const ProductsPage = () => {
 
   const [isAddingNewOpen, setIsAddingNewOpen] = useState(false);
 
-  const [getProductRequest, setGetProductRequest] = useState<GetProductRequest>({
-    page: 0,
-    pageSize: 15,
-    name: "",
-    status: "",
-    priceFrom: null,
-    priceTo: null,
-    sortBy: "",
-    sortType: "",
-  })
+  const [getProductRequest, setGetProductRequest] = useState<GetProductRequest>(
+    {
+      page: 0,
+      pageSize: 5,
+      name: "",
+      status: "",
+      productType: "",
+      priceFrom: null,
+      priceTo: null,
+      sortBy: "",
+      sortType: "",
+    }
+  );
+  const [rowsPerPage, setRowsPerPage] = useState(5);
+
+  const [pageInfo, setPageInfo] = useState<PageInfo>({
+    totalPage: null,
+    totalRecord: null,
+    pageSize: null,
+    nextPage: null,
+    previousPage: null,
+  });
 
   const [deleteModal, setDeleteModal] = useState(false);
 
+  const changePage = (newPage) => {
+    if (newPage >= 1 && newPage <= pageInfo.totalPage) {
+      setCurrentPage(newPage);
+      handlePageNumberChange(newPage - 1);
+    }
+  };
 
+  //Handle rowsPerPage change
+  const changeRowsPerPage = (pageSize) => {
+    setRowsPerPage(pageSize);
+    handlePageSizeChange(pageSize);
+  };
+
+  const handlePageSizeChange = (value: number) => {
+    setGetProductRequest({
+      ...getProductRequest,
+      pageSize: value,
+      page: 0,
+    });
+  };
+
+  const handlePageNumberChange = (value: number) => {
+    setGetProductRequest({
+      ...getProductRequest,
+      page: value,
+    });
+  };
   const handleProductFilterChange = (e, field: string) => {
     setGetProductRequest({
       ...getProductRequest,
-      [field]: e.target.value
-    })
-    console.log(getProductRequest)
-  }
+      [field]: e.target.value,
+    });
+    console.log(getProductRequest);
+  };
 
   const buildQueryParams = useCallback(() => {
-    let queryParams = `page=${getProductRequest.page}&page_size=${getProductRequest.pageSize}`
+    let queryParams = `page=${getProductRequest.page}&page_size=${getProductRequest.pageSize}`;
     if (getProductRequest.name.trim() !== "") {
-      queryParams = queryParams.concat(`&name=${getProductRequest.name}`)
+      queryParams = queryParams.concat(`&name=${getProductRequest.name}`);
     }
     if (getProductRequest.status) {
-      queryParams = queryParams.concat(`&status=${getProductRequest.status}`)
+      queryParams = queryParams.concat(`&status=${getProductRequest.status}`);
+    }
+    if (getProductRequest.productType === "" || getProductRequest.productType) {
+      queryParams = queryParams.concat(
+        `&product_type=${getProductRequest.productType}`
+      );
     }
     if (getProductRequest.priceFrom) {
-      queryParams = queryParams.concat(`&price_from=${getProductRequest.priceFrom}`)
+      queryParams = queryParams.concat(
+        `&price_from=${getProductRequest.priceFrom}`
+      );
     }
     if (getProductRequest.priceTo) {
-      queryParams = queryParams.concat(`&price_to=${getProductRequest.priceTo}`)
+      queryParams = queryParams.concat(
+        `&price_to=${getProductRequest.priceTo}`
+      );
     }
     if (getProductRequest.sortBy) {
-      queryParams = queryParams.concat(`&sort_by=${getProductRequest.sortBy}`)
+      queryParams = queryParams.concat(`&sort_by=${getProductRequest.sortBy}`);
     }
     if (getProductRequest.sortType) {
-      queryParams = queryParams.concat(`&sort_type=${getProductRequest.sortType}`)
+      queryParams = queryParams.concat(
+        `&sort_type=${getProductRequest.sortType}`
+      );
     }
     return queryParams;
-  }, [getProductRequest])
-
+  }, [getProductRequest]);
 
   useEffect(() => {
     const fecthProducts = (queryParams) => {
-      getAllProducts(queryParams).then(res => setProducts(res.second))
-    }
+      getAllProducts(queryParams).then((res) => {
+        setProducts(res.second);
+        setPageInfo(res.first);
+      });
+    };
 
-    fecthProducts(buildQueryParams())
-
-  }, [buildQueryParams])
-
+    fecthProducts(buildQueryParams());
+  }, [buildQueryParams]);
 
   console.log("products", products);
 
@@ -137,18 +192,18 @@ const ProductsPage = () => {
       thumbnailImg: selectedProduct.thumbnailImg,
       status: selectedProduct.status,
       productType: selectedProduct.productType,
-      images: selectedProduct.images?.map(imageEntity => imageEntity.url)
-    }
+      images: selectedProduct.images?.map((imageEntity) => imageEntity.url),
+    };
 
     try {
-      const response = await updateProduct(id, updateProductRequest)
-      console.log(response)
+      const response = await updateProduct(id, updateProductRequest);
+      console.log(response);
       // fecthProducts()
     } catch (e) {
-      console.log(e)
+      console.log(e);
     }
 
-    handleRowClick(id)
+    handleRowClick(id);
   };
 
   const handleEditInputChange = (e, field, rowId) => {
@@ -157,7 +212,7 @@ const ProductsPage = () => {
         return { ...product, [field]: e.target.value };
       }
       return product;
-    })
+    });
     setProducts(newProducts);
   };
 
@@ -197,32 +252,31 @@ const ProductsPage = () => {
 
   const handleDeleteSelectedItems = () => {
     const selectedIds = Object.keys(checkedRows)
-      .filter(id => checkedRows[id])
-      .map(id => Number(id));
-    console.log(selectedIds)
+      .filter((id) => checkedRows[id])
+      .map((id) => Number(id));
+    console.log(selectedIds);
 
     if (selectedIds.length === 0) {
       alert("Không có khách hàng nào được chọn để xóa.");
       return;
     }
 
-    Promise.all(selectedIds.map(id => deleteProduct(id)))
+    Promise.all(selectedIds.map((id) => deleteProduct(id)))
       .then(() => {
         // alert("Xóa thành công!");
         const newCheckedRows = { ...checkedRows };
-        selectedIds.forEach(id => {
+        selectedIds.forEach((id) => {
           delete newCheckedRows[id];
         });
         setCheckedRows(newCheckedRows);
-        setGetProductRequest(prev => ({ ...prev })); // Kích hoạt useEffect
+        setGetProductRequest((prev) => ({ ...prev })); // Kích hoạt useEffect
       })
-      .catch(error => {
+      .catch((error) => {
         alert("Có lỗi khi xóa khách hàng.");
         console.error(error);
       });
     setDeleteModal(false);
-
-  }
+  };
 
   const startIndex = (currentPage - 1) * pageSize;
 
@@ -252,7 +306,9 @@ const ProductsPage = () => {
                     setFlyOutActions(!flyOutActions);
                   }}
                 >
-                  <span className="sr-only">Show submenu for &quot;Flyout Menu&quot;</span>
+                  <span className="sr-only">
+                    Show submenu for &quot;Flyout Menu&quot;
+                  </span>
                   <svg
                     className="w-3 h-3 fill-slate-500"
                     xmlns="http://www.w3.org/2000/svg"
@@ -267,7 +323,8 @@ const ProductsPage = () => {
                 {flyOutActions && (
                   <ul className="origin-top-right absolute top-full left-1/2 -translate-x-1/2 w-[120px] bg-white border border-slate-200 p-2 rounded-lg shadow-xl">
                     <li>
-                      <button className="text-slate-800 text-center w-[100px] hover:bg-slate-50 p-2"
+                      <button
+                        className="text-slate-800 text-center w-[100px] hover:bg-slate-50 p-2"
                         onClick={() => setDeleteModal(true)}
                       >
                         Xóa hàng
@@ -302,7 +359,7 @@ const ProductsPage = () => {
             <input
               className="p-2 bg-transparent outline-none"
               type="text"
-              placeholder="Tìm kiếm"
+              placeholder="Tìm kiếm tên hàng"
               value={getProductRequest.name}
               onChange={(e) => handleProductFilterChange(e, "name")}
             />
@@ -330,12 +387,13 @@ const ProductsPage = () => {
               <div className="p-2 text-sm font-semibold">Filter</div>
             </button>
 
-            {isFilterOpen &&
+            {isFilterOpen && (
               <ProductFilterForm
                 filterRef={filterRef}
                 getProductRequest={getProductRequest}
                 handleProductFilterChange={handleProductFilterChange}
-              />}
+              />
+            )}
           </div>
           <button
             className="flex items-center border rounded-md px-2 shadow-sm bg-black"
@@ -355,11 +413,13 @@ const ProductsPage = () => {
             </svg>
             <div className="p-2 text-sm font-bold text-white">Tạo mới</div>
           </button>
-          {isAddingNewOpen &&
+          {isAddingNewOpen && (
             <ProductForm
               toggleAddingNewOpen={toggleAddingNewOpen}
               setProducts={setProducts}
-            />}
+              setGetProductRequest={setGetProductRequest}
+            />
+          )}
         </div>
       </div>
 
@@ -375,10 +435,76 @@ const ProductsPage = () => {
         handleRowCheckboxChange={handleRowCheckboxChange}
         editingRow={editingRow}
       />
+      <div className="flex items-center space-x-8 mt-4">
+        <div className="flex">
+          <div>Số bản ghi: </div>
+          <select
+            className="bg-[#f7f7f7] outline-none"
+            value={rowsPerPage}
+            onChange={(e) => {
+              changeRowsPerPage(Number(e.target.value));
+              setCurrentPage(1);
+            }}
+          >
+            {/* <option defaultValue={rowsPerPage}>{rowsPerPage}</option> */}
+            {/* <option value={1}>1</option> */}
+            <option value={5}>5</option>
+            <option value={10}>10</option>
+            <option value={15}>15</option>
+            <option value={20}>20</option>
+          </select>
+        </div>
+        <div className="flex space-x-2">
+          <button
+            onClick={() => {
+              changePage(currentPage - 1); // Cập nhật số trang
+              setGetProductRequest((prevParams) => ({
+                ...prevParams, // Giữ lại các tham số cũ
+                page: currentPage - 2, // Cập nhật page theo currentPage - 1
+              }));
+            }}
+            disabled={currentPage === 1}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              height="24px"
+              viewBox="0 -960 960 960"
+              width="24px"
+              fill="#000000"
+            >
+              <path d="m313-440 224 224-57 56-320-320 320-320 57 56-224 224h487v80H313Z" />
+            </svg>
+          </button>
+          {products.length > 0 && (
+            <span>
+              Page {Math.min(currentPage, pageInfo.totalPage)} of{" "}
+              {pageInfo.totalPage}
+            </span>
+          )}
+          <button
+            onClick={() => {
+              changePage(currentPage + 1); // Cập nhật số trang
+              setGetProductRequest((prevParams) => ({
+                ...prevParams, // Giữ lại các tham số cũ
+                page: currentPage, // Cập nhật page theo currentPage + 1
+              }));
+            }}
+            disabled={currentPage === pageInfo.totalPage}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              height="24px"
+              viewBox="0 -960 960 960"
+              width="24px"
+              fill="#000000"
+            >
+              <path d="M647-440H160v-80h487L423-744l57-56 320 320-320 320-57-56 224-224Z" />
+            </svg>
+          </button>
+        </div>
+      </div>
     </div>
   );
 };
-
-
 
 export default ProductsPage;

@@ -1,13 +1,34 @@
 //Khong update duoc
 "use client";
-import React, { useState, useEffect, useRef, useCallback, useContext } from "react";
+import React, {
+  useState,
+  useEffect,
+  useRef,
+  useCallback,
+  useContext,
+} from "react";
 import { Tooltip } from "react-tooltip";
 import Link from "next/link";
 import ProductTable from "./ProductTable";
-import { CreateProductRequest, getAllProducts, ProductEntity, updateProduct, UpdateProductRequest } from "@/app/api-client/ProductService";
-import { createStockHistory, CreateStockHistoryItemRequest, CreateStockHistoryRequest, StockHistoryEntity } from "@/app/api-client/StockHistoryService";
+import {
+  CreateProductRequest,
+  getAllProducts,
+  GetProductRequest,
+  ProductEntity,
+  updateProduct,
+  UpdateProductRequest,
+} from "@/app/api-client/ProductService";
+import {
+  createStockHistory,
+  CreateStockHistoryItemRequest,
+  CreateStockHistoryRequest,
+  StockHistoryEntity,
+} from "@/app/api-client/StockHistoryService";
 import ProductForm from "../../products/ProductForm";
-import { getAllSuppliers, SupplierEntity } from "@/app/api-client/SupplierService";
+import {
+  getAllSuppliers,
+  SupplierEntity,
+} from "@/app/api-client/SupplierService";
 import { useRouter } from "next/navigation";
 import { loginUserContext } from "@/components/LoginUserProvider";
 import CreateSupplierForm from "../../supplier-management/create-supplier-form";
@@ -16,7 +37,7 @@ import { GetSupplierRequest } from "../../supplier-management/page";
 
 enum StockHistoryStatusEnum {
   Pending = "PENDING",
-  Done = "DONE"
+  Done = "DONE",
 }
 
 export type CreateStockHistoryItemRequestv2 = {
@@ -24,9 +45,9 @@ export type CreateStockHistoryItemRequestv2 = {
   quantity: number;
   pricePerUnit: number;
   product: ProductEntity; //hiện thông tin product, xóa sau khi create api
-}
+};
 
-const initialTableData: CreateStockHistoryItemRequestv2[] = []
+const initialTableData: CreateStockHistoryItemRequestv2[] = [];
 
 const initialStockHistory: CreateStockHistoryRequest = {
   supplierId: 0,
@@ -35,46 +56,49 @@ const initialStockHistory: CreateStockHistoryRequest = {
   status: "",
   note: "",
   stockHistoryItems: [] as CreateStockHistoryItemRequest[],
-}
+};
 
 export type GetProductRequest = {
-  page: number,
-  page_size: number,
-  name?: string,
-  status?: string,
-  price_from?: number,
-  price_to?: number,
-  sort_by?: string,
-  sort_type?: string,
-}
+  page: number;
+  page_size: number;
+  name?: string;
+  status?: string;
+  price_from?: number;
+  price_to?: number;
+  sort_by?: string;
+  sort_type?: string;
+};
 
 const NewPage = () => {
-
-  const [newStockHistory, setNewStockHistory] = useState<CreateStockHistoryRequest>(initialStockHistory);
-  const [tableData, setTableData] = useState<CreateStockHistoryItemRequestv2[]>(initialTableData);
+  const [newStockHistory, setNewStockHistory] =
+    useState<CreateStockHistoryRequest>(initialStockHistory);
+  const [tableData, setTableData] =
+    useState<CreateStockHistoryItemRequestv2[]>(initialTableData);
   // TO FETCH PRODUCTS AND SUPPLIERS
   const [products, setProducts] = useState<ProductEntity[]>([]);
   const [suppliers, setSuppliers] = useState<SupplierEntity[]>([]);
-  const [selectedSupplier, setSelectedSupplier] = useState<SupplierEntity>(null);
+  const [selectedSupplier, setSelectedSupplier] =
+    useState<SupplierEntity>(null);
   // OPEN FORM
   const [isAddingNewSupplier, setIsAddingNewSupplier] = useState(false);
   const [isAddingNewOpen, setIsAddingNewOpen] = useState(false);
-  // FIND 
-  const [getProductRequest, setGetProductRequest] = useState<GetProductRequest>({
-    page: 0,
-    page_size: 5
-  })
-  const [getSupplierRequest, setGetSupplierRequest] = useState<GetSupplierRequest>({
-    page: 0,
-    page_size: 5
-  })
+  // FIND
+  const [getProductRequest, setGetProductRequest] = useState<GetProductRequest>(
+    {
+      page: 0,
+      page_size: 5,
+    }
+  );
+  const [getSupplierRequest, setGetSupplierRequest] =
+    useState<GetSupplierRequest>({
+      page: 0,
+      page_size: 5,
+    });
 
-
-  const router = useRouter()
+  const router = useRouter();
 
   //lấy id làm userid
-  const id = Number(useContext(loginUserContext).id)
-
+  const id = Number(useContext(loginUserContext).id);
 
   useEffect(() => {
     const query = Object.entries(getProductRequest)
@@ -87,7 +111,7 @@ const NewPage = () => {
 
     getAllProducts(query).then((data) => {
       setProducts(data.second);
-    })
+    });
   }, [getProductRequest]);
 
   useEffect(() => {
@@ -101,18 +125,17 @@ const NewPage = () => {
 
     getAllSuppliers(query).then((data) => {
       setSuppliers(data.second);
-    })
+    });
   }, [getSupplierRequest]);
 
   const handlePickSupplier = (supplier: SupplierEntity) => {
     setGetSupplierRequest((prev) => ({ ...prev, name: "" }));
-    setSelectedSupplier(supplier)
+    setSelectedSupplier(supplier);
     setNewStockHistory({
       ...newStockHistory,
-      supplierId: supplier.id
-    })
-
-  }
+      supplierId: supplier.id,
+    });
+  };
   const handlePickProduct = (product: ProductEntity) => {
     // setGetProductRequest(product.name);
     setGetProductRequest({
@@ -120,26 +143,32 @@ const NewPage = () => {
       page_size: 5,
       name: "",
     });
-    setTableData((prev: CreateStockHistoryItemRequestv2[]) => [...prev, {
-      productId: product.id,
-      quantity: 1,
-      pricePerUnit: product.costPrice,
-      product: product,
-    }])
-  }
+    setTableData((prev: CreateStockHistoryItemRequestv2[]) => [
+      ...prev,
+      {
+        productId: product.id,
+        quantity: 1,
+        pricePerUnit: product.costPrice,
+        product: product,
+      },
+    ]);
+  };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>, key: string) => {
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+    key: string
+  ) => {
     setNewStockHistory({ ...newStockHistory, [key]: e.target.value });
-  }
+  };
 
   const handleSubmit = (status: string) => {
     if (tableData.length == 0 || newStockHistory.supplierId == 0) {
-      alert("Chưa nhập đủ thông tin")
+      alert("Chưa nhập đủ thông tin");
     }
     const updatedStockHistory = {
       ...newStockHistory,
       status: status,
-      stockHistoryItems: tableData.map(data => ({
+      stockHistoryItems: tableData.map((data) => ({
         productId: data.productId,
         quantity: data.quantity,
         pricePerUnit: data.pricePerUnit,
@@ -147,18 +176,17 @@ const NewPage = () => {
       userId: id,
     };
 
-    console.log(updatedStockHistory)
+    console.log(updatedStockHistory);
 
     createStockHistory(updatedStockHistory).then((res: StockHistoryEntity) => {
       console.log(res);
       if (status == StockHistoryStatusEnum.Pending) {
-        router.push(`./home/purchase-order/`)
+        router.push(`./home/purchase-order/`);
+      } else if (status == StockHistoryStatusEnum.Done) {
+        router.push(`./home/purchase-order`);
       }
-      else if (status == StockHistoryStatusEnum.Done){
-        router.push(`./home/purchase-order`)
-      }
-    })
-  }
+    });
+  };
 
   const toggleNewSupplier = () => {
     setIsAddingNewSupplier((prev) => !prev);
@@ -195,9 +223,9 @@ const NewPage = () => {
       prevData.map((item) =>
         item.productId === productId
           ? {
-            ...item,
-            quantity: Math.max(0, newQuantity), // Ensure quantity stays within range
-          }
+              ...item,
+              quantity: Math.max(0, newQuantity), // Ensure quantity stays within range
+            }
           : item
       )
     );
@@ -258,7 +286,12 @@ const NewPage = () => {
                 type="text"
                 placeholder="Tìm hàng hóa theo mã hoặc theo tên"
                 value={getProductRequest.name}
-                onChange={(e) => setGetProductRequest({ ...getProductRequest, name: e.target.value })}
+                onChange={(e) =>
+                  setGetProductRequest({
+                    ...getProductRequest,
+                    name: e.target.value,
+                  })
+                }
               />
               {/* Hiển thị gợi ý */}
               {getProductRequest.name && (
@@ -277,18 +310,31 @@ const NewPage = () => {
                 </div>
               )}
             </div>
-            {getProductRequest.name ?
-              (<button
+            {getProductRequest.name ? (
+              <button
                 data-tooltip-id="delete-tooltip"
                 data-tooltip-content="Xóa hàng hóa"
-                onClick={() => { setGetProductRequest({ ...getProductRequest, name: "" }) }}
+                onClick={() => {
+                  setGetProductRequest({ ...getProductRequest, name: "" });
+                }}
               >
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" className="w-6 h-6">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke-width="2"
+                  stroke="currentColor"
+                  className="w-6 h-6"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M6 18L18 6M6 6l12 12"
+                  />
                 </svg>
-
               </button>
-              ) : (<button
+            ) : (
+              <button
                 data-tooltip-id="my-tooltip"
                 data-tooltip-content="Thêm hàng hóa mới"
                 onClick={toggleAddingNewOpen}
@@ -302,18 +348,23 @@ const NewPage = () => {
                 >
                   <path d="M440-440H200v-80h240v-240h80v240h240v80H520v240h-80v-240Z" />
                 </svg>
-              </button>)}
-            {isAddingNewOpen &&
+              </button>
+            )}
+            {isAddingNewOpen && (
               <ProductForm
                 toggleAddingNewOpen={toggleAddingNewOpen}
                 setProducts={setProducts}
-              />}
+                setGetProductRequest={setGetProductRequest}
+              />
+            )}
           </div>
         </div>
-        <ProductTable tableData={tableData}
+        <ProductTable
+          tableData={tableData}
           handleQuantityChange={handleQuantityChange}
           handlePriceForUnitChange={handlePriceForUnitChange}
-          calculateTotal={calculateTotal} />
+          calculateTotal={calculateTotal}
+        />
       </div>
 
       {/* Right section for detailed information */}
@@ -350,7 +401,10 @@ const NewPage = () => {
                     placeholder="Tìm nhà cung cấp"
                     value={getSupplierRequest.name}
                     onChange={(e) =>
-                      setGetSupplierRequest((prev) => ({ ...prev, name: e.target.value }))
+                      setGetSupplierRequest((prev) => ({
+                        ...prev,
+                        name: e.target.value,
+                      }))
                     }
                   />
                   {getSupplierRequest.name && (
@@ -369,26 +423,36 @@ const NewPage = () => {
                 </div>
               )}
             </div>
-            {getSupplierRequest.name || selectedSupplier ?
-              (<button
+            {getSupplierRequest.name || selectedSupplier ? (
+              <button
                 data-tooltip-id="delete-tooltip"
                 data-tooltip-content="Xóa nhà cung cấp"
                 onClick={() => {
                   if (selectedSupplier) {
                     setSelectedSupplier(null); // Xóa nhà cung cấp đã chọn
-                  }
-                  else {
-                    setGetSupplierRequest({ ...getSupplierRequest, name: "" })
+                  } else {
+                    setGetSupplierRequest({ ...getSupplierRequest, name: "" });
                   }
                   setNewStockHistory((prev) => ({ ...prev, supplierId: null })); // Xóa supplierId
                 }}
               >
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" className="w-6 h-6">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke-width="2"
+                  stroke="currentColor"
+                  className="w-6 h-6"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M6 18L18 6M6 6l12 12"
+                  />
                 </svg>
-
               </button>
-              ) : <button
+            ) : (
+              <button
                 onClick={() => setIsAddingNewSupplier(!isAddingNewSupplier)}
                 data-tooltip-id="my-tooltip"
                 data-tooltip-content="Thêm nhà cung cấp mới"
@@ -403,14 +467,15 @@ const NewPage = () => {
                   <path d="M440-440H200v-80h240v-240h80v240h240v80H520v240h-80v-240Z" />
                 </svg>
               </button>
-            }
-            {isAddingNewSupplier &&
+            )}
+            {isAddingNewSupplier && (
               <CreateSupplierForm
                 toggleNewSupplier={toggleNewSupplier}
                 setFilter={setGetSupplierRequest}
                 pageSize={0}
                 setSuppliers={setSuppliers}
-              />}
+              />
+            )}
           </div>
         </div>
         <div className="flex mb-4 justify-between">
@@ -446,15 +511,21 @@ const NewPage = () => {
           />
         </div>
         <div className="flex justify-between mt-20">
-          <button className="bg-blue-500 text-white px-4 py-2 rounded w-[130px]" onClick={() => handleSubmit(StockHistoryStatusEnum.Pending)}>
+          <button
+            className="bg-blue-500 text-white px-4 py-2 rounded w-[130px]"
+            onClick={() => handleSubmit(StockHistoryStatusEnum.Pending)}
+          >
             Lưu tạm
           </button>
-          <button className="bg-green-500 text-white px-4 py-2 rounded w-[130px] " onClick={() => handleSubmit(StockHistoryStatusEnum.Done)}>
+          <button
+            className="bg-green-500 text-white px-4 py-2 rounded w-[130px] "
+            onClick={() => handleSubmit(StockHistoryStatusEnum.Done)}
+          >
             Hoàn thành
           </button>
         </div>
       </div>
-    </div >
+    </div>
   );
 };
 

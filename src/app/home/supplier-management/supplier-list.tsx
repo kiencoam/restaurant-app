@@ -177,10 +177,10 @@ export default function SupplierList({
                 </td>
                 <td className="px-4 py-2 border-b">{supllier.name}</td>
                 <td className="px-4 py-2 border-b text-right">
-                  {supllier.totalDebt.toLocaleString("en-US")}
+                  {supllier.totalDebt?.toLocaleString("en-US")}
                 </td>
                 <td className="px-4 py-2 border-b text-right">
-                  {supllier.totalCost.toLocaleString("en-US")}
+                  {supllier.totalCost?.toLocaleString("en-US")}
                 </td>
                 <td className="px-4 py-2 border-b">
                   {supllier.status === SupplierStatusEnum.Inactive

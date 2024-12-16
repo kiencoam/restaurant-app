@@ -5,13 +5,21 @@ import CreateStaffForm from "./create-staff-form";
 import StaffList from "./staff-list";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-import { UserEntity, CreateUserRequest, getAllUsers } from "@/app/api-client/UserService";
+import {
+  UserEntity,
+  CreateUserRequest,
+  getAllUsers,
+} from "@/app/api-client/UserService";
 import { PageInfo } from "@/app/api-client/PageInfo";
-import { createRole, CreateRoleRequest, deleteRole, getAllRoles } from "@/app/api-client/RoleService";
+import {
+  createRole,
+  CreateRoleRequest,
+  deleteRole,
+  getAllRoles,
+} from "@/app/api-client/RoleService";
 import { loginUserContext } from "@/components/LoginUserProvider";
 
 //User
-
 
 // const staffs: UserEntity[] = [
 //   {
@@ -42,7 +50,7 @@ import { loginUserContext } from "@/components/LoginUserProvider";
 //     gender: "female",
 //     roleId: 1,
 //     position: "CHEF",
-//     salaryType: "DAYLY",
+//     salaryType: "DAILY",
 //     salaryPerHour: 0,
 //     salaryPerMonth: 15000000,
 //     status: "OUT",
@@ -58,9 +66,7 @@ export type GetStaffRequest = {
   role_id?: number;
 };
 
-
 const StaffManagementPage = () => {
-
   const [staffs, setStaffs] = useState<UserEntity[]>([]);
 
   const [masterChecked, setMasterChecked] = useState(false);
@@ -91,10 +97,8 @@ const StaffManagementPage = () => {
 
   const [filter, setFilter] = useState<GetStaffRequest>({
     page: 0,
-    page_size: 5
+    page_size: 5,
   });
-
-
 
   // khi role rỗng, chạy các đoạn này để tạo role : id, name, description
 
@@ -145,22 +149,20 @@ const StaffManagementPage = () => {
   //   }
   // };
 
-
-
   const handlePageSizeChange = (value: number) => {
     setFilter({
       ...filter,
       page_size: value,
-      page: 0
-    })
-  }
+      page: 0,
+    });
+  };
 
   const handlePageNumberChange = (value: number) => {
     setFilter({
       ...filter,
-      page: value
-    })
-  }
+      page: value,
+    });
+  };
 
   // useEffect(() => {
   //   const RoleIdDisplay = {
@@ -223,7 +225,6 @@ const StaffManagementPage = () => {
   //   }
   // }, [filter]);
 
-
   useEffect(() => {
     const query = Object.entries(filter)
       .map(([key, value]) => {
@@ -234,7 +235,7 @@ const StaffManagementPage = () => {
       .join("&");
 
     getAllUsers(query).then((data) => {
-      const allStaffs = data.second; 
+      const allStaffs = data.second;
       let filteredStaffs = allStaffs;
       // if (tempRole === 'MANAGER') {
       //   const roleIds = ['CASHIER','WAITER','CHEF'];
@@ -245,7 +246,7 @@ const StaffManagementPage = () => {
       setStaffs(filteredStaffs);
       setPageInfo(data.first);
     });
-    console.log(query)
+    console.log(query);
   }, [filter]);
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -254,17 +255,17 @@ const StaffManagementPage = () => {
     const isPhoneNumber = /^[0-9]+$/.test(value);
 
     if (isPhoneNumber) {
-      console.log("true")
+      console.log("true");
       setFilter({
         ...filter,
         phone_number: value,
-        name: ""
+        name: "",
       });
     } else {
       setFilter({
         ...filter,
         name: value,
-        phone_number: ""
+        phone_number: "",
       });
     }
   };
@@ -279,10 +280,9 @@ const StaffManagementPage = () => {
 
     setFilter({
       ...filter,
-      [field]: newValue
-    })
-  }
-
+      [field]: newValue,
+    });
+  };
 
   const handleStartDateChange = (date) => {
     setStartDate(date);
@@ -417,7 +417,6 @@ const StaffManagementPage = () => {
               onChange={handleSearchChange}
             />
           </div>
-
           <div>
             <button
               className="flex items-center border rounded-md px-2 shadow-sm"
@@ -513,12 +512,14 @@ const StaffManagementPage = () => {
               pageSize={pageInfo.pageSize}
               setFilter={setFilter}
             />
-          )}        </div>
+          )}{" "}
+        </div>
       </div>
       <div className="px-6">
         <StaffList
           staffs={staffs}
           setStaffs={setStaffs}
+          setFilter={setFilter}
           masterChecked={masterChecked}
           checkedRows={checkedRows}
           pageInfo={pageInfo}

@@ -9,10 +9,12 @@ import {
 import { loginUserContext } from "@/components/LoginUserProvider";
 import { formatDateToYYYYMMDD } from "@/utils/timeUtils";
 import React, { useContext, useState } from "react";
+import { GetStaffRequest } from "./page";
 
 type Props = {
   staffs: UserEntity[]; // Assuming StaffEntity is the type for a staff object
   setStaffs: React.Dispatch<React.SetStateAction<UserEntity[]>>;
+  setFilter: React.Dispatch<React.SetStateAction<GetStaffRequest>>;
   masterChecked: boolean;
   checkedRows: Record<number, boolean>;
   pageInfo: PageInfo;
@@ -27,6 +29,7 @@ type Props = {
 export default function StaffList({
   staffs,
   setStaffs,
+  setFilter,
   masterChecked,
   checkedRows,
   handleMasterCheckboxChange,
@@ -88,7 +91,6 @@ export default function StaffList({
   const handleSaveStaff = (id: number) => {
     handleRowClick(id);
     const selectedStaff = staffs.find((Staff) => Staff.id === id);
-    console.log(selectedStaff);
     if (selectedStaff) {
       const updatedStaff: UpdateUserRequest = {
         name: selectedStaff.name,
@@ -106,15 +108,8 @@ export default function StaffList({
 
       try {
         updateUser(id, updatedStaff).then((res) => {
-          const newStaffs = staffs.map((Staff) => {
-            if (Staff.id === id) {
-              return res;
-            } else {
-              return Staff;
-            }
-          });
-
-          setStaffs(newStaffs);
+          console.log("Staff updated:", res);
+          setFilter((prev) => ({ ...prev })); // Kích hoạt useEffect
         });
       } catch (error) {
         console.error(error);
@@ -342,7 +337,7 @@ export default function StaffList({
                                       : "Theo ngày"}
                                   </option>
                                   <option value="HOURLY">Theo giờ</option>
-                                  <option value="DAYLY">Theo tháng</option>
+                                  <option value="DAILY">Theo tháng</option>
                                 </select>
                               </label>
                               {staff.salaryType === "HOURLY" ? (

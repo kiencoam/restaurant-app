@@ -256,14 +256,16 @@ export default function CustomerList({
                         <div className="flex space-x-12">
                           <label className="w-64">
                             Giới tính
-                            <input
-                              type="text"
-                              value={getGender(customer.gender)}
+                            <select
+                              value={customer.gender}
                               className="w-full border-b-2 bg-gray-50 mt-2"
                               onChange={(e) =>
                                 handleUpdateCustomer(e, customer.id, "gender")
                               }
-                            />
+                            >
+                              <option value="MALE">Nam</option>
+                              <option value="FEMALE">Nữ</option>
+                            </select>
                           </label>
                         </div>
                       </div>
