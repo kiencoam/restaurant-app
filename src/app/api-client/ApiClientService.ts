@@ -1,5 +1,8 @@
-const token =
-  "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiIxIiwic2NvcGUiOiJBRE1JTiIsImlzcyI6InF1YW50dWFuaHV5IiwiZXhwIjoxNzM0NjQxMzA0LCJpYXQiOjE3MzQyODEzMDQsImp0aSI6IjcyYzQ5MTNlLTFlMzQtNGY1OS1hYzBmLWQ1OWY1NDg4Y2Y1OCJ9.4h1qAAzutn3oGB7e-O4244gE9K9Dbjl8KW0NcUjXEk9FgpFU9ILk5nq_x-rZIrka7EPLV44qzAKMD5UD2F_s7g";
+// const token =
+//   "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiIxIiwic2NvcGUiOiJBRE1JTiIsImlzcyI6InF1YW50dWFuaHV5IiwiZXhwIjoxNzM0NjQxMzA0LCJpYXQiOjE3MzQyODEzMDQsImp0aSI6IjcyYzQ5MTNlLTFlMzQtNGY1OS1hYzBmLWQ1OWY1NDg4Y2Y1OCJ9.4h1qAAzutn3oGB7e-O4244gE9K9Dbjl8KW0NcUjXEk9FgpFU9ILk5nq_x-rZIrka7EPLV44qzAKMD5UD2F_s7g";
+
+import { getCookie } from "@/utils/cookies-client";
+const token = getCookie("token");
 
 const apiClientService = {
   get: (endpoint: string) => getData(endpoint),

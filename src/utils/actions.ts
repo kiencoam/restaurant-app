@@ -15,8 +15,23 @@ export const doLogin = async (formData: FormData) => {
       email: formData.get("email") as string,
       password: formData.get("password") as string,
     };
-    const response = await authenticate(payload);
-    setToken(response.token);
+    //const response = await authenticate(payload);
+    const response = await fetch(
+      "http://localhost:8080/api/v1/auth/authenticate",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      }
+    );
+    if (!response.ok) {
+      return false;
+    }
+    const responseJson = await response.json();
+
+    setToken(responseJson.data.token);
   } catch (err) {
     return false;
   }
