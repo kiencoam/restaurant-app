@@ -1,15 +1,3 @@
-/*
-  Gọi API lấy dữ liệu User, Shift ở dòng 339
-  Gọi API lấy dữ liệu WorkSchedule ở dòng 350
-  Gọi API tạo thêm WorkSchedule ở dòng 431
-  Gọi API tạo thêm Shift ở dòng 459
-  Gọi API chỉnh sửa Shift ở dòng 496
-  Gọi API xóa Shift ở dòng 547
-  Gọi API xóa WorkSchedule ở dòng 572
-  (Số dòng có thể không đúng vì đã thêm code mới)
-  Trong page này chỉ gọi api và cập nhật ở FE, còn page khác gọi api và getAll lại từ đầu
- */
-
 "use client";
 import { useState, useMemo, ChangeEventHandler, use, useEffect } from "react";
 import DatePicker from "react-datepicker";
@@ -23,11 +11,21 @@ import {
 import "./StaffSchedule.css";
 import "react-datepicker/dist/react-datepicker.css";
 
-import { createWorkSchedule, deleteWorkSchedule, getAllWorkSchedules, WorkScheduleEntity } from "@/app/api-client/WorkScheduleService";
+import {
+  createWorkSchedule,
+  deleteWorkSchedule,
+  getAllWorkSchedules,
+  WorkScheduleEntity,
+} from "@/app/api-client/WorkScheduleService";
 import { getAllUsers, UserEntity } from "@/app/api-client/UserService";
-import { createShift, deleteShift, getAll, ShiftEntity, updateShift } from "@/app/api-client/ShiftService";
+import {
+  createShift,
+  deleteShift,
+  getAll,
+  ShiftEntity,
+  updateShift,
+} from "@/app/api-client/ShiftService";
 import { CreateWorkScheduleRequest } from "@/app/api-client/WorkScheduleService";
-import { newDate } from "react-datepicker/dist/date_utils";
 
 const daysOfWeek = [
   { id: 0, name: "SUN" },
@@ -39,265 +37,8 @@ const daysOfWeek = [
   { id: 6, name: "SAT" },
 ];
 
-// const sampleWorkSchedules: WorkScheduleEntity[] = [
-//   {
-//     id: 1,
-//     userId: 1,
-//     shiftId: 101,
-//     date: "2024-11-17",
-//     user: {
-//       id: 1,
-//       name: "Johny Đặng",
-//       email: "johny.dang@example.com",
-//       phoneNumber: "123456789",
-//       gender: "Male",
-//       dateOfBirth: new Date("1990-01-01"),
-//       roleId: 1,
-//       cccd: "123456789",
-//       cvImg: "path/to/cvImg.jpg",
-//       position: "Chef",
-//       salaryType: "Hourly",
-//       salaryPerHour: 15,
-//       salaryPerMonth: 0,
-//       role: {
-//         id: 3,
-//         name: "Chef",
-//         description: "Đầu bếp",
-//       },
-//     },
-//     shift: {
-//       id: 101,
-//       name: "Day",
-//       startTime: "08:00",
-//       endTime: "16:00",
-//       status: "active",
-//     },
-//   },
-//   {
-//     id: 2,
-//     userId: 2,
-//     shiftId: 102,
-//     date: "2024-11-18",
-//     user: {
-//       id: 2,
-//       name: "Mary Janes",
-//       email: "mary.janes@example.com",
-//       phoneNumber: "987654321",
-//       gender: "Female",
-//       dateOfBirth: new Date("1992-02-02"),
-//       roleId: 1,
-//       cccd: "123456789",
-//       cvImg: "path/to/cvImg.jpg",
-//       position: "Chef",
-//       salaryType: "Hourly",
-//       salaryPerHour: 15,
-//       salaryPerMonth: 0,
-//       role: {
-//         id: 4,
-//         name: "Waiter",
-//         description: "Phục vụ",
-//       },
-//     },
-//     shift: {
-//       id: 102,
-//       name: "Night",
-//       startTime: "16:00",
-//       endTime: "00:00",
-//       status: "active",
-//     },
-//   },
-//   {
-//     id: 3,
-//     userId: 1,
-//     shiftId: 101,
-//     date: "2024-11-19",
-//     user: {
-//       id: 1,
-//       name: "Johny Đặng",
-//       email: "johny.dang@example.com",
-//       phoneNumber: "123456789",
-//       gender: "Male",
-//       dateOfBirth: new Date("1990-01-01"),
-//       roleId: 1,
-//       cccd: "123456789",
-//       cvImg: "path/to/cvImg.jpg",
-//       position: "Chef",
-//       salaryType: "Hourly",
-//       salaryPerHour: 15,
-//       salaryPerMonth: 0,
-//       role: {
-//         id: 3,
-//         name: "Chef",
-//         description: "Đầu bếp",
-//       },
-//     },
-//     shift: {
-//       id: 101,
-//       name: "Day",
-//       startTime: "08:00",
-//       endTime: "16:00",
-//       status: "active",
-//     },
-//   },
-// ];
-
-// const users: UserEntity[] = [
-//   {
-//     id: 1,
-//     name: "Johny Đặng",
-//     email: "johny.dang@example.com",
-//     phoneNumber: "123456789",
-//     gender: "Male",
-//     dateOfBirth: new Date("1990-01-01"),
-//     roleId: 1,
-//     cccd: "123456789",
-//     cvImg: "path/to/cvImg.jpg",
-//     position: "Chef",
-//     salaryType: "Hourly",
-//     salaryPerHour: 15,
-//     salaryPerMonth: 0,
-//     role: {
-//       id: 3,
-//       name: "Chef",
-//       description: "Đầu bếp",
-//     },
-//   },
-//   {
-//     id: 2,
-//     name: "Mary Janes",
-//     email: "mary.janes@example.com",
-//     phoneNumber: "987654321",
-//     gender: "Female",
-//     dateOfBirth: new Date("1992-02-02"),
-//     roleId: 2,
-//     cccd: "987654321",
-//     cvImg: "path/to/cvImg.jpg",
-//     position: "Waiter",
-//     salaryType: "Hourly",
-//     salaryPerHour: 12,
-//     salaryPerMonth: 0,
-//     role: {
-//       id: 4,
-//       name: "Waiter",
-//       description: "Phục vụ",
-//     },
-//   },
-//   {
-//     id: 3,
-//     name: "Cristiano Ronaldo",
-//     email: "cristiano.ronaldo@example.com",
-//     phoneNumber: "123123123",
-//     gender: "Male",
-//     dateOfBirth: new Date("1985-02-05"),
-//     roleId: 3,
-//     cccd: "123123123",
-//     cvImg: "path/to/cvImg.jpg",
-//     position: "Receptionist",
-//     salaryType: "Hourly",
-//     salaryPerHour: 20,
-//     salaryPerMonth: 0,
-//     role: {
-//       id: 5,
-//       name: "Receptionist",
-//       description: "Tiếp tân",
-//     },
-//   },
-//   {
-//     id: 4,
-//     name: "Alexander Kiên Phạm",
-//     email: "alexander.kien.pham@example.com",
-//     phoneNumber: "321321321",
-//     gender: "Male",
-//     dateOfBirth: new Date("1993-03-03"),
-//     roleId: 4,
-//     cccd: "321321321",
-//     cvImg: "path/to/cvImg.jpg",
-//     position: "Bartender",
-//     salaryType: "Hourly",
-//     salaryPerHour: 18,
-//     salaryPerMonth: 0,
-//     role: {
-//       id: 6,
-//       name: "Bartender",
-//       description: "Pha chế",
-//     },
-//   },
-//   {
-//     id: 5,
-//     name: "Cong Phuong Nguyen",
-//     email: "cong.phuong.nguyen@example.com",
-//     phoneNumber: "456456456",
-//     gender: "Male",
-//     dateOfBirth: new Date("1995-05-05"),
-//     roleId: 1,
-//     cccd: "456456456",
-//     cvImg: "path/to/cvImg.jpg",
-//     position: "Chef",
-//     salaryType: "Hourly",
-//     salaryPerHour: 15,
-//     salaryPerMonth: 0,
-//     role: {
-//       id: 3,
-//       name: "Chef",
-//       description: "Đầu bếp",
-//     },
-//   },
-//   {
-//     id: 6,
-//     name: "Antony Nguyễn",
-//     email: "antony.nguyen@example.com",
-//     phoneNumber: "789789789",
-//     gender: "Male",
-//     dateOfBirth: new Date("1996-06-06"),
-//     roleId: 2,
-//     cccd: "789789789",
-//     cvImg: "path/to/cvImg.jpg",
-//     position: "Waiter",
-//     salaryType: "Hourly",
-//     salaryPerHour: 12,
-//     salaryPerMonth: 0,
-//     role: {
-//       id: 4,
-//       name: "Waiter",
-//       description: "Phục vụ",
-//     },
-//   },
-// ];
-
-const sampleShifts: ShiftEntity[] = [
-  {
-    id: 101,
-    name: "Day",
-    startTime: "08:00",
-    endTime: "16:00",
-    status: "active",
-  },
-  {
-    id: 102,
-    name: "Night",
-    startTime: "16:00",
-    endTime: "00:00",
-    status: "active",
-  },
-  {
-    id: 103,
-    name: "Morning",
-    startTime: "08:00",
-    endTime: "12:00",
-    status: "active",
-  },
-  {
-    id: 104,
-    name: "Afternoon",
-    startTime: "12:00",
-    endTime: "16:00",
-    status: "active",
-  },
-];
-
 export default function StaffSchedulePage() {
-  const [workSchedules, setWorkSchedules] =
-    useState<WorkScheduleEntity[]>([]);
+  const [workSchedules, setWorkSchedules] = useState<WorkScheduleEntity[]>([]);
 
   const [shifts, setShifts] = useState<ShiftEntity[]>([]);
 
@@ -334,7 +75,9 @@ export default function StaffSchedulePage() {
   const [selectedSchedule, setSelectedSchedule] =
     useState<WorkScheduleEntity>(null); // State lưu thông tin ca làm đang được chọn
 
-  const [currWorkSchedules, setCurrWorkSchedules] = useState<WorkScheduleEntity[]>([]);
+  const [currWorkSchedules, setCurrWorkSchedules] = useState<
+    WorkScheduleEntity[]
+  >([]);
 
   const [searchInput, setSearchInput] = useState<string>("");
 
@@ -349,8 +92,15 @@ export default function StaffSchedulePage() {
     /* Gọi API lấy nhân viên và shifts */
     //Tạm thời chỉ giới hạn ở 100 nv
     getAllUsers("page=0&page_size=100").then((res) => {
-      setDisplayUsers(res.second);
-      setAllUsers(res.second)
+      const user = res.second.filter(
+        (user: UserEntity) =>
+          user.role.name === "CHEF" ||
+          user.role.name === "WAITER" ||
+          user.role.name === "CASHER"
+      );
+      console.log(user);
+      setDisplayUsers(user);
+      setAllUsers(user);
     });
     getAll().then((res) => {
       const formattedShifts: ShiftEntity[] = res.map((shift) => ({
@@ -403,7 +153,6 @@ export default function StaffSchedulePage() {
 
       setWorkSchedules(formattedSchedules);
     });
-
   }, [displayDate, shifts]);
 
   const handleDateChange = (date: Date) => {
@@ -428,7 +177,9 @@ export default function StaffSchedulePage() {
       if (searchInput) {
         // Nếu có input tìm kiếm, lọc dữ liệu
         const regex = new RegExp(searchInput, "i");
-        const newDisplayUsers = allUsers.filter((user) => regex.test(user.name));
+        const newDisplayUsers = allUsers.filter((user) =>
+          regex.test(user.name)
+        );
         setDisplayUsers(newDisplayUsers);
       } else {
         // Nếu không có input tìm kiếm, khôi phục lại dữ liệu gốc
@@ -438,17 +189,16 @@ export default function StaffSchedulePage() {
   };
 
   const openAddShifts = (user: UserEntity, date: string) => {
-    if (new Date(date) < new Date()){
+    if (new Date(date) < new Date()) {
       return;
     }
-    setCurrWorkSchedules(searchByUserIdAndDate(user.id, date))
+    setCurrWorkSchedules(searchByUserIdAndDate(user.id, date));
     setUser(user);
     setChosenDate(date);
     setIsAddShifts(true);
-
   };
 
-  console.log(currWorkSchedules)
+  console.log(currWorkSchedules);
 
   const handleChosenShifts: ChangeEventHandler<HTMLInputElement> = (e) => {
     const newChosenShifts = new Set(chosenShiftIds);
@@ -463,8 +213,7 @@ export default function StaffSchedulePage() {
   const closeAddShifts = () => {
     setIsAddShifts(false);
     setChosenShiftIds(new Set());
-    setCurrWorkSchedules([])
-
+    setCurrWorkSchedules([]);
   };
 
   const saveAddShifts = () => {
@@ -489,7 +238,7 @@ export default function StaffSchedulePage() {
         .then(() => {
           // Sau khi tất cả API hoàn thành
           //Có thể dùng getAll
-          setShifts(shifts => [...shifts]) //gọi lại useEffect của getAllSchedule API
+          setShifts((shifts) => [...shifts]); //gọi lại useEffect của getAllSchedule API
           closeAddShifts();
         })
         .catch((error) => {
@@ -507,31 +256,29 @@ export default function StaffSchedulePage() {
       ? `${startTime}:00`
       : startTime;
 
-    const formattedEndTime = endTime.includes(":")
-      ? `${endTime}:00`
-      : endTime;
+    const formattedEndTime = endTime.includes(":") ? `${endTime}:00` : endTime;
     const payload = {
       name: shiftName,
       startTime: formattedStartTime,
       endTime: formattedEndTime,
     };
     try {
-      createShift(payload).then((res) => {
-        getAll().then((res) => {
-          const formattedShifts: ShiftEntity[] = res.map((shift) => ({
-            ...shift,
-            startTime: shift.startTime.slice(0, 5),
-            endTime: shift.endTime.slice(0, 5),
-          }));
-          setShifts(formattedShifts);
-        });
-        closeCreateShift();
-      })
+      createShift(payload)
+        .then((res) => {
+          getAll().then((res) => {
+            const formattedShifts: ShiftEntity[] = res.map((shift) => ({
+              ...shift,
+              startTime: shift.startTime.slice(0, 5),
+              endTime: shift.endTime.slice(0, 5),
+            }));
+            setShifts(formattedShifts);
+          });
+          closeCreateShift();
+        })
         .catch((error) => {
-          alert("Trùng với các ca làm việc khác");;
+          alert("Trùng với các ca làm việc khác");
         });
-    }
-    catch (error) {
+    } catch (error) {
       alert("Trùng với các ca làm việc khác");
     }
   };
@@ -558,9 +305,7 @@ export default function StaffSchedulePage() {
       ? `${startTime}:00`
       : startTime;
 
-    const formattedEndTime = endTime.includes(":")
-      ? `${endTime}:00`
-      : endTime;
+    const formattedEndTime = endTime.includes(":") ? `${endTime}:00` : endTime;
     const payload = {
       id: shiftId,
       name: shiftName,
@@ -568,24 +313,25 @@ export default function StaffSchedulePage() {
       endTime: formattedEndTime,
     };
     try {
-      updateShift(shiftId, payload).then((res) => {
-        console.log("updated");
-        //Gọi lại getAll API
-        getAll().then((res) => {
-          const formattedShifts: ShiftEntity[] = res.map((shift) => ({
-            ...shift,
-            startTime: shift.startTime.slice(0, 5),
-            endTime: shift.endTime.slice(0, 5),
-          }));
-          setShifts(formattedShifts);
-          closeEditShift();
-        });
-      })
+      updateShift(shiftId, payload)
+        .then((res) => {
+          console.log("updated");
+          //Gọi lại getAll API
+          getAll().then((res) => {
+            const formattedShifts: ShiftEntity[] = res.map((shift) => ({
+              ...shift,
+              startTime: shift.startTime.slice(0, 5),
+              endTime: shift.endTime.slice(0, 5),
+            }));
+            setShifts(formattedShifts);
+            closeEditShift();
+          });
+        })
         .catch((error) => {
-          alert("Trùng với các ca làm việc khác");;
+          alert("Trùng với các ca làm việc khác");
         });
     } catch (error) {
-      alert("Trùng với các ca làm việc khác");;
+      alert("Trùng với các ca làm việc khác");
     }
   };
 
@@ -602,7 +348,7 @@ export default function StaffSchedulePage() {
     delSchedulesByShiftId(shiftId);
     deleteShift(shiftId)
       .then(() => {
-        console.log("deleted")
+        console.log("deleted");
         getAll().then((res) => {
           const formattedShifts: ShiftEntity[] = res.map((shift) => ({
             ...shift,
@@ -631,7 +377,7 @@ export default function StaffSchedulePage() {
     /* Gọi API xóa work schedule*/
     deleteWorkSchedule(selectedSchedule.id)
       .then(() => {
-        console.log("deleted")
+        console.log("deleted");
         const newWorkSchedules = workSchedules.filter(
           (schedule) => schedule.id !== selectedSchedule.id
         );
@@ -642,17 +388,20 @@ export default function StaffSchedulePage() {
         alert("Có lỗi khi xóa schedule.");
         console.error(error);
       });
-
   };
 
   //Xóa các schedule trước khi xóa shift
   const delSchedulesByShiftId = (shiftIdToDelete) => {
-    const schedulesToDelete = workSchedules.filter(schedule => schedule.shiftId === shiftIdToDelete && new Date(schedule.date) >= new Date());
-    console.log(schedulesToDelete)
-    const idsToDelete = schedulesToDelete.map(schedule => schedule.id);
-    console.log(idsToDelete)
+    const schedulesToDelete = workSchedules.filter(
+      (schedule) =>
+        schedule.shiftId === shiftIdToDelete &&
+        new Date(schedule.date) >= new Date()
+    );
+    console.log(schedulesToDelete);
+    const idsToDelete = schedulesToDelete.map((schedule) => schedule.id);
+    console.log(idsToDelete);
 
-    Promise.all(idsToDelete.map(id => deleteWorkSchedule(id)))
+    Promise.all(idsToDelete.map((id) => deleteWorkSchedule(id)))
       .then(() => {
         console.log("Deleted schedules:", idsToDelete);
       })
@@ -661,7 +410,6 @@ export default function StaffSchedulePage() {
         console.error(error);
       });
   };
-
 
   const displayWeek = useMemo(() => {
     const startDate = formatDateToReactComponent(displayDate);
@@ -787,8 +535,9 @@ export default function StaffSchedulePage() {
               <div className="relative">
                 <button
                   onClick={() => setIsOpenDatePicker(!isOpenDatePicker)}
-                  className={`w-[200px] h-8 rounded-2xl text-sm ${isOpenDatePicker ? "bg-[#fefefe] shadow-md" : ""
-                    }`}
+                  className={`w-[200px] h-8 rounded-2xl text-sm ${
+                    isOpenDatePicker ? "bg-[#fefefe] shadow-md" : ""
+                  }`}
                 >
                   {displayWeek}
                 </button>
@@ -849,7 +598,7 @@ export default function StaffSchedulePage() {
               <div className="employee-cell">
                 <div>{employee.name}</div>
                 <div className="text-[#8c8c8c] text-sm font-light">
-                  {employee.role.name}
+                  {employee.role.description}
                 </div>
               </div>
               {daysOfWeek.map((day) => (
@@ -902,22 +651,28 @@ export default function StaffSchedulePage() {
             </div>
             <div className="font-bold text-xl mb-4">Chọn ca làm việc</div>
             <div className="flex flex-wrap mb-4 gap-y-3">
-              {shifts && shifts.filter(shift =>
-                !currWorkSchedules.some(work => work.shiftId === shift.id)
-              ).map((shift) => (
-                <label key={shift.id} className="basis-1/2 space-x-2">
-                  <input
-                    type="checkbox"
-                    className="form-checkbox"
-                    value={shift.id}
-                    onChange={handleChosenShifts}
-                  />
-                  <span className="font-semibold">{shift.name}</span>
-                  <span className="text-[#8c8c8c] text-sm">
-                    {shift.startTime} - {shift.endTime}
-                  </span>
-                </label>
-              ))}
+              {shifts &&
+                shifts
+                  .filter(
+                    (shift) =>
+                      !currWorkSchedules.some(
+                        (work) => work.shiftId === shift.id
+                      )
+                  )
+                  .map((shift) => (
+                    <label key={shift.id} className="basis-1/2 space-x-2">
+                      <input
+                        type="checkbox"
+                        className="form-checkbox"
+                        value={shift.id}
+                        onChange={handleChosenShifts}
+                      />
+                      <span className="font-semibold">{shift.name}</span>
+                      <span className="text-[#8c8c8c] text-sm">
+                        {shift.startTime} - {shift.endTime}
+                      </span>
+                    </label>
+                  ))}
             </div>
 
             <div className="flex justify-end gap-3 items-center mt-10">
@@ -992,62 +747,63 @@ export default function StaffSchedulePage() {
                 Thời gian
               </div>
             </div>
-            {shifts && shifts.map((shift) => (
-              <div
-                key={shift.id}
-                className="flex items-center h-10 mb-2 p-2 rounded-md border border-[#f5f5f5] hover:bg-[#fafafa]"
-              >
-                <div className="basis-[30%] font-bold">{shift.name}</div>
-                <div className="basis-[50%] text-center font-semibold">
-                  {shift.startTime} - {shift.endTime}
+            {shifts &&
+              shifts.map((shift) => (
+                <div
+                  key={shift.id}
+                  className="flex items-center h-10 mb-2 p-2 rounded-md border border-[#f5f5f5] hover:bg-[#fafafa]"
+                >
+                  <div className="basis-[30%] font-bold">{shift.name}</div>
+                  <div className="basis-[50%] text-center font-semibold">
+                    {shift.startTime} - {shift.endTime}
+                  </div>
+                  <button
+                    onClick={() => openEditShift(shift)}
+                    title="Sửa"
+                    className="basis-[10%] flex justify-center items-center"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className="icon icon-tabler icons-tabler-outline icon-tabler-edit text-base"
+                    >
+                      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                      <path d="M7 7h-1a2 2 0 0 0 -2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-1" />
+                      <path d="M20.385 6.585a2.1 2.1 0 0 0 -2.97 -2.97l-8.415 8.385v3h3l8.385 -8.415z" />
+                      <path d="M16 5l3 3" />
+                    </svg>
+                  </button>
+                  <button
+                    onClick={() => delShift(shift.id)}
+                    title="Xóa"
+                    className="basis-[10%] flex justify-center items-center"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className="icon icon-tabler icons-tabler-outline icon-tabler-eraser text-base"
+                    >
+                      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                      <path d="M19 20h-10.5l-4.21 -4.3a1 1 0 0 1 0 -1.41l10 -10a1 1 0 0 1 1.41 0l5 5a1 1 0 0 1 0 1.41l-9.2 9.3" />
+                      <path d="M18 13.3l-6.3 -6.3" />
+                    </svg>
+                  </button>
                 </div>
-                <button
-                  onClick={() => openEditShift(shift)}
-                  title="Sửa"
-                  className="basis-[10%] flex justify-center items-center"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    className="icon icon-tabler icons-tabler-outline icon-tabler-edit text-base"
-                  >
-                    <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-                    <path d="M7 7h-1a2 2 0 0 0 -2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-1" />
-                    <path d="M20.385 6.585a2.1 2.1 0 0 0 -2.97 -2.97l-8.415 8.385v3h3l8.385 -8.415z" />
-                    <path d="M16 5l3 3" />
-                  </svg>
-                </button>
-                <button
-                  onClick={() => delShift(shift.id)}
-                  title="Xóa"
-                  className="basis-[10%] flex justify-center items-center"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    className="icon icon-tabler icons-tabler-outline icon-tabler-eraser text-base"
-                  >
-                    <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-                    <path d="M19 20h-10.5l-4.21 -4.3a1 1 0 0 1 0 -1.41l10 -10a1 1 0 0 1 1.41 0l5 5a1 1 0 0 1 0 1.41l-9.2 9.3" />
-                    <path d="M18 13.3l-6.3 -6.3" />
-                  </svg>
-                </button>
-              </div>
-            ))}
+              ))}
             <div className="flex justify-end gap-3 items-center mt-10">
               <button
                 className="h-10 w-20 font-bold rounded"

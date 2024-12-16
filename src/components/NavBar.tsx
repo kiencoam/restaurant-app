@@ -681,7 +681,9 @@ const NavBar = () => {
           />
           <div className="ml-3 flex flex-col justify-center items-start">
             <div className="text-white">{loginUser?.name}</div>
-            <div className="text-[#8c8c8c] text-sm">{loginUser?.role.name}</div>
+            <div className="text-[#8c8c8c] text-sm">
+              {loginUser?.role.description}
+            </div>
           </div>
         </div>
       </div>

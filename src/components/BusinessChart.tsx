@@ -207,7 +207,7 @@ export function BusinessChart() {
             if (typeof value === "number" && value >= 1000000) {
               return value / 1000000 + " tr"; // Convert values like 1000000 to 1tr
             }
-            return value;
+            return value.toLocaleString("en-US");
           },
         },
       },

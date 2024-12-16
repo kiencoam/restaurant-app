@@ -1,10 +1,5 @@
-/*
-  lỗi: Chuyển absent sang các trạng thái khác phải nhập thời gian, không thì không chuyển
-  khi  đang có status mà xóa hết thời gian thì không chuyển thành not started được
-*/
-
 "use client";
-import { useState, useCallback, useMemo, use, useEffect } from "react";
+import { useState, useMemo, useEffect } from "react";
 import DatePicker from "react-datepicker";
 
 import {
@@ -17,7 +12,11 @@ import {
 import "./Attendance.css";
 import "react-datepicker/dist/react-datepicker.css";
 
-import { getAllWorkAttendances, updateWorkAttendance, WorkAttendanceEntity } from "@/app/api-client/WorkAttendanceService";
+import {
+  getAllWorkAttendances,
+  updateWorkAttendance,
+  WorkAttendanceEntity,
+} from "@/app/api-client/WorkAttendanceService";
 import { UpdateWorkAttendanceRequest } from "@/app/api-client/WorkAttendanceService";
 import { getAll, ShiftEntity } from "@/app/api-client/ShiftService";
 
@@ -31,254 +30,10 @@ const daysOfWeek = [
   { id: 6, name: "SAT" },
 ];
 
-const sampleShifts: ShiftEntity[] = [
-  {
-    id: 101,
-    name: "Day",
-    startTime: "08:00",
-    endTime: "16:00",
-    status: "active",
-  },
-  {
-    id: 102,
-    name: "Night",
-    startTime: "16:00",
-    endTime: "00:00",
-    status: "active",
-  },
-  {
-    id: 103,
-    name: "Morning",
-    startTime: "08:00",
-    endTime: "12:00",
-    status: "active",
-  },
-  {
-    id: 104,
-    name: "Afternoon",
-    startTime: "12:00",
-    endTime: "16:00",
-    status: "active",
-  },
-];
-
-const sampleWorkAttendances: WorkAttendanceEntity[] = [
-  {
-    id: 1,
-    workScheduleId: 1,
-    checkInTime: "",
-    checkOutTime: "",
-    status: "NOT_STARTED_YET",
-    note: "",
-    workSchedule: {
-      id: 1,
-      userId: 1,
-      shiftId: 101,
-      date: "2024-12-03",
-      user: {
-        id: 1,
-        name: "Johny Đặng",
-        email: "johny.dang@example.com",
-        phoneNumber: "123456789",
-        gender: "Male",
-        dateOfBirth: "1990-01-01",
-        roleId: 1,
-        cccd: "123456789",
-        cvImg: "path/to/cvImg.jpg",
-        position: "Chef",
-        salaryType: "Hourly",
-        salaryPerHour: 15,
-        salaryPerMonth: 0,
-        role: {
-          id: 3,
-          name: "Chef",
-          description: "Đầu bếp",
-        },
-        password: ""
-      },
-      shift: {
-        id: 101,
-        name: "Day",
-        startTime: "08:00",
-        endTime: "16:00",
-        status: "active",
-      },
-    },
-  },
-  {
-    id: 2,
-    workScheduleId: 3,
-    checkInTime: "08:00",
-    checkOutTime: "16:00",
-    status: "ON_TIME",
-    note: "",
-    workSchedule: {
-      id: 3,
-      userId: 1,
-      shiftId: 101,
-      date: "2024-12-02",
-      user: {
-        id: 1,
-        name: "Johny Đặng",
-        email: "johny.dang@example.com",
-        phoneNumber: "123456789",
-        gender: "Male",
-        dateOfBirth: "1990-01-01",
-        roleId: 1,
-        cccd: "123456789",
-        cvImg: "path/to/cvImg.jpg",
-        position: "Chef",
-        salaryType: "Hourly",
-        salaryPerHour: 15,
-        salaryPerMonth: 0,
-        role: {
-          id: 3,
-          name: "Chef",
-          description: "Đầu bếp",
-        },
-        password: ""
-      },
-      shift: {
-        id: 101,
-        name: "Day",
-        startTime: "08:00",
-        endTime: "16:00",
-        status: "active",
-      },
-    },
-  },
-  {
-    id: 3,
-    workScheduleId: 2,
-    checkInTime: "",
-    checkOutTime: "",
-    status: "ABSENT",
-    note: "",
-    workSchedule: {
-      id: 2,
-      userId: 2,
-      shiftId: 102,
-      date: "2024-12-05",
-      user: {
-        id: 2,
-        name: "Cong Phuong Nguyen",
-        email: "cong.phuong@example.com",
-        phoneNumber: "987654321",
-        gender: "Male",
-        dateOfBirth: "1992-05-15",
-        roleId: 2,
-        cccd: "987654321",
-        cvImg: "path/to/cvImg.jpg",
-        position: "Waiter",
-        salaryType: "Hourly",
-        salaryPerHour: 12,
-        salaryPerMonth: 0,
-        role: {
-          id: 2,
-          name: "Waiter",
-          description: "Phục vụ",
-        },
-        password: ""
-      },
-      shift: {
-        id: 102,
-        name: "Night",
-        startTime: "16:00",
-        endTime: "00:00",
-        status: "active",
-      },
-    },
-  },
-  {
-    id: 4,
-    workScheduleId: 4,
-    checkInTime: "12:10",
-    checkOutTime: "16:00",
-    status: "LATE_OR_LEAVE_EARLY",
-    note: "",
-    workSchedule: {
-      id: 4,
-      userId: 3,
-      shiftId: 104,
-      date: "2024-12-04",
-      user: {
-        id: 3,
-        name: "Alexander Kiên Phạm",
-        email: "alexander.kien@example.com",
-        phoneNumber: "456123789",
-        gender: "Male",
-        dateOfBirth: "1988-07-22",
-        roleId: 4,
-        cccd: "456123789",
-        cvImg: "path/to/cvImg.jpg",
-        position: "Bartender",
-        salaryType: "Hourly",
-        salaryPerHour: 14,
-        salaryPerMonth: 0,
-        role: {
-          id: 4,
-          name: "Bartender",
-          description: "Pha chế",
-        },
-        password: ""
-      },
-      shift: {
-        id: 104,
-        name: "Afternoon",
-        startTime: "12:00",
-        endTime: "16:00",
-        status: "active",
-      },
-    },
-  },
-  {
-    id: 5,
-    workScheduleId: 5,
-    checkInTime: "12:10",
-    checkOutTime: "",
-    status: "NOT_YET_CLOCKED_OUT",
-    note: "",
-    workSchedule: {
-      id: 5,
-      userId: 4,
-      shiftId: 104,
-      date: "2024-12-05",
-      user: {
-        id: 4,
-        name: "Nguyen Van A",
-        email: "nguyen.van.a@example.com",
-        phoneNumber: "321654987",
-        gender: "Male",
-        dateOfBirth: "1995-03-10",
-        roleId: 5,
-        cccd: "321654987",
-        cvImg: "path/to/cvImg.jpg",
-        position: "Cleaner",
-        salaryType: "Hourly",
-        salaryPerHour: 10,
-        salaryPerMonth: 0,
-        role: {
-          id: 5,
-          name: "Cleaner",
-          description: "Dọn dẹp",
-        },
-        password: ""
-      },
-      shift: {
-        id: 104,
-        name: "Afternoon",
-        startTime: "12:00",
-        endTime: "16:00",
-        status: "active",
-      },
-    },
-  },
-];
-
 const mapStatus = (status: string) => {
   switch (status) {
     case "PRESENT":
-      return "Có làm"
+      return "Có làm";
     case "ABSENT":
       return "Nghỉ làm";
     case "NOT_STARTED_YET":
@@ -339,14 +94,13 @@ export default function AttendancePage() {
 
   const [shifts, setShifts] = useState<ShiftEntity[]>([]);
 
-  const [displayShifts, setDisplayShifts] =
-    useState<ShiftEntity[]>([]);
+  const [displayShifts, setDisplayShifts] = useState<ShiftEntity[]>([]);
 
   const [searchInput, setSearchInput] = useState<string>("");
 
   useEffect(() => {
     getAll().then((res) => {
-      console.log(res)
+      console.log(res);
       const formattedShifts: ShiftEntity[] = res.map((shift) => ({
         ...shift,
         startTime: shift.startTime.slice(0, 5),
@@ -369,7 +123,7 @@ export default function AttendancePage() {
     //   setWorkAttendances(response.data);
     // }
     getAllWorkAttendances(query).then((res) => {
-      console.log(res)
+      console.log(res);
       setWorkAttendances(res);
     });
   }, [displayDate, shifts]);
@@ -407,9 +161,7 @@ export default function AttendancePage() {
 
   const openModal = (attendance: WorkAttendanceEntity) => {
     setSelectedAttendance(attendance);
-    setGotoWork(
-      !(attendance.status === "ABSENT")
-    );
+    setGotoWork(!(attendance.status === "ABSENT"));
     setCheckInTime(attendance.checkInTime);
     setCheckOutTime(attendance.checkOutTime);
     setNote(attendance.note);
@@ -427,12 +179,20 @@ export default function AttendancePage() {
 
   const saveModal = (e) => {
     e.preventDefault();
-    setIsOpenModal(false)
+    setIsOpenModal(false);
     setNote("");
     /* gọi API **/
     const payload: UpdateWorkAttendanceRequest = {
-      checkInTime: gotoWork ? (checkInTime ? checkInTime : undefined) : undefined,
-      checkOutTime: gotoWork ? (checkOutTime ? checkOutTime : undefined) : undefined,
+      checkInTime: gotoWork
+        ? checkInTime
+          ? checkInTime
+          : undefined
+        : undefined,
+      checkOutTime: gotoWork
+        ? checkOutTime
+          ? checkOutTime
+          : undefined
+        : undefined,
       status: gotoWork ? "NOT_STARTED_YET" : "ABSENT",
       //status: gotoWork ? selectedAttendance.status : "ABSENT",
       note: note ? note : undefined,
@@ -441,7 +201,7 @@ export default function AttendancePage() {
     // ìf (response.ok) {
     try {
       updateWorkAttendance(selectedAttendance.id, payload).then((res) => {
-        console.log("update: ", res)
+        console.log("update: ", res);
         // console.log("updated");
         // const newAttendance = {
         //   ...selectedAttendance,
@@ -460,7 +220,6 @@ export default function AttendancePage() {
     } catch (error) {
       console.error(error);
     }
-
   };
 
   const displayWeek = useMemo(() => {
@@ -486,13 +245,16 @@ export default function AttendancePage() {
   };
 
   const searchByShiftIdAndDate = (shiftId: number, date: string) => {
-    return workAttendances && workAttendances
-      .filter(
-        (attendance) =>
-          attendance.workSchedule.shiftId === shiftId &&
-          attendance.workSchedule.date === date
-      )
-      .sort((a, b) => a.workSchedule.userId - b.workSchedule.userId);
+    return (
+      workAttendances &&
+      workAttendances
+        .filter(
+          (attendance) =>
+            attendance.workSchedule.shiftId === shiftId &&
+            attendance.workSchedule.date === date
+        )
+        .sort((a, b) => a.workSchedule.userId - b.workSchedule.userId)
+    );
   };
 
   return (
@@ -552,8 +314,9 @@ export default function AttendancePage() {
               <div className="relative">
                 <button
                   onClick={() => setIsOpenDatePicker(!isOpenDatePicker)}
-                  className={`w-[200px] h-8 rounded-2xl text-sm ${isOpenDatePicker ? "bg-[#fefefe] shadow-md" : ""
-                    }`}
+                  className={`w-[200px] h-8 rounded-2xl text-sm ${
+                    isOpenDatePicker ? "bg-[#fefefe] shadow-md" : ""
+                  }`}
                 >
                   {displayWeek}
                 </button>
@@ -640,7 +403,11 @@ export default function AttendancePage() {
                       </div>
                       {(attendance.checkInTime || attendance.checkOutTime) && (
                         <div className="mb-0.5">
-                          {attendance.checkInTime && attendance.checkInTime.slice(0, 5)} - {attendance.checkOutTime && attendance.checkOutTime.slice(0, 5)}
+                          {attendance.checkInTime &&
+                            attendance.checkInTime.slice(0, 5)}{" "}
+                          -{" "}
+                          {attendance.checkOutTime &&
+                            attendance.checkOutTime.slice(0, 5)}
                         </div>
                       )}
                       <div>
@@ -703,27 +470,27 @@ export default function AttendancePage() {
                         )}
                         {(attendance.status === "NOT_YET_CLOCKED_OUT" ||
                           attendance.status === "NOT_YET_CLOCKED_IN") && (
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              width="24"
-                              height="24"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                              stroke="currentColor"
-                              strokeWidth="2"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              className="icon icon-tabler icons-tabler-outline icon-tabler-progress-check text-sm text-[#37AFE1]"
-                            >
-                              <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-                              <path d="M10 20.777a8.942 8.942 0 0 1 -2.48 -.969" />
-                              <path d="M14 3.223a9.003 9.003 0 0 1 0 17.554" />
-                              <path d="M4.579 17.093a8.961 8.961 0 0 1 -1.227 -2.592" />
-                              <path d="M3.124 10.5c.16 -.95 .468 -1.85 .9 -2.675l.169 -.305" />
-                              <path d="M6.907 4.579a8.954 8.954 0 0 1 3.093 -1.356" />
-                              <path d="M9 12l2 2l4 -4" />
-                            </svg>
-                          )}
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="24"
+                            height="24"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            className="icon icon-tabler icons-tabler-outline icon-tabler-progress-check text-sm text-[#37AFE1]"
+                          >
+                            <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                            <path d="M10 20.777a8.942 8.942 0 0 1 -2.48 -.969" />
+                            <path d="M14 3.223a9.003 9.003 0 0 1 0 17.554" />
+                            <path d="M4.579 17.093a8.961 8.961 0 0 1 -1.227 -2.592" />
+                            <path d="M3.124 10.5c.16 -.95 .468 -1.85 .9 -2.675l.169 -.305" />
+                            <path d="M6.907 4.579a8.954 8.954 0 0 1 3.093 -1.356" />
+                            <path d="M9 12l2 2l4 -4" />
+                          </svg>
+                        )}
                       </div>
                     </button>
                   ))}
