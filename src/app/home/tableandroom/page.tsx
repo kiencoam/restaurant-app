@@ -138,16 +138,16 @@ const TableAndRoomPage = () => {
     setFilter({
       ...filter,
       page_size: value,
-      page: 0
-    })
-  }
+      page: 0,
+    });
+  };
 
   const handlePageNumberChange = (value: number) => {
     setFilter({
       ...filter,
-      page: value
-    })
-  }
+      page: value,
+    });
+  };
 
   useEffect(() => {
     /* Gọi API */
@@ -164,7 +164,7 @@ const TableAndRoomPage = () => {
 
   const handleSearchKeydown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
-      setFilter({ ...filter, name: searchText });
+      setFilter({ ...filter, name: searchText, page: 0 });
     }
   };
 
@@ -207,7 +207,10 @@ const TableAndRoomPage = () => {
               type="text"
               placeholder="Theo tên phòng/bàn"
               value={searchText}
-              onChange={(e) => setSearchText(e.target.value)}
+              onChange={(e) => {
+                setCurrentPage(1);
+                setSearchText(e.target.value);
+              }}
               onKeyDown={handleSearchKeydown}
             />
           </div>
@@ -245,10 +248,9 @@ const TableAndRoomPage = () => {
                       name="status"
                       checked={filter.isActive === undefined}
                       onChange={() => {
-                        setFilter({ ...filter, isActive: undefined });
+                        setFilter({ ...filter, isActive: undefined, page: 0 });
                         setCurrentPage(1);
-                      }
-                      }
+                      }}
                     />
                     <span>Tất cả</span>
                   </label>
@@ -258,7 +260,10 @@ const TableAndRoomPage = () => {
                       className="form-radio"
                       name="status"
                       checked={filter.isActive === true}
-                      onChange={() => setFilter({ ...filter, isActive: true, page: 0 })}
+                      onChange={() => {
+                        setCurrentPage(1);
+                        setFilter({ ...filter, isActive: true, page: 0 });
+                      }}
                     />
                     <span>Đang hoạt động</span>
                   </label>
@@ -268,7 +273,10 @@ const TableAndRoomPage = () => {
                       className="form-radio"
                       name="status"
                       checked={filter.isActive === false}
-                      onChange={() => setFilter({ ...filter, isActive: false, page: 0 })}
+                      onChange={() => {
+                        setCurrentPage(1);
+                        setFilter({ ...filter, isActive: false, page: 0 });
+                      }}
                     />
                     <span>Ngừng hoạt động</span>
                   </label>
@@ -304,7 +312,11 @@ const TableAndRoomPage = () => {
         </div>
       </div>
       <div className="px-6">
-        <TableList tables={tables} setTables={setTables} setFilter={setFilter} />
+        <TableList
+          tables={tables}
+          setTables={setTables}
+          setFilter={setFilter}
+        />
         <div className="flex items-center space-x-8 mt-4">
           <div className="flex">
             <div>Số bản ghi: </div>
@@ -314,7 +326,6 @@ const TableAndRoomPage = () => {
               onChange={(e) => {
                 changeRowsPerPage(Number(e.target.value));
                 setCurrentPage(1);
-
               }}
             >
               {/* <option defaultValue={rowsPerPage}>{rowsPerPage}</option> */}
@@ -329,7 +340,7 @@ const TableAndRoomPage = () => {
             <button
               onClick={() => {
                 changePage(currentPage - 1); // Cập nhật số trang
-                setFilter(prevParams => ({
+                setFilter((prevParams) => ({
                   ...prevParams, // Giữ lại các tham số cũ
                   page: currentPage - 2, // Cập nhật page theo currentPage - 1
                 }));
@@ -346,15 +357,16 @@ const TableAndRoomPage = () => {
                 <path d="m313-440 224 224-57 56-320-320 320-320 57 56-224 224h487v80H313Z" />
               </svg>
             </button>
-            {tables.length > 0 &&
+            {tables.length > 0 && (
               <span>
-                Page {Math.min(currentPage, pageInfo.totalPage)} of {pageInfo.totalPage}
+                Page {Math.min(currentPage, pageInfo.totalPage)} of{" "}
+                {pageInfo.totalPage}
               </span>
-            }
+            )}
             <button
               onClick={() => {
                 changePage(currentPage + 1); // Cập nhật số trang
-                setFilter(prevParams => ({
+                setFilter((prevParams) => ({
                   ...prevParams, // Giữ lại các tham số cũ
                   page: currentPage, // Cập nhật page theo currentPage + 1
                 }));
@@ -371,7 +383,6 @@ const TableAndRoomPage = () => {
                 <path d="M647-440H160v-80h487L423-744l57-56 320 320-320 320-57-56 224-224Z" />
               </svg>
             </button>
-
           </div>
         </div>
       </div>

@@ -15,8 +15,8 @@ export default function ProductFilterForm({
             type="radio"
             className="form-radio"
             value=""
-            name="productType"
-            onChange={(e) => handleProductFilterChange(e, "productType")}
+            name="product_type"
+            onChange={(e) => handleProductFilterChange(e, "product_type")}
           />
           <span>Tất cả</span>
         </label>
@@ -25,8 +25,8 @@ export default function ProductFilterForm({
             type="radio"
             className="form-radio"
             value="INGREDIENT"
-            name="productType"
-            onChange={(e) => handleProductFilterChange(e, "productType")}
+            name="product_type"
+            onChange={(e) => handleProductFilterChange(e, "product_type")}
           />
           <span>Nguyên liệu thô</span>
         </label>
@@ -35,8 +35,8 @@ export default function ProductFilterForm({
             type="radio"
             className="form-radio"
             value="READY_TO_EAT"
-            name="productType"
-            onChange={(e) => handleProductFilterChange(e, "productType")}
+            name="product_type"
+            onChange={(e) => handleProductFilterChange(e, "product_type")}
           />
           <span>Chế biến sẵn</span>
         </label>
@@ -45,8 +45,8 @@ export default function ProductFilterForm({
             type="radio"
             className="form-radio"
             value="PROCESSED_FOOD"
-            name="productType"
-            onChange={(e) => handleProductFilterChange(e, "productType")}
+            name="product_type"
+            onChange={(e) => handleProductFilterChange(e, "product_type")}
           />
           <span>Món ăn chế biến</span>
         </label>
@@ -55,8 +55,8 @@ export default function ProductFilterForm({
             type="radio"
             className="form-radio"
             value="DRINK"
-            name="productType"
-            onChange={(e) => handleProductFilterChange(e, "productType")}
+            name="product_type"
+            onChange={(e) => handleProductFilterChange(e, "product_type")}
           />
           <span>Đồ uống</span>
         </label>
@@ -64,9 +64,9 @@ export default function ProductFilterForm({
           <input
             type="radio"
             className="form-radio"
-            value="UTELSILS"
-            name="productType"
-            onChange={(e) => handleProductFilterChange(e, "productType")}
+            value="UTENSILS"
+            name="product_type"
+            onChange={(e) => handleProductFilterChange(e, "product_type")}
           />
           <span>Dụng cụ</span>
         </label>
@@ -75,8 +75,8 @@ export default function ProductFilterForm({
             type="radio"
             className="form-radio"
             value="OTHER"
-            name="productType"
-            onChange={(e) => handleProductFilterChange(e, "productType")}
+            name="product_type"
+            onChange={(e) => handleProductFilterChange(e, "product_type")}
           />
           <span>Khác</span>
         </label>

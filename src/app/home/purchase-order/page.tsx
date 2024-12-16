@@ -2,8 +2,12 @@
 "use client";
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
-import PurchaseOrderTable from "./PurchaseOrderTable"
-import { deleteStockHistory, getAllStockHistories, StockHistoryEntity } from "@/app/api-client/StockHistoryService";
+import PurchaseOrderTable from "./PurchaseOrderTable";
+import {
+  deleteStockHistory,
+  getAllStockHistories,
+  StockHistoryEntity,
+} from "@/app/api-client/StockHistoryService";
 import dayjs from "dayjs";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
@@ -22,10 +26,10 @@ export type StockHistoryRequest = {
   to_date?: Date;
 };
 
-
 const PurchaseOrderPage = () => {
-
-  const [stockHistories, setStockHistories] = useState<StockHistoryEntity[]>([])
+  const [stockHistories, setStockHistories] = useState<StockHistoryEntity[]>(
+    []
+  );
 
   const [isFilterOpen, setIsFilterOpen] = useState(false);
 
@@ -54,15 +58,13 @@ const PurchaseOrderPage = () => {
   //       console.error("Error deleting stock histories:", error);
   //     });
   // }, []);
-  
 
   const [filter, setFilter] = useState<StockHistoryRequest>({
     page: 0,
     page_size: 5,
     from_date: new Date("2004/01/01"),
-    to_date: new Date("2025/12/31")
+    to_date: new Date("2025/12/31"),
   });
-
 
   const changePage = (newPage) => {
     if (newPage >= 1 && newPage <= pageInfo.totalPage) {
@@ -81,24 +83,26 @@ const PurchaseOrderPage = () => {
     setFilter({
       ...filter,
       page_size: value,
-      page: 0
-    })
-  }
+      page: 0,
+    });
+  };
 
   const handlePageNumberChange = (value: number) => {
     setFilter({
       ...filter,
-      page: value
-    })
-  }
-
+      page: value,
+    });
+  };
 
   useEffect(() => {
     /* Gọi API */
     const query = Object.entries(filter)
       .filter(([key, value]) => value !== undefined && value !== "")
       .map(([key, value]) => {
-        if ((key === 'from_date' || key === 'to_date') && value instanceof Date) {
+        if (
+          (key === "from_date" || key === "to_date") &&
+          value instanceof Date
+        ) {
           value = formatDate(value);
         }
         return `${key}=${value}`;
@@ -106,8 +110,11 @@ const PurchaseOrderPage = () => {
       .join("&");
     console.log(query);
     getAllStockHistories(query).then((data) => {
-      console.log("data:", data)
-      setPageInfo(data.first);
+      console.log("data:", data);
+      setPageInfo({
+        ...data.first,
+        totalPage: Math.ceil(9 / data.first.pageSize),
+      });
       /*nextPage: 1
       pageSize: 5
       previousPage: null
@@ -117,43 +124,55 @@ const PurchaseOrderPage = () => {
     });
   }, [filter]);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>, field: string) => {
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    field: string
+  ) => {
+    setCurrentPage(1);
     setFilter({
       ...filter,
       [field]: e.target.value,
+      page: 0,
     });
   };
 
-
-  const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>, status: string) => {
+  const handleCheckboxChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    status: string
+  ) => {
+    setCurrentPage(1);
     setFilter((prev) => {
       const updatedStatuses = e.target.checked
-        ? [...(prev.statuses || []), status]  // Khởi tạo mảng trống nếu statuses là undefined
-        : (prev.statuses || []).filter((item) => item !== status);  // Loại bỏ status nếu chưa được chọn
+        ? [...(prev.statuses || []), status] // Khởi tạo mảng trống nếu statuses là undefined
+        : (prev.statuses || []).filter((item) => item !== status); // Loại bỏ status nếu chưa được chọn
       return {
         ...prev,
         statuses: updatedStatuses,
+        page: 0,
       };
     });
   };
 
-
-  const handleDateChange = (date: Date | null, dateType: "from_date" | "to_date") => {
+  const handleDateChange = (
+    date: Date | null,
+    dateType: "from_date" | "to_date"
+  ) => {
+    setCurrentPage(1);
     if (date) {
       setFilter((prev) => ({
         ...prev,
         [dateType]: date,
+        page: 0,
       }));
     }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Pass the filter  to the parent component or API call here
+    setFilter((prev) => ({ ...prev }));
     toggleSearchOptions(); // Close the modal after submitting
-    console.log(filter)
+    console.log(filter);
   };
-
 
   // const handleStockHistoryFilterChange = (e: React.ChangeEvent<HTMLInputElement>, field: string) => {
   //   setGetStockHistoryRequest({
@@ -163,18 +182,12 @@ const PurchaseOrderPage = () => {
   //   console.log(getStockHistoryRequest);
   // };
 
-
   const formatDate = (date: Date) => {
     if (!date) return null; // Kiểm tra đầu vào
     return dayjs(date).format("YYYY-MM-DD HH:mm:ss");
   };
 
-
-
-  console.log("Stock Histories", stockHistories);
-
   const filterRef = useRef(null);
-
 
   // Calculate total pages
   const totalPages = Math.ceil(stockHistories.length / rowsPerPage);
@@ -330,7 +343,9 @@ const PurchaseOrderPage = () => {
                       <input
                         type="checkbox"
                         className="form-checkbox"
-                        checked={filter.statuses && filter.statuses.includes("PENDING")}
+                        checked={
+                          filter.statuses && filter.statuses.includes("PENDING")
+                        }
                         onChange={(e) => handleCheckboxChange(e, "PENDING")}
                       />
                       <span>Phiếu tạm</span>
@@ -339,7 +354,9 @@ const PurchaseOrderPage = () => {
                       <input
                         type="checkbox"
                         className="form-checkbox"
-                        checked={filter.statuses && filter.statuses.includes("DONE")}
+                        checked={
+                          filter.statuses && filter.statuses.includes("DONE")
+                        }
                         onChange={(e) => handleCheckboxChange(e, "DONE")}
                       />
                       <span>Đã nhập hàng</span>
@@ -363,7 +380,9 @@ const PurchaseOrderPage = () => {
                         dateFormat="dd/MM/yyyy"
                         className="border-b-2 focus:border-b-black w-full outline-none"
                         selected={filter.from_date}
-                        onChange={(date: Date | null) => handleDateChange(date, "from_date")}
+                        onChange={(date: Date | null) =>
+                          handleDateChange(date, "from_date")
+                        }
                         selectsStart
                         startDate={filter.from_date}
                         endDate={filter.to_date}
@@ -375,7 +394,9 @@ const PurchaseOrderPage = () => {
                         dateFormat="dd/MM/yyyy"
                         className="border-b-2 focus:border-b-black w-full outline-none"
                         selected={filter.to_date}
-                        onChange={(date: Date | null) => handleDateChange(date, "to_date")}
+                        onChange={(date: Date | null) =>
+                          handleDateChange(date, "to_date")
+                        }
                         selectsEnd
                         startDate={filter.from_date}
                         endDate={filter.to_date}
@@ -409,10 +430,7 @@ const PurchaseOrderPage = () => {
 
       {/* Content */}
       <div className="p-6">
-        <PurchaseOrderTable
-          data={currentRowsData}
-          setFilter={setFilter}
-        />
+        <PurchaseOrderTable data={currentRowsData} setFilter={setFilter} />
         <div className="flex items-center space-x-8 mt-4">
           <div className="flex">
             <div>Số bản ghi: </div>
@@ -422,7 +440,6 @@ const PurchaseOrderPage = () => {
               onChange={(e) => {
                 changeRowsPerPage(Number(e.target.value));
                 setCurrentPage(1);
-
               }}
             >
               {/* <option defaultValue={rowsPerPage}>{rowsPerPage}</option> */}
@@ -437,7 +454,7 @@ const PurchaseOrderPage = () => {
             <button
               onClick={() => {
                 changePage(currentPage - 1); // Cập nhật số trang
-                setFilter(prevParams => ({
+                setFilter((prevParams) => ({
                   ...prevParams, // Giữ lại các tham số cũ
                   page: currentPage - 2, // Cập nhật page theo currentPage - 1
                 }));
@@ -454,15 +471,16 @@ const PurchaseOrderPage = () => {
                 <path d="m313-440 224 224-57 56-320-320 320-320 57 56-224 224h487v80H313Z" />
               </svg>
             </button>
-            {stockHistories.length > 0 &&
+            {stockHistories.length > 0 && (
               <span>
-                Page {Math.min(currentPage, pageInfo.totalPage)} of {pageInfo.totalPage}
+                Page {Math.min(currentPage, pageInfo.totalPage)} of{" "}
+                {pageInfo.totalPage}
               </span>
-            }
+            )}
             <button
               onClick={() => {
                 changePage(currentPage + 1); // Cập nhật số trang
-                setFilter(prevParams => ({
+                setFilter((prevParams) => ({
                   ...prevParams, // Giữ lại các tham số cũ
                   page: currentPage, // Cập nhật page theo currentPage + 1
                 }));
@@ -479,7 +497,6 @@ const PurchaseOrderPage = () => {
                 <path d="M647-440H160v-80h487L423-744l57-56 320 320-320 320-57-56 224-224Z" />
               </svg>
             </button>
-
           </div>
         </div>
       </div>

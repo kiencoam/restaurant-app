@@ -95,59 +95,27 @@ const StaffManagementPage = () => {
     previousPage: null,
   });
 
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [rowsPerPage, setRowsPerPage] = useState(5);
+
   const [filter, setFilter] = useState<GetStaffRequest>({
     page: 0,
     page_size: 5,
   });
 
-  // khi role rỗng, chạy các đoạn này để tạo role : id, name, description
+  const changePage = (newPage) => {
+    if (newPage >= 1 && newPage <= pageInfo.totalPage) {
+      setCurrentPage(newPage);
+      handlePageNumberChange(newPage - 1);
+    }
+  };
 
-  // const handleCreateRole = async () => {
-  //   const roles: CreateRoleRequest[] = [
-  //     { name: "MANAGER", description: "MANAGER" },
-  //     { name: "WAITER", description: "WAITER" },
-  //     { name: "CHEF", description: "CHEF" },
-  //     { name: "CASHIER", description: "CASHIER" },
-  //   ];
-
-  //   try {
-  //     const promises = roles.map((role) => createRole(role));
-  //     const results = await Promise.all(promises);
-  //     results.forEach((res, index) => {
-  //       console.log(`Role ${roles[index].name} created:`, res);
-  //     });
-  //     console.log("All roles created successfully.");
-  //   } catch (error) {
-  //     console.log("Error creating roles:", error);
-  //   }
-  // };
-
-  // const handleDeleteRole = async () => {
-  //   // Giả sử bạn có danh sách các ID role cần xóa
-  //   const roleIds: number[] = [5, 8, 9, 7]; // Thay thế bằng ID thực tế
-
-  //   try {
-  //     const promises = roleIds.map((id) => deleteRole(id)); // Gọi hàm API xóa role
-  //     const results = await Promise.all(promises); // Đợi tất cả lời hứa hoàn thành
-  //     results.forEach((res, index) => {
-  //       console.log(`Role with ID ${roleIds[index]} deleted:`, res);
-  //     });
-  //     console.log("All roles deleted successfully.");
-  //   } catch (error) {
-  //     console.log("Error deleting roles:", error);
-  //   }
-  // };
-
-  // const handleGetAll = async () => {
-  //   try {
-  //     const roles = await getAllRoles(); // Gọi API lấy danh sách roles
-  //     console.log("Roles fetched successfully:", roles);
-  //     return roles;
-  //   } catch (error) {
-  //     console.log("Error fetching roles:", error);
-  //     throw error;
-  //   }
-  // };
+  //Handle rowsPerPage change
+  const changeRowsPerPage = (pageSize) => {
+    setRowsPerPage(pageSize);
+    handlePageSizeChange(pageSize);
+  };
 
   const handlePageSizeChange = (value: number) => {
     setFilter({
@@ -163,67 +131,6 @@ const StaffManagementPage = () => {
       page: value,
     });
   };
-
-  // useEffect(() => {
-  //   const RoleIdDisplay = {
-  //     ADMIN: 1,
-  //     MANAGER: 3,
-  //     WAITER: 4,
-  //     CHEF: 2,
-  //     CASHIER: 6,
-  //   };
-  //   const displayRoleIds = [RoleIdDisplay["CASHIER"], RoleIdDisplay["WAITER"], RoleIdDisplay["CHEF"]];
-
-  //   const query = Object.entries(filter)
-  //     .map(([key, value]) => {
-  //       if (value !== undefined && value !== null) {
-  //         return `${key}=${value}`;
-  //       }
-  //     })
-  //     .filter(Boolean)
-  //     .join("&");
-
-  //   if (tempRole === "MANAGER") {
-  //     const promises = displayRoleIds.map((roleId) => {
-  //       const roleQuery = `page=0&page_size=20&role_id=${roleId}`;
-  //       return getAllUsers(roleQuery);
-  //     });
-  //     Promise.all(promises).then((results) => {
-  //       const combinedStaffs = results
-  //         .map((res) => res.second)
-  //         .flat();
-
-  //       const aggregatedPageInfo = results.reduce(
-  //         (acc, res) => {
-  //           return {
-  //             totalRecord: (acc.totalRecord || 0) + res.first.totalRecord,
-  //             totalPage: (acc.totalPage || 0) + res.first.totalPage,
-  //             pageSize: filter.page_size,
-  //             nextPage: null,
-  //             previousPage: null,
-  //           };
-  //         },
-  //         {
-  //           totalRecord: 0,
-  //           totalPage: 0,
-  //           pageSize: filter.page_size,
-  //           nextPage: null,
-  //           previousPage: null,
-  //         }
-  //       );
-
-  //       setPageInfo(aggregatedPageInfo);
-  //       setStaffs(combinedStaffs);
-  //       console.log(aggregatedPageInfo, "and", combinedStaffs);
-  //     });
-  //   } else {
-  //     getAllUsers(query).then((data) => {
-  //       setPageInfo(data.first);
-  //       setStaffs(data.second);
-  //       console.log(data);
-  //     });
-  //   }
-  // }, [filter]);
 
   useEffect(() => {
     const query = Object.entries(filter)
@@ -250,6 +157,7 @@ const StaffManagementPage = () => {
   }, [filter]);
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setCurrentPage(1);
     const value = e.target.value;
 
     const isPhoneNumber = /^[0-9]+$/.test(value);
@@ -260,12 +168,14 @@ const StaffManagementPage = () => {
         ...filter,
         phone_number: value,
         name: "",
+        page: 0,
       });
     } else {
       setFilter({
         ...filter,
         name: value,
         phone_number: "",
+        page: 0,
       });
     }
   };
@@ -281,14 +191,17 @@ const StaffManagementPage = () => {
     setFilter({
       ...filter,
       [field]: newValue,
+      page: 0,
     });
   };
 
   const handleStartDateChange = (date) => {
+    setCurrentPage(1);
     setStartDate(date);
   };
 
   const handleEndDateChange = (date) => {
+    setCurrentPage(1);
     setEndDate(date);
   };
 
@@ -350,50 +263,6 @@ const StaffManagementPage = () => {
       <div className="flex p-6 justify-between items-center">
         <div className="text-2xl font-extrabold">Nhân viên</div>
         <div className="flex items-center gap-2">
-          {/* Không có deleteStaff API */}
-          {/* 
-          {isAnyRowChecked && (
-            <li
-              className="lg:px-8 relative flex items-center space-x-1"
-              onMouseEnter={() => setFlyOutActions(true)}
-              onMouseLeave={() => setFlyOutActions(false)}
-            >
-              <a
-                className="text-slate-800 hover:text-slate-900"
-                aria-expanded={flyOutActions}
-              >
-                Thao tác
-              </a>
-              <button
-                className="shrink-0 p-1"
-                aria-expanded={flyOutActions}
-                onClick={(e) => {
-                  e.preventDefault();
-                  setFlyOutActions(!flyOutActions);
-                }}
-              >
-                <span className="sr-only">Show submenu for Flyout Menu</span>
-                <svg
-                  className="w-3 h-3 fill-slate-500"
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="12"
-                  height="12"
-                >
-                  <path d="M10 2.586 11.414 4 6 9.414.586 4 2 2.586l4 4z" />
-                </svg>
-              </button>
-
-              {flyOutActions && (
-                <ul className="origin-top-right absolute top-full left-1/2 -translate-x-1/2 w-[120px] bg-white border border-slate-200 p-2 rounded-lg shadow-xl">
-                  <li>
-                    <button className="text-slate-800 text-center w-[100px] hover:bg-slate-50 p-2">
-                      Xóa
-                    </button>
-                  </li>
-                </ul>
-              )}
-            </li>
-          )} */}
           <div className="flex items-center border text-sm rounded-md bg-[#f7fafc] px-2 shadow-sm">
             <svg
               className="w-5 h-5"
@@ -530,6 +399,74 @@ const StaffManagementPage = () => {
           handlePageSizeChange={handlePageSizeChange}
           handlePageNumberChange={handlePageNumberChange}
         />
+        <div className="flex items-center space-x-8 mt-4">
+          <div className="flex">
+            <div>Số bản ghi: </div>
+            <select
+              className="bg-[#f7f7f7] outline-none"
+              value={rowsPerPage}
+              onChange={(e) => {
+                changeRowsPerPage(Number(e.target.value));
+                setCurrentPage(1);
+              }}
+            >
+              {/* <option defaultValue={rowsPerPage}>{rowsPerPage}</option> */}
+              {/* <option value={1}>1</option> */}
+              <option value={5}>5</option>
+              <option value={10}>10</option>
+              <option value={15}>15</option>
+              <option value={20}>20</option>
+            </select>
+          </div>
+          <div className="flex space-x-2">
+            <button
+              onClick={() => {
+                changePage(currentPage - 1); // Cập nhật số trang
+                setFilter((prevParams) => ({
+                  ...prevParams, // Giữ lại các tham số cũ
+                  page: currentPage - 2, // Cập nhật page theo currentPage - 1
+                }));
+              }}
+              disabled={currentPage === 1}
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                height="24px"
+                viewBox="0 -960 960 960"
+                width="24px"
+                fill="#000000"
+              >
+                <path d="m313-440 224 224-57 56-320-320 320-320 57 56-224 224h487v80H313Z" />
+              </svg>
+            </button>
+            {staffs.length > 0 && (
+              <span>
+                Page {Math.min(currentPage, pageInfo.totalPage)} of{" "}
+                {pageInfo.totalPage}
+              </span>
+            )}
+            <button
+              onClick={() => {
+                changePage(currentPage + 1); // Cập nhật số trang
+                setFilter((prevParams) => ({
+                  ...prevParams, // Giữ lại các tham số cũ
+                  page: currentPage, // Cập nhật page theo currentPage + 1
+                }));
+              }}
+              disabled={currentPage === pageInfo.totalPage}
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                height="24px"
+                viewBox="0 -960 960 960"
+                width="24px"
+                fill="#000000"
+              >
+                <path d="M647-440H160v-80h487L423-744l57-56 320 320-320 320-57-56 224-224Z" />
+              </svg>
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );

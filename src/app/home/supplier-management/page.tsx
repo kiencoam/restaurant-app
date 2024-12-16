@@ -1,15 +1,20 @@
 "use client";
-{/* Không có deleteSupplier API */ }
+{
+  /* Không có deleteSupplier API */
+}
 import React, { useState, useEffect, useRef } from "react";
 import CreateSupplierForm from "./create-supplier-form";
 import SupplierList from "./supplier-list";
-import { getAllSuppliers, SupplierEntity } from "@/app/api-client/SupplierService";
+import {
+  getAllSuppliers,
+  SupplierEntity,
+} from "@/app/api-client/SupplierService";
 import { PageInfo } from "@/app/api-client/PageInfo";
 import { SupplierStatusEnum } from "@/app/constants/SupplierStatusEnum";
 
 // const SampleSuppliers: SupplierEntity[] = [
 //   {
-//     id: 1, 
+//     id: 1,
 //     code: "NCC0001",
 //     name: "Công ty TNHH Citigo",
 //     phoneNumber: "0123456789",
@@ -43,12 +48,10 @@ export type GetSupplierRequest = {
   debt_to?: number;
   total_cost_from?: number;
   total_cost_to?: number;
-  status?: string
-}
-
+  status?: string;
+};
 
 const SupplierPage = () => {
-
   const [suppliers, setSuppliers] = useState<SupplierEntity[]>([]);
 
   const [masterChecked, setMasterChecked] = useState(false);
@@ -75,8 +78,38 @@ const SupplierPage = () => {
 
   const [filter, setFilter] = useState<GetSupplierRequest>({
     page: 0,
-    page_size: 5
-  })
+    page_size: 5,
+  });
+
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [rowsPerPage, setRowsPerPage] = useState(5);
+
+  // Calculate total pages
+  const totalPages = Math.ceil(suppliers.length / rowsPerPage);
+
+  // Get current page rows
+  const startIndex = (currentPage - 1) * rowsPerPage;
+
+  // const currentRowsSuppliers = suppliers.slice(
+  //   startIndex,
+  //   startIndex + rowsPerPage
+  // );
+  //Lọc status ở client theo từng row
+
+  // Handle page change
+  const changePage = (newPage) => {
+    if (newPage >= 1 && newPage <= pageInfo.totalPage) {
+      setCurrentPage(newPage);
+      handlePageNumberChange(newPage - 1);
+    }
+  };
+
+  //Handle rowsPerPage change
+  const changeRowsPerPage = (pageSize) => {
+    setRowsPerPage(pageSize);
+    handlePageSizeChange(pageSize);
+  };
 
   const isAnyRowChecked = Object.values(checkedRows).some(Boolean);
 
@@ -84,16 +117,16 @@ const SupplierPage = () => {
     setFilter({
       ...filter,
       page_size: value,
-      page: 0
-    })
-  }
+      page: 0,
+    });
+  };
 
   const handlePageNumberChange = (value: number) => {
     setFilter({
       ...filter,
-      page: value
-    })
-  }
+      page: value,
+    });
+  };
 
   // console.log("filter:", filter);
   // console.log("suppliers:", suppliers)
@@ -109,11 +142,11 @@ const SupplierPage = () => {
     getAllSuppliers(query).then((data) => {
       setPageInfo(data.first);
       setSuppliers(data.second);
-    })
+    });
   }, [filter]);
 
-
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setCurrentPage(1);
     const value = e.target.value;
 
     const isPhoneNumber = /^[0-9]+$/.test(value);
@@ -122,18 +155,20 @@ const SupplierPage = () => {
       setFilter({
         ...filter,
         phone_number: value,
-        name: ""
+        name: "",
       });
     } else {
       setFilter({
         ...filter,
         name: value,
-        phone_number: ""
+        phone_number: "",
+        page: 0,
       });
     }
   };
 
   const handleFilterCostChange = (e, field) => {
+    setCurrentPage(1);
     let newValue = e.target.value;
     if (newValue === "") {
       newValue = null;
@@ -143,18 +178,19 @@ const SupplierPage = () => {
 
     setFilter({
       ...filter,
-      [field]: newValue
-    })
-  }
+      [field]: newValue,
+      page: 0,
+    });
+  };
 
   const handleStatusChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const value = event.target.value;
     setFilter({
       ...filter,
       status: value,
-      page: 0
-    })
-  }
+      page: 0,
+    });
+  };
 
   const handleRowClick = (id: any) => {
     if (expandedRow === id) {
@@ -316,8 +352,9 @@ const SupplierPage = () => {
                       className="form-input border-b-2 focus:border-b-black w-3/4 outline-none"
                       placeholder="0"
                       value={filter.total_cost_from}
-                      onChange={(e) => handleFilterCostChange(e, "total_cost_from")}
-
+                      onChange={(e) =>
+                        handleFilterCostChange(e, "total_cost_from")
+                      }
                     />
                   </label>
                   <label className="flex items-center space-x-2 mt-2">
@@ -327,8 +364,9 @@ const SupplierPage = () => {
                       className="form-input border-b-2 ml-2 focus:border-b-black w-3/4 outline-none"
                       placeholder="9999999999"
                       value={filter.total_cost_to}
-                      onChange={(e) => handleFilterCostChange(e, "total_cost_to")}
-
+                      onChange={(e) =>
+                        handleFilterCostChange(e, "total_cost_to")
+                      }
                     />
                   </label>
                 </div>
@@ -342,7 +380,6 @@ const SupplierPage = () => {
                       placeholder="0"
                       value={filter.debt_from}
                       onChange={(e) => handleFilterCostChange(e, "debt_from")}
-
                     />
                   </label>
                   <label className="flex items-center space-x-2 mt-2">
@@ -353,7 +390,6 @@ const SupplierPage = () => {
                       placeholder="9999999999"
                       value={filter.debt_to}
                       onChange={(e) => handleFilterCostChange(e, "debt_to")}
-
                     />
                   </label>
                 </div>
@@ -365,7 +401,7 @@ const SupplierPage = () => {
                       className="form-radio"
                       name="status"
                       value=""
-                      checked={filter.status === ""}  // Đảm bảo chọn đúng giá trị mặc định
+                      checked={filter.status === ""} // Đảm bảo chọn đúng giá trị mặc định
                       onChange={handleStatusChange}
                     />
                     <span>Tất cả</span>
@@ -376,7 +412,7 @@ const SupplierPage = () => {
                       className="form-radio"
                       name="status"
                       value={SupplierStatusEnum.Active}
-                      checked={filter.status === SupplierStatusEnum.Active}  // Kiểm tra giá trị để chọn radio đúng
+                      checked={filter.status === SupplierStatusEnum.Active} // Kiểm tra giá trị để chọn radio đúng
                       onChange={handleStatusChange}
                     />
                     <span>Đang hoạt động</span>
@@ -387,13 +423,12 @@ const SupplierPage = () => {
                       className="form-radio"
                       name="status"
                       value={SupplierStatusEnum.Inactive}
-                      checked={filter.status === SupplierStatusEnum.Inactive}  // Kiểm tra giá trị để chọn radio đúng
+                      checked={filter.status === SupplierStatusEnum.Inactive} // Kiểm tra giá trị để chọn radio đúng
                       onChange={handleStatusChange}
                     />
                     <span>Ngừng hoạt động</span>
                   </label>
                 </div>
-
               </div>
             )}
           </div>
@@ -439,6 +474,74 @@ const SupplierPage = () => {
           handlePageSizeChange={handlePageSizeChange}
           handlePageNumberChange={handlePageNumberChange}
         />
+        <div className="flex items-center space-x-8 mt-4">
+          <div className="flex">
+            <div>Số bản ghi: </div>
+            <select
+              className="bg-[#f7f7f7] outline-none"
+              value={rowsPerPage}
+              onChange={(e) => {
+                changeRowsPerPage(Number(e.target.value));
+                setCurrentPage(1);
+              }}
+            >
+              {/* <option defaultValue={rowsPerPage}>{rowsPerPage}</option> */}
+              {/* <option value={1}>1</option> */}
+              <option value={5}>5</option>
+              <option value={10}>10</option>
+              <option value={15}>15</option>
+              <option value={20}>20</option>
+            </select>
+          </div>
+          <div className="flex space-x-2">
+            <button
+              onClick={() => {
+                changePage(currentPage - 1); // Cập nhật số trang
+                setFilter((prevParams) => ({
+                  ...prevParams, // Giữ lại các tham số cũ
+                  page: currentPage - 2, // Cập nhật page theo currentPage - 1
+                }));
+              }}
+              disabled={currentPage === 1}
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                height="24px"
+                viewBox="0 -960 960 960"
+                width="24px"
+                fill="#000000"
+              >
+                <path d="m313-440 224 224-57 56-320-320 320-320 57 56-224 224h487v80H313Z" />
+              </svg>
+            </button>
+            {suppliers.length > 0 && (
+              <span>
+                Page {Math.min(currentPage, pageInfo.totalPage)} of{" "}
+                {pageInfo.totalPage}
+              </span>
+            )}
+            <button
+              onClick={() => {
+                changePage(currentPage + 1); // Cập nhật số trang
+                setFilter((prevParams) => ({
+                  ...prevParams, // Giữ lại các tham số cũ
+                  page: currentPage, // Cập nhật page theo currentPage + 1
+                }));
+              }}
+              disabled={currentPage === pageInfo.totalPage}
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                height="24px"
+                viewBox="0 -960 960 960"
+                width="24px"
+                fill="#000000"
+              >
+                <path d="M647-440H160v-80h487L423-744l57-56 320 320-320 320-57-56 224-224Z" />
+              </svg>
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );

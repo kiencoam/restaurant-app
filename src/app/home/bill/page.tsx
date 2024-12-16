@@ -1,6 +1,11 @@
 "use client";
 import React, { useState, useRef, useEffect } from "react";
-import { OrderEntity, OrderItemEntity, OrderTableEntity, TableEntity } from "../order-taking/entity";
+import {
+  OrderEntity,
+  OrderItemEntity,
+  OrderTableEntity,
+  TableEntity,
+} from "../order-taking/entity";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import BillList from "./bill-list";
@@ -81,16 +86,16 @@ const BillPage = () => {
     setFilter({
       ...filter,
       page_size: value,
-      page: 0
-    })
-  }
+      page: 0,
+    });
+  };
 
   const handlePageNumberChange = (value: number) => {
     setFilter({
       ...filter,
-      page: value
-    })
-  }
+      page: value,
+    });
+  };
 
   const isAnyRowChecked = Object.values(checkedRows).some(Boolean);
 
@@ -136,8 +141,8 @@ const BillPage = () => {
     setCurrentPage(1);
     setFilter({
       ...filter,
-      page: 0
-    })
+      page: 0,
+    });
   };
 
   const handleEndDateChange = (date) => {
@@ -145,8 +150,8 @@ const BillPage = () => {
     setCurrentPage(1);
     setFilter({
       ...filter,
-      page: 0
-    })
+      page: 0,
+    });
   };
 
   useEffect(() => {
@@ -160,11 +165,11 @@ const BillPage = () => {
         }
       })
       .join("&");
-    console.log(query)
+    console.log(query);
     getAllOrders(query).then((data) => {
       setPageInfo(data.first);
       setOrders(data.second);
-    })
+    });
     // console.log(query)
   }, [filter]);
 
@@ -193,7 +198,9 @@ const BillPage = () => {
                   setFlyOutActions(!flyOutActions);
                 }}
               >
-                <span className="sr-only">Show submenu for &quot;Flyout Menu&quot;</span>
+                <span className="sr-only">
+                  Show submenu for &quot;Flyout Menu&quot;
+                </span>
                 <svg
                   className="w-3 h-3 fill-slate-500"
                   xmlns="http://www.w3.org/2000/svg"
@@ -236,7 +243,14 @@ const BillPage = () => {
               className="p-2 bg-transparent outline-none w-60"
               type="text"
               placeholder="Tên, điện thoại khách hàng"
-              onChange={(e) => setFilter({ ...filter, customer_name: e.target.value })}
+              onChange={(e) => {
+                setCurrentPage(1);
+                setFilter({
+                  ...filter,
+                  customer_name: e.target.value,
+                  page: 0,
+                });
+              }}
             />
           </div>
 
@@ -314,7 +328,6 @@ const BillPage = () => {
               onChange={(e) => {
                 changeRowsPerPage(Number(e.target.value));
                 setCurrentPage(1);
-
               }}
             >
               {/* <option defaultValue={rowsPerPage}>{rowsPerPage}</option> */}
@@ -329,7 +342,7 @@ const BillPage = () => {
             <button
               onClick={() => {
                 changePage(currentPage - 1); // Cập nhật số trang
-                setFilter(prevParams => ({
+                setFilter((prevParams) => ({
                   ...prevParams, // Giữ lại các tham số cũ
                   page: currentPage - 2, // Cập nhật page theo currentPage - 1
                 }));
@@ -346,15 +359,16 @@ const BillPage = () => {
                 <path d="m313-440 224 224-57 56-320-320 320-320 57 56-224 224h487v80H313Z" />
               </svg>
             </button>
-            {orders.length > 0 &&
+            {orders.length > 0 && (
               <span>
-                Page {Math.min(currentPage, pageInfo.totalPage)} of {pageInfo.totalPage}
+                Page {Math.min(currentPage, pageInfo.totalPage)} of{" "}
+                {pageInfo.totalPage}
               </span>
-            }
+            )}
             <button
               onClick={() => {
                 changePage(currentPage + 1); // Cập nhật số trang
-                setFilter(prevParams => ({
+                setFilter((prevParams) => ({
                   ...prevParams, // Giữ lại các tham số cũ
                   page: currentPage, // Cập nhật page theo currentPage + 1
                 }));
@@ -371,7 +385,6 @@ const BillPage = () => {
                 <path d="M647-440H160v-80h487L423-744l57-56 320 320-320 320-57-56 224-224Z" />
               </svg>
             </button>
-
           </div>
         </div>
       </div>

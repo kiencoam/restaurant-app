@@ -3,7 +3,6 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 
 import {
   getAllProducts,
-  GetProductRequest,
   ProductEntity,
   updateProduct,
   UpdateProductRequest,
@@ -14,6 +13,18 @@ import ProductFilterForm from "./ProductFilterForm";
 import ProductList from "./ProductList";
 import { DeleteModal } from "@/components/DeleteModal";
 import { PageInfo } from "@/app/api-client/PageInfo";
+
+type GetProductRequest = {
+  page: number;
+  page_size: number;
+  name?: string;
+  status?: string;
+  product_type?: string;
+  price_from?: number;
+  price_to?: number;
+  sort_by?: string;
+  sort_type?: string;
+};
 
 const ProductsPage = () => {
   const [products, setProducts] = useState<ProductEntity[]>([]);
@@ -41,14 +52,7 @@ const ProductsPage = () => {
   const [getProductRequest, setGetProductRequest] = useState<GetProductRequest>(
     {
       page: 0,
-      pageSize: 5,
-      name: "",
-      status: "",
-      productType: "",
-      priceFrom: null,
-      priceTo: null,
-      sortBy: "",
-      sortType: "",
+      page_size: 5,
     }
   );
   const [rowsPerPage, setRowsPerPage] = useState(5);
@@ -79,7 +83,7 @@ const ProductsPage = () => {
   const handlePageSizeChange = (value: number) => {
     setGetProductRequest({
       ...getProductRequest,
-      pageSize: value,
+      page_size: value,
       page: 0,
     });
   };
@@ -90,58 +94,30 @@ const ProductsPage = () => {
       page: value,
     });
   };
+
   const handleProductFilterChange = (e, field: string) => {
+    setCurrentPage(1);
     setGetProductRequest({
       ...getProductRequest,
       [field]: e.target.value,
+      page: 0,
     });
+
     console.log(getProductRequest);
   };
 
-  const buildQueryParams = useCallback(() => {
-    let queryParams = `page=${getProductRequest.page}&page_size=${getProductRequest.pageSize}`;
-    if (getProductRequest.name.trim() !== "") {
-      queryParams = queryParams.concat(`&name=${getProductRequest.name}`);
-    }
-    if (getProductRequest.status) {
-      queryParams = queryParams.concat(`&status=${getProductRequest.status}`);
-    }
-    if (getProductRequest.productType === "" || getProductRequest.productType) {
-      queryParams = queryParams.concat(
-        `&product_type=${getProductRequest.productType}`
-      );
-    }
-    if (getProductRequest.priceFrom) {
-      queryParams = queryParams.concat(
-        `&price_from=${getProductRequest.priceFrom}`
-      );
-    }
-    if (getProductRequest.priceTo) {
-      queryParams = queryParams.concat(
-        `&price_to=${getProductRequest.priceTo}`
-      );
-    }
-    if (getProductRequest.sortBy) {
-      queryParams = queryParams.concat(`&sort_by=${getProductRequest.sortBy}`);
-    }
-    if (getProductRequest.sortType) {
-      queryParams = queryParams.concat(
-        `&sort_type=${getProductRequest.sortType}`
-      );
-    }
-    return queryParams;
-  }, [getProductRequest]);
-
   useEffect(() => {
-    const fecthProducts = (queryParams) => {
-      getAllProducts(queryParams).then((res) => {
-        setProducts(res.second);
-        setPageInfo(res.first);
-      });
-    };
-
-    fecthProducts(buildQueryParams());
-  }, [buildQueryParams]);
+    /* Gọi API */
+    const query = Object.entries(getProductRequest)
+      .filter(([key, value]) => value !== undefined && value !== "")
+      .map(([key, value]) => `${key}=${value}`)
+      .join("&");
+    console.log(query);
+    getAllProducts(query).then((res) => {
+      setProducts(res.second);
+      setPageInfo(res.first);
+    });
+  }, [getProductRequest]);
 
   console.log("products", products);
 

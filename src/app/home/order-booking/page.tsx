@@ -112,6 +112,36 @@ const OrderBookingPage = () => {
 
   const [isNewOrder, setIsNewOrder] = useState(false);
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const [rowsPerPage, setRowsPerPage] = useState(5);
+
+  const changePage = (newPage) => {
+    if (newPage >= 1 && newPage <= pageInfo.totalPage) {
+      setCurrentPage(newPage);
+      handlePageNumberChange(newPage - 1);
+    }
+  };
+
+  //Handle rowsPerPage change
+  const changeRowsPerPage = (pageSize) => {
+    setRowsPerPage(pageSize);
+    handlePageSizeChange(pageSize);
+  };
+
+  const handlePageSizeChange = (value: number) => {
+    setParamsRequest({
+      ...paramsRequest,
+      page_size: value,
+      page: 0,
+    });
+  };
+
+  const handlePageNumberChange = (value: number) => {
+    setParamsRequest({
+      ...paramsRequest,
+      page: value,
+    });
+  };
   // const [selectedTables, setSelectedTables] = useState<
   //   {
   //     value: number;
@@ -262,10 +292,12 @@ const OrderBookingPage = () => {
   const handleFilterOrderStatusChange = (
     e: React.ChangeEvent<HTMLInputElement>
   ) => {
+    setCurrentPage(1);
     if (e.target.checked) {
       setParamsRequest((prev) => ({
         ...prev,
         order_status: [...prev.order_status, e.target.value],
+        page: 0,
       }));
     } else {
       setParamsRequest((prev) => ({
@@ -273,6 +305,7 @@ const OrderBookingPage = () => {
         order_status: prev.order_status.filter(
           (status) => status !== e.target.value
         ),
+        page: 0,
       }));
     }
   };
@@ -280,11 +313,13 @@ const OrderBookingPage = () => {
   const handleIncomingCustomerDisplayChange = (
     e: React.ChangeEvent<HTMLInputElement>
   ) => {
+    setCurrentPage(1);
     if (e.target.value === "late") {
       setParamsRequest((prev) => ({
         ...prev,
         start_time: startDate,
         end_time: new Date(),
+        page: 0,
       }));
       setDisplayMode("late");
     } else if (e.target.value === "incoming") {
@@ -292,6 +327,7 @@ const OrderBookingPage = () => {
         ...prev,
         start_time: new Date(),
         end_time: endDate,
+        page: 0,
       }));
       setDisplayMode("incoming");
     } else {
@@ -299,6 +335,7 @@ const OrderBookingPage = () => {
         ...prev,
         start_time: startDate,
         end_time: endDate,
+        page: 0,
       }));
       setDisplayMode("all");
     }
@@ -376,7 +413,10 @@ const OrderBookingPage = () => {
               type="text"
               placeholder="Theo tên khách hàng"
               value={searchCustomerText}
-              onChange={(e) => setSearchCustomerText(e.target.value)}
+              onChange={(e) => {
+                setCurrentPage(1);
+                setSearchCustomerText(e.target.value);
+              }}
               onKeyDown={handleCustomerSearchKeyDown}
             />
             <button onClick={() => setSearchOptionsOpen(!searchOptionsOpen)}>
@@ -609,6 +649,7 @@ const OrderBookingPage = () => {
                       className="border-b-2 focus:border-b-black w-full outline-none"
                       selected={startDate}
                       onChange={(date: Date | [Date, Date]) => {
+                        setCurrentPage(1);
                         const selectedDate = Array.isArray(date)
                           ? date[0]
                           : date;
@@ -631,6 +672,7 @@ const OrderBookingPage = () => {
                       className="border-b-2 focus:border-b-black w-full outline-none"
                       selected={endDate}
                       onChange={(date: Date | [Date, Date]) => {
+                        setCurrentPage(1);
                         const selectedDate = Array.isArray(date)
                           ? date[0]
                           : date;
@@ -689,15 +731,14 @@ const OrderBookingPage = () => {
           <div>Số bản ghi: </div>
           <select
             className="bg-[#f7f7f7] outline-none"
-            value={paramsRequest.page_size}
-            onChange={(e) =>
-              setParamsRequest({
-                ...paramsRequest,
-                page_size: Number(e.target.value),
-              })
-            }
+            value={rowsPerPage}
+            onChange={(e) => {
+              changeRowsPerPage(Number(e.target.value));
+              setCurrentPage(1);
+            }}
           >
-            <option value={1}>1</option>
+            {/* <option defaultValue={rowsPerPage}>{rowsPerPage}</option> */}
+            {/* <option value={1}>1</option> */}
             <option value={5}>5</option>
             <option value={10}>10</option>
             <option value={15}>15</option>
@@ -706,13 +747,14 @@ const OrderBookingPage = () => {
         </div>
         <div className="flex space-x-2">
           <button
-            onClick={() =>
-              setParamsRequest({
-                ...paramsRequest,
-                page: paramsRequest.page - 1,
-              })
-            }
-            disabled={paramsRequest.page === 0}
+            onClick={() => {
+              changePage(currentPage - 1); // Cập nhật số trang
+              setParamsRequest((prevParams) => ({
+                ...prevParams, // Giữ lại các tham số cũ
+                page: currentPage - 2, // Cập nhật page theo currentPage - 1
+              }));
+            }}
+            disabled={currentPage === 1}
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -724,17 +766,21 @@ const OrderBookingPage = () => {
               <path d="m313-440 224 224-57 56-320-320 320-320 57 56-224 224h487v80H313Z" />
             </svg>
           </button>
-          <span>
-            Page {paramsRequest.page + 1} of {pageInfo.totalPage}
-          </span>
+          {orders.length > 0 && (
+            <span>
+              Page {Math.min(currentPage, pageInfo.totalPage)} of{" "}
+              {pageInfo.totalPage}
+            </span>
+          )}
           <button
-            onClick={() =>
-              setParamsRequest({
-                ...paramsRequest,
-                page: paramsRequest.page + 1,
-              })
-            }
-            disabled={paramsRequest.page + 1 === pageInfo.totalPage}
+            onClick={() => {
+              changePage(currentPage + 1); // Cập nhật số trang
+              setParamsRequest((prevParams) => ({
+                ...prevParams, // Giữ lại các tham số cũ
+                page: currentPage, // Cập nhật page theo currentPage + 1
+              }));
+            }}
+            disabled={currentPage === pageInfo.totalPage}
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"

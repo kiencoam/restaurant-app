@@ -5,7 +5,11 @@ import CustomerList from "./customer-list";
 import DatePicker from "react-datepicker";
 //Pick date n nhận n - 1
 import "react-datepicker/dist/react-datepicker.css";
-import { CustomerEntity, getAllCustomers, deleteCustomer } from "@/app/api-client/CustomerService";
+import {
+  CustomerEntity,
+  getAllCustomers,
+  deleteCustomer,
+} from "@/app/api-client/CustomerService";
 import { PageInfo } from "@/app/api-client/PageInfo";
 import { DeleteModal } from "../../../components/DeleteModal";
 
@@ -66,17 +70,17 @@ const initCustomers: CustomerEntity[] = [
 ];
 
 export type GetCustomerRequest = {
-  page: number,
-  page_size: number,
-  name?: string,
-  phone_number?: string,
-  address?: string,
-  gender?: string,
-  begin_total_cost?: number,
-  end_total_cost?: number,
-  begin_dob?: string,
-  end_dob?: string,
-}
+  page: number;
+  page_size: number;
+  name?: string;
+  phone_number?: string;
+  address?: string;
+  gender?: string;
+  begin_total_cost?: number;
+  end_total_cost?: number;
+  begin_dob?: string;
+  end_dob?: string;
+};
 
 const CustomerManagementPage = () => {
   const [customers, setCustomers] = useState<CustomerEntity[]>([]);
@@ -113,23 +117,43 @@ const CustomerManagementPage = () => {
 
   const [filter, setFilter] = useState<GetCustomerRequest>({
     page: 0,
-    page_size: 5
-  })
+    page_size: 5,
+  });
+
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const [rowsPerPage, setRowsPerPage] = useState(5);
+
+  // Get current page rows
+  const startIndex = (currentPage - 1) * rowsPerPage;
+
+  // Handle page change
+  const changePage = (newPage) => {
+    if (newPage >= 1 && newPage <= pageInfo.totalPage) {
+      setCurrentPage(newPage);
+      handlePageNumberChange(newPage - 1);
+    }
+  };
+
+  const changeRowsPerPage = (pageSize) => {
+    setRowsPerPage(pageSize);
+    handlePageSizeChange(pageSize);
+  };
 
   const handlePageSizeChange = (value: number) => {
     setFilter({
       ...filter,
       page_size: value,
-      page: 0
-    })
-  }
+      page: 0,
+    });
+  };
 
   const handlePageNumberChange = (value: number) => {
     setFilter({
       ...filter,
-      page: value
-    })
-  }
+      page: value,
+    });
+  };
 
   // console.log("filter", filter);
 
@@ -141,16 +165,16 @@ const CustomerManagementPage = () => {
         }
       })
       .join("&");
-    console.log(query)
+    console.log(query);
     getAllCustomers(query).then((data) => {
       setPageInfo(data.first);
       setCustomers(data.second);
-    })
+    });
     // console.log(query)
   }, [filter]);
 
-
   const handleFilterCostChange = (e, field) => {
+    setCurrentPage(1);
     let newValue = e.target.value;
     if (newValue === "") {
       newValue = null;
@@ -160,9 +184,10 @@ const CustomerManagementPage = () => {
 
     setFilter({
       ...filter,
-      [field]: newValue
-    })
-  }
+      [field]: newValue,
+      page: 0,
+    });
+  };
 
   const handleRowClick = (id: any) => {
     if (expandedRow === id) {
@@ -217,45 +242,44 @@ const CustomerManagementPage = () => {
 
   const handleDeleteCustomer = () => {
     const selectedIds = Object.keys(checkedRows)
-      .filter(id => checkedRows[id])
-      .map(id => Number(id));
-    console.log(selectedIds)
+      .filter((id) => checkedRows[id])
+      .map((id) => Number(id));
+    console.log(selectedIds);
 
     if (selectedIds.length === 0) {
       alert("Không có khách hàng nào được chọn để xóa.");
       return;
     }
     // Call API deleteCustomers
-    Promise.all(selectedIds.map(id => deleteCustomer(id)))
+    Promise.all(selectedIds.map((id) => deleteCustomer(id)))
       .then(() => {
         // alert("Xóa thành công!");
         const newCheckedRows = { ...checkedRows };
-        selectedIds.forEach(id => {
+        selectedIds.forEach((id) => {
           delete newCheckedRows[id];
         });
         setCheckedRows(newCheckedRows);
-        setFilter(prev => ({ ...prev })); // Kích hoạt useEffect
+        setFilter((prev) => ({ ...prev })); // Kích hoạt useEffect
       })
-      .catch(error => {
+      .catch((error) => {
         alert("Có lỗi khi xóa khách hàng.");
         console.error(error);
       });
-      setDeleteModal(false);
+    setDeleteModal(false);
+  };
 
-  }
-  
   const handleStartDateChange = (date) => {
     setFilter({
       ...filter,
       begin_dob: date.toISOString().split("T")[0],
-    })
+    });
   };
 
   const handleEndDateChange = (date) => {
     setFilter({
       ...filter,
       end_dob: date.toISOString().split("T")[0],
-    })
+    });
   };
 
   return (
@@ -340,7 +364,10 @@ const CustomerManagementPage = () => {
               type="text"
               placeholder="Theo diện thoại"
               value={filter.phone_number}
-              onChange={(e) => setFilter({ ...filter, phone_number: e.target.value })}
+              onChange={(e) => {
+                setCurrentPage(1);
+                setFilter({ ...filter, phone_number: e.target.value, page: 0 });
+              }}
             />
           </div>
           <div className="flex items-center border text-sm rounded-md bg-[#f7fafc] px-2 shadow-sm">
@@ -363,7 +390,10 @@ const CustomerManagementPage = () => {
               type="text"
               placeholder="Theo tên"
               value={filter.name}
-              onChange={(e) => setFilter({ ...filter, name: e.target.value })}
+              onChange={(e) => {
+                setCurrentPage(1);
+                setFilter({ ...filter, name: e.target.value, page: 0 });
+              }}
             />
           </div>
 
@@ -430,7 +460,9 @@ const CustomerManagementPage = () => {
                       className="form-input border-b-2 focus:border-b-black w-full outline-none"
                       placeholder="0"
                       value={filter.begin_total_cost}
-                      onChange={(e) => handleFilterCostChange(e, "begin_total_cost")}
+                      onChange={(e) =>
+                        handleFilterCostChange(e, "begin_total_cost")
+                      }
                     />
                   </label>
                   <label className="flex items-center space-x-2 mt-2">
@@ -439,7 +471,9 @@ const CustomerManagementPage = () => {
                       className="form-input border-b-2 focus:border-b-black w-full outline-none"
                       placeholder="9999999999"
                       value={filter.end_total_cost}
-                      onChange={(e) => handleFilterCostChange(e, "end_total_cost")}
+                      onChange={(e) =>
+                        handleFilterCostChange(e, "end_total_cost")
+                      }
                     />
                   </label>
                 </div>
@@ -469,7 +503,7 @@ const CustomerManagementPage = () => {
               pageSize={pageInfo.pageSize}
               setCustomers={setCustomers}
               toggleNewCustomer={toggleNewCustomer}
-              setFilter = {setFilter}
+              setFilter={setFilter}
             />
           )}
         </div>
@@ -488,6 +522,60 @@ const CustomerManagementPage = () => {
           handlePageSizeChange={handlePageSizeChange}
           handlePageNumberChange={handlePageNumberChange}
         />
+      </div>
+      <div className="flex items-center space-x-8 mt-4">
+        <div className="flex">
+          <div>Số bản ghi: </div>
+          <select
+            className="bg-[#f7f7f7] outline-none"
+            value={rowsPerPage}
+            onChange={(e) => {
+              changeRowsPerPage(Number(e.target.value));
+              setCurrentPage(1);
+            }}
+          >
+            <option value={5}>5</option>
+            <option value={10}>10</option>
+            <option value={15}>15</option>
+            <option value={20}>20</option>
+          </select>
+        </div>
+        <div className="flex space-x-2">
+          <button
+            onClick={() => changePage(currentPage - 1)}
+            disabled={currentPage === 1}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              height="24px"
+              viewBox="0 -960 960 960"
+              width="24px"
+              fill="#000000"
+            >
+              <path d="m313-440 224 224-57 56-320-320 320-320 57 56-224 224h487v80H313Z" />
+            </svg>
+          </button>
+          {customers.length > 0 && (
+            <span>
+              Page {Math.min(currentPage, pageInfo.totalPage)} of{" "}
+              {pageInfo.totalPage}
+            </span>
+          )}
+          <button
+            onClick={() => changePage(currentPage + 1)}
+            disabled={currentPage === pageInfo.totalPage}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              height="24px"
+              viewBox="0 -960 960 960"
+              width="24px"
+              fill="#000000"
+            >
+              <path d="M647-440H160v-80h487L423-744l57-56 320 320-320 320-57-56 224-224Z" />
+            </svg>
+          </button>
+        </div>
       </div>
     </div>
   );

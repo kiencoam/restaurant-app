@@ -150,6 +150,7 @@ const PaysheetPage = () => {
   };
 
   const handleFilterChange = (e, field) => {
+    setCurrentPage(1);
     let newValue = e.target.value;
     // if (newValue === "") {
     //   newValue = null;
@@ -160,6 +161,7 @@ const PaysheetPage = () => {
     setPeriodFilter({
       ...periodFilter,
       [field]: newValue,
+      page: 0
     });
   };
 

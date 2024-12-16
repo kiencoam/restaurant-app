@@ -1,5 +1,3 @@
-
-
 "use client";
 import React, { useEffect, useRef, useState } from "react";
 import { MenuItemEntity, MenuSectionEntity } from "../order-taking/entity";
@@ -127,16 +125,16 @@ const MenuPage = () => {
     setParamsRequest({
       ...paramsRequest,
       page_size: value,
-      page: 0
-    })
-  }
+      page: 0,
+    });
+  };
 
   const handlePageNumberChange = (value: number) => {
     setParamsRequest({
       ...paramsRequest,
-      page: value
-    })
-  }
+      page: value,
+    });
+  };
 
   useEffect(() => {
     /* Gọi API */
@@ -150,7 +148,7 @@ const MenuPage = () => {
       setPageInfo(data.first);
       setMenuItems(data.second);
       //testapi
-      console.log(data.second)
+      console.log(data.second);
     });
     // setMenuItems(sampleMenuItems);
   }, [paramsRequest]);
@@ -159,16 +157,17 @@ const MenuPage = () => {
     /* Gọi API lấy tất cả nhóm thực đơn */
     // getAllMenuSections()
     getAllMenuSections().then((data) => {
-      setMenuSections(data)
+      setMenuSections(data);
       //testapi
-      console.log(data)
-    })
+      console.log(data);
+    });
     //setMenuSections(sampleMenuSections);
   }, []);
 
   const handleSearchKeydown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
-      setParamsRequest((prev) => ({ ...prev, title: searchText }));
+      setCurrentPage(1);
+      setParamsRequest((prev) => ({ ...prev, title: searchText, page: 0 }));
     }
   };
 
@@ -251,32 +250,33 @@ const MenuPage = () => {
                           page: 0,
                         }));
                         setCurrentPage(1);
-                      }
-                      }
+                      }}
                     />
                     <span>Tất cả</span>
                   </label>
-                  {menuSections && menuSections.map((section) => (
-                    <label
-                      key={section.id}
-                      className="flex items-center space-x-2 mt-2"
-                    >
-                      <input
-                        type="radio"
-                        className="form-radio"
-                        name="status"
-                        checked={paramsRequest.menu_section_id === section.id}
-                        onChange={() =>
-                          setParamsRequest((prev) => ({
-                            ...prev,
-                            menu_section_id: section.id,
-                            page: 0
-                          }))
-                        }
-                      />
-                      <span>{section.title}</span>
-                    </label>
-                  ))}
+                  {menuSections &&
+                    menuSections.map((section) => (
+                      <label
+                        key={section.id}
+                        className="flex items-center space-x-2 mt-2"
+                      >
+                        <input
+                          type="radio"
+                          className="form-radio"
+                          name="status"
+                          checked={paramsRequest.menu_section_id === section.id}
+                          onChange={() => {
+                            setCurrentPage(1);
+                            setParamsRequest((prev) => ({
+                              ...prev,
+                              menu_section_id: section.id,
+                              page: 0,
+                            }));
+                          }}
+                        />
+                        <span>{section.title}</span>
+                      </label>
+                    ))}
                 </div>
               </div>
             )}
@@ -325,7 +325,6 @@ const MenuPage = () => {
               onChange={(e) => {
                 changeRowsPerPage(Number(e.target.value));
                 setCurrentPage(1);
-
               }}
             >
               {/* <option defaultValue={rowsPerPage}>{rowsPerPage}</option> */}
@@ -340,7 +339,7 @@ const MenuPage = () => {
             <button
               onClick={() => {
                 changePage(currentPage - 1); // Cập nhật số trang
-                setParamsRequest(prevParams => ({
+                setParamsRequest((prevParams) => ({
                   ...prevParams, // Giữ lại các tham số cũ
                   page: currentPage - 2, // Cập nhật page theo currentPage - 1
                 }));
@@ -357,15 +356,16 @@ const MenuPage = () => {
                 <path d="m313-440 224 224-57 56-320-320 320-320 57 56-224 224h487v80H313Z" />
               </svg>
             </button>
-            {menuItems.length > 0 &&
+            {menuItems.length > 0 && (
               <span>
-                Page {Math.min(currentPage, pageInfo.totalPage)} of {pageInfo.totalPage}
+                Page {Math.min(currentPage, pageInfo.totalPage)} of{" "}
+                {pageInfo.totalPage}
               </span>
-            }
+            )}
             <button
               onClick={() => {
                 changePage(currentPage + 1); // Cập nhật số trang
-                setParamsRequest(prevParams => ({
+                setParamsRequest((prevParams) => ({
                   ...prevParams, // Giữ lại các tham số cũ
                   page: currentPage, // Cập nhật page theo currentPage + 1
                 }));
@@ -382,7 +382,6 @@ const MenuPage = () => {
                 <path d="M647-440H160v-80h487L423-744l57-56 320 320-320 320-57-56 224-224Z" />
               </svg>
             </button>
-
           </div>
         </div>
       </div>

@@ -1,7 +1,14 @@
-//Khong update note user.. dc
+//update xong bi them 1 truong rong ?
 import React, { useContext, useEffect, useState } from "react";
 import Link from "next/link";
-import { getDetailStockHistory, StockHistoryEntity, UpdateStockHistoryRequest, UpdateStockHistoryItemRequest, updateStockHistory, deleteStockHistory } from "@/app/api-client/StockHistoryService";
+import {
+  getDetailStockHistory,
+  StockHistoryEntity,
+  UpdateStockHistoryRequest,
+  UpdateStockHistoryItemRequest,
+  updateStockHistory,
+  deleteStockHistory,
+} from "@/app/api-client/StockHistoryService";
 import { formatToDDMMYYYY } from "@/utils/timeUtils";
 import { loginUserContext } from "@/components/LoginUserProvider";
 import { getAllUsers, UserEntity } from "@/app/api-client/UserService";
@@ -24,19 +31,21 @@ import { StockHistoryRequest } from "./page";
 
 interface PurchaseOrderTableProps {
   data: StockHistoryEntity[];
-  setFilter: React.Dispatch<React.SetStateAction<StockHistoryRequest>>
+  setFilter: React.Dispatch<React.SetStateAction<StockHistoryRequest>>;
 }
 
 const PurchaseOrderTable = ({ data, setFilter }: PurchaseOrderTableProps) => {
-
-  const [updatingStockHistory, setUpdatingStockHistory] = useState<StockHistoryEntity | null>(null)
-  const [updatingStockHistoryId, setUpdatingStockHistoryId] = useState<number | null>(null)
+  const [updatingStockHistory, setUpdatingStockHistory] =
+    useState<StockHistoryEntity | null>(null);
+  const [updatingStockHistoryId, setUpdatingStockHistoryId] = useState<
+    number | null
+  >(null);
   const [users, setUsers] = useState<UserEntity[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [userName, setUserName] = useState("");
 
   //lấy id làm userid
-  const id = Number(useContext(loginUserContext).id)
+  const id = Number(useContext(loginUserContext).id);
 
   useEffect(() => {
     if (userName) {
@@ -50,18 +59,17 @@ const PurchaseOrderTable = ({ data, setFilter }: PurchaseOrderTableProps) => {
 
   const handleRowClick = (id: number) => {
     setUpdatingStockHistoryId((prevId) => (prevId === id ? null : id));
-
   };
 
   const handleInputChange = (field: string, value) => {
     if (field === "userName") {
       setUserName(value); // Cập nhật giá trị state
-    }
-    else setUpdatingStockHistory({
-      ...updatingStockHistory,
-      [field]: value
-    })
-  }
+    } else
+      setUpdatingStockHistory({
+        ...updatingStockHistory,
+        [field]: value,
+      });
+  };
   const handleSubmit = () => {
     const payload: UpdateStockHistoryRequest = {
       supplierId: updatingStockHistory.supplierId,
@@ -70,27 +78,28 @@ const PurchaseOrderTable = ({ data, setFilter }: PurchaseOrderTableProps) => {
       status: updatingStockHistory.status,
       note: updatingStockHistory.note,
       stockHistoryItems: updatingStockHistory.stockHistoryItems,
-    }
+    };
     console.log("payload: ", payload);
     updateStockHistory(updatingStockHistoryId, payload).then((res) => {
+      setFilter((prev) => ({ ...prev }));
       handleRowClick(updatingStockHistoryId);
-    })
-  }
+    });
+  };
 
   const handleDelete = () => {
     deleteStockHistory(updatingStockHistoryId).then((res) => {
       console.log(res);
       handleRowClick(updatingStockHistoryId);
-      setFilter(prev => ({ ...prev })); // Kích hoạt useEffect    
-    })
-  }
+      setFilter((prev) => ({ ...prev })); // Kích hoạt useEffect
+    });
+  };
 
   useEffect(() => {
     if (updatingStockHistoryId !== null) {
       getDetailStockHistory(updatingStockHistoryId)
         .then((data) => {
           setUpdatingStockHistory(data);
-          setUserName(data.user.name)
+          setUserName(data.user.name);
         })
         .catch((error) => {
           console.error("Lỗi khi lấy chi tiết phiếu nhập:", error);
@@ -123,10 +132,16 @@ const PurchaseOrderTable = ({ data, setFilter }: PurchaseOrderTableProps) => {
                 className="hover:bg-gray-100 bg-white cursor-pointer"
               >
                 <td className="p-3 border ">{item.code}</td>
-                <td className="p-3 border ">{formatToDDMMYYYY(item.dateTime)}</td>
+                <td className="p-3 border ">
+                  {formatToDDMMYYYY(item.dateTime)}
+                </td>
                 <td className="p-3 border">{item.supplier.name}</td>
-                <td className="p-3 border ">{item.totalPrice}</td>
-                <td className="p-3 border ">{item.status === "DONE" ? "Đã nhập hàng" : "Phiếu tạm"}</td>
+                <td className="p-3 border ">
+                  {item.totalPrice.toLocaleString("en-US")}đ
+                </td>
+                <td className="p-3 border ">
+                  {item.status === "DONE" ? "Đã nhập hàng" : "Phiếu tạm"}
+                </td>
               </tr>
               {updatingStockHistoryId === item.id && updatingStockHistory && (
                 <tr className="bg-gray-50">
@@ -150,7 +165,9 @@ const PurchaseOrderTable = ({ data, setFilter }: PurchaseOrderTableProps) => {
                               <span>Thời gian:</span>
                               <input
                                 type="text"
-                                value={formatToDDMMYYYY(updatingStockHistory.dateTime)}
+                                value={formatToDDMMYYYY(
+                                  updatingStockHistory.dateTime
+                                )}
                                 className="w-full p-2 border rounded"
                                 disabled
                               />
@@ -164,10 +181,8 @@ const PurchaseOrderTable = ({ data, setFilter }: PurchaseOrderTableProps) => {
                                 value={updatingStockHistory.supplier.name}
                                 className="w-full p-2 border rounded"
                                 disabled
-
                               />
                             </label>
-
                           </p>
                         </div>
                         <div>
@@ -176,7 +191,11 @@ const PurchaseOrderTable = ({ data, setFilter }: PurchaseOrderTableProps) => {
                               <span>Trạng thái:</span>
                               <input
                                 type="text"
-                                value={updatingStockHistory.status === "DONE" ? "Đã nhập hàng" : "Phiếu tạm"}
+                                value={
+                                  updatingStockHistory.status === "DONE"
+                                    ? "Đã nhập hàng"
+                                    : "Phiếu tạm"
+                                }
                                 className="w-full p-2 border rounded"
                                 disabled
                               />
@@ -188,28 +207,37 @@ const PurchaseOrderTable = ({ data, setFilter }: PurchaseOrderTableProps) => {
                               <input
                                 type="text"
                                 value={userName}
-                                onChange={(e) => handleInputChange("userName", e.target.value)}
+                                onChange={(e) =>
+                                  handleInputChange("userName", e.target.value)
+                                }
                                 className="w-full p-2 border rounded"
                                 onFocus={() => setShowSuggestions(true)}
-                                onBlur={() => setTimeout(() => setShowSuggestions(false), 100)}
+                                onBlur={() =>
+                                  setTimeout(
+                                    () => setShowSuggestions(false),
+                                    100
+                                  )
+                                }
                               />
-                              {showSuggestions && users.length > 0 && userName && (
-                                <div className="absolute z-10 w-full bg-white border border-gray-300 rounded shadow-md max-h-40 overflow-y-auto">
-                                  {users.map((user) => (
-                                    <div
-                                      key={user.id}
-                                      className="px-4 py-2 cursor-pointer hover:bg-gray-100"
-                                      onMouseDown={() => {
-                                        handleInputChange("userId", user.id);
-                                        setUserName(user.name);
-                                        setShowSuggestions(false);
-                                      }}
-                                    >
-                                      {user.name}
-                                    </div>
-                                  ))}
-                                </div>
-                              )}
+                              {showSuggestions &&
+                                users.length > 0 &&
+                                userName && (
+                                  <div className="absolute z-10 w-full bg-white border border-gray-300 rounded shadow-md max-h-40 overflow-y-auto">
+                                    {users.map((user) => (
+                                      <div
+                                        key={user.id}
+                                        className="px-4 py-2 cursor-pointer hover:bg-gray-100"
+                                        onMouseDown={() => {
+                                          handleInputChange("userId", user.id);
+                                          setUserName(user.name);
+                                          setShowSuggestions(false);
+                                        }}
+                                      >
+                                        {user.name}
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
                             </label>
                           </p>
                           <p>
@@ -218,7 +246,9 @@ const PurchaseOrderTable = ({ data, setFilter }: PurchaseOrderTableProps) => {
                               <input
                                 type="text"
                                 value={updatingStockHistory.note || ""}
-                                onChange={(e) => handleInputChange("note", e.target.value)}
+                                onChange={(e) =>
+                                  handleInputChange("note", e.target.value)
+                                }
                                 className="w-full p-2 border rounded"
                               />
                             </label>
@@ -238,28 +268,38 @@ const PurchaseOrderTable = ({ data, setFilter }: PurchaseOrderTableProps) => {
                           </tr>
                         </thead>
                         <tbody>
-                          {updatingStockHistory.stockHistoryItems.map((product, index) => (
-                            <tr key={index} className="bg-white">
-                              <td className="p-2 border">{product.product.code}</td>
-                              <td className="p-2 border">{product.product.name}</td>
-                              <td className="p-2 border ">
-                                {product.quantity}
-                              </td>
-                              <td className="p-2 border ">
-                                {product.pricePerUnit}
-                              </td>
+                          {updatingStockHistory.stockHistoryItems.map(
+                            (product, index) => (
+                              <tr key={index} className="bg-white">
+                                <td className="p-2 border">
+                                  {product.product.code}
+                                </td>
+                                <td className="p-2 border">
+                                  {product.product.name}
+                                </td>
+                                <td className="p-2 border ">
+                                  {product.quantity}
+                                </td>
+                                <td className="p-2 border ">
+                                  {product.pricePerUnit.toLocaleString("en-US")}
+                                </td>
 
-                              <td className="p-2 border ">
-                                {product.pricePerUnit * product.quantity}
-                              </td>
-                            </tr>
-                          ))}
+                                <td className="p-2 border ">
+                                  {(
+                                    product.pricePerUnit * product.quantity
+                                  ).toLocaleString("en-US")}
+                                </td>
+                              </tr>
+                            )
+                          )}
                         </tbody>
                       </table>
                       <div className="mt-4 text-right">
                         <p>
                           <strong>Tổng số lượng:</strong>{" "}
-                          {updatingStockHistory.stockHistoryItems.reduce((sum, item) => sum + item.quantity, 0)}
+                          {updatingStockHistory.stockHistoryItems
+                            .reduce((sum, item) => sum + item.quantity, 0)
+                            .toLocaleString("en-US")}
                         </p>
                         <p>
                           <strong>Tổng số mặt hàng:</strong>{" "}
@@ -267,17 +307,33 @@ const PurchaseOrderTable = ({ data, setFilter }: PurchaseOrderTableProps) => {
                         </p>
                         <p>
                           <strong>Tổng tiền hàng:</strong>{" "}
-                          {updatingStockHistory.stockHistoryItems.reduce(
-                            (sum, item) => sum + item.quantity * item.pricePerUnit, 0)}
+                          {updatingStockHistory.stockHistoryItems
+                            .reduce(
+                              (sum, item) =>
+                                sum + item.quantity * item.pricePerUnit,
+                              0
+                            )
+                            .toLocaleString("en-US")}
                         </p>
                         <p>
-                          <strong>Tổng cộng:</strong> {" "} {updatingStockHistory.stockHistoryItems.reduce(
-                            (sum, item) => sum + item.quantity * item.pricePerUnit, 0)}
+                          <strong>Tổng cộng:</strong>{" "}
+                          {updatingStockHistory.stockHistoryItems
+                            .reduce(
+                              (sum, item) =>
+                                sum + item.quantity * item.pricePerUnit,
+                              0
+                            )
+                            .toLocaleString("en-US")}
                         </p>
                         <p>
                           <strong>Tiền đã trả NCC:</strong>{" "}
-                          {updatingStockHistory.stockHistoryItems.reduce(
-                            (sum, item) => sum + item.quantity * item.pricePerUnit, 0)}
+                          {updatingStockHistory.stockHistoryItems
+                            .reduce(
+                              (sum, item) =>
+                                sum + item.quantity * item.pricePerUnit,
+                              0
+                            )
+                            .toLocaleString("en-US")}
                         </p>
                       </div>
                       <div className="flex justify-end gap-4 mt-4">
@@ -299,7 +355,9 @@ const PurchaseOrderTable = ({ data, setFilter }: PurchaseOrderTableProps) => {
                             >
                               Lưu
                             </button>
-                            <Link href={`/home/purchase-order/open`}>
+                            <Link
+                              href={`/home/purchase-order/${updatingStockHistory.code}`}
+                            >
                               <button className="border rounded-md px-2 shadow-sm bg-blue-500 text-white">
                                 Mở phiếu
                               </button>
@@ -313,7 +371,6 @@ const PurchaseOrderTable = ({ data, setFilter }: PurchaseOrderTableProps) => {
                           </>
                         )}
                       </div>
-
                     </div>
                   </td>
                 </tr>
@@ -323,6 +380,6 @@ const PurchaseOrderTable = ({ data, setFilter }: PurchaseOrderTableProps) => {
         </tbody>
       </table>
     </div>
-  )
+  );
 };
 export default PurchaseOrderTable;

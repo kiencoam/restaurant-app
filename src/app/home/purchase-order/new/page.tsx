@@ -13,7 +13,6 @@ import ProductTable from "./ProductTable";
 import {
   CreateProductRequest,
   getAllProducts,
-  GetProductRequest,
   ProductEntity,
   updateProduct,
   UpdateProductRequest,
@@ -63,6 +62,7 @@ export type GetProductRequest = {
   page_size: number;
   name?: string;
   status?: string;
+  product_type?: string;
   price_from?: number;
   price_to?: number;
   sort_by?: string;
@@ -98,7 +98,7 @@ const NewPage = () => {
   const router = useRouter();
 
   //lấy id làm userid
-  const id = Number(useContext(loginUserContext).id);
+  const id = useContext(loginUserContext).id;
 
   useEffect(() => {
     const query = Object.entries(getProductRequest)
@@ -136,22 +136,44 @@ const NewPage = () => {
       supplierId: supplier.id,
     });
   };
+
+  const handleRemoveProduct = (productId) => {
+    setTableData((prev: CreateStockHistoryItemRequestv2[]) =>
+      prev.filter((it) => it.productId != productId)
+    );
+  };
+
   const handlePickProduct = (product: ProductEntity) => {
-    // setGetProductRequest(product.name);
+    // Reset state request (nếu cần)
     setGetProductRequest({
       page: 0,
       page_size: 5,
       name: "",
     });
-    setTableData((prev: CreateStockHistoryItemRequestv2[]) => [
-      ...prev,
-      {
-        productId: product.id,
-        quantity: 1,
-        pricePerUnit: product.costPrice,
-        product: product,
-      },
-    ]);
+    setTableData((prev: CreateStockHistoryItemRequestv2[]) => {
+      const existingProductIndex = prev.findIndex(
+        (item) => item.productId === product.id
+      );
+
+      if (existingProductIndex !== -1) {
+        const updatedTableData = [...prev];
+        updatedTableData[existingProductIndex] = {
+          ...updatedTableData[existingProductIndex],
+          quantity: updatedTableData[existingProductIndex].quantity + 1,
+        };
+        return updatedTableData;
+      } else {
+        return [
+          ...prev,
+          {
+            productId: product.id,
+            quantity: 1,
+            pricePerUnit: product.costPrice,
+            product: product,
+          },
+        ];
+      }
+    });
   };
 
   const handleInputChange = (
@@ -164,6 +186,7 @@ const NewPage = () => {
   const handleSubmit = (status: string) => {
     if (tableData.length == 0 || newStockHistory.supplierId == 0) {
       alert("Chưa nhập đủ thông tin");
+      return;
     }
     const updatedStockHistory = {
       ...newStockHistory,
@@ -176,15 +199,9 @@ const NewPage = () => {
       userId: id,
     };
 
-    console.log(updatedStockHistory);
-
     createStockHistory(updatedStockHistory).then((res: StockHistoryEntity) => {
-      console.log(res);
-      if (status == StockHistoryStatusEnum.Pending) {
-        router.push(`./home/purchase-order/`);
-      } else if (status == StockHistoryStatusEnum.Done) {
-        router.push(`./home/purchase-order`);
-      }
+      alert("Đã xong !");
+      router.push(`./`);
     });
   };
 
@@ -364,6 +381,7 @@ const NewPage = () => {
           handleQuantityChange={handleQuantityChange}
           handlePriceForUnitChange={handlePriceForUnitChange}
           calculateTotal={calculateTotal}
+          handleRemoveProduct={handleRemoveProduct}
         />
       </div>
 
@@ -482,8 +500,9 @@ const NewPage = () => {
           <label className="text-gray-700">Mã phiếu nhập</label>
           <input
             className="border-b-2  w-[140px]  outline-none focus:border-b-black pb-2"
-            // placeholder="Mã phiếu tự động"
+            placeholder="Mã phiếu tự động"
             onChange={(e) => handleInputChange(e, "code")}
+            disabled
           />
         </div>
         <div className="flex mb-4 justify-between">
