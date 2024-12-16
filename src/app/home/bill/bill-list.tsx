@@ -281,10 +281,9 @@ export default function BillList({
                                         )}
                                       </td>
                                       <td className="px-4 py-2 border-b text-right">
-                                        {(
-                                          orderItem.price *
-                                          orderItem.orderedQuantity
-                                        ).toLocaleString("en-US")}
+                                        {orderItem.price.toLocaleString(
+                                          "en-US"
+                                        )}
                                       </td>
                                     </tr>
                                   ))}

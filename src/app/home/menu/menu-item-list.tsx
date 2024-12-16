@@ -22,6 +22,17 @@ export default function MenuItemList({
   const [updatingMenuItem, setUpdatingMenuItem] =
     useState<UpdateMenuItemRequest | null>(null);
 
+  const [imgError, setImgError] = useState(false);
+
+  // Validate URL function
+  const isValidUrl = (url: string) => {
+    return (
+      url.startsWith("/") ||
+      url.startsWith("http://") ||
+      url.startsWith("https://")
+    );
+  };
+
   const handleRowClick = (id: number) => {
     if (updatingMenuItemId === id) {
       setUpdatingMenuItemId(null); // Collapse the row if it's already expanded
@@ -222,22 +233,33 @@ export default function MenuItemList({
                             <input
                               type="text"
                               value={updatingMenuItem.thumbnailImg}
-                              onChange={(e) =>
+                              onChange={(e) => {
                                 setUpdatingMenuItem((prev) => ({
                                   ...prev,
                                   thumbnailImg: e.target.value,
-                                }))
-                              }
+                                }));
+                                setImgError(!isValidUrl(e.target.value));
+                              }}
                               className="w-full border-b-2 bg-gray-50 mt-2 focus:border-b-black outline-none"
                             />
                           </label>
                           <div className="relative overflow-hidden h-28 w-28">
-                            <Image
-                              src={updatingMenuItem.thumbnailImg}
-                              alt="thumbnail"
-                              layout="fill"
-                              className="absolute w-full h-full object-cover"
-                            />
+                            {!imgError &&
+                            isValidUrl(updatingMenuItem.thumbnailImg) ? (
+                              <Image
+                                src={updatingMenuItem.thumbnailImg}
+                                alt="thumbnail"
+                                fill
+                                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                                className="absolute w-full h-full object-cover"
+                              />
+                            ) : (
+                              <div className="absolute w-full h-full bg-gray-200 flex items-center justify-center">
+                                <span className="text-gray-500">
+                                  Invalid image
+                                </span>
+                              </div>
+                            )}
                           </div>
                         </div>
                       </div>
