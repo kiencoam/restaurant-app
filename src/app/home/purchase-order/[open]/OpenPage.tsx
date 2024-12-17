@@ -266,7 +266,10 @@ const OpenPage = (code: { code: string }) => {
     updateStockHistory(stockId, updatedStockHistory).then(
       (res: StockHistoryEntity) => {
         console.log(res);
-        router.push(`./`);
+        if (res.stockHistoryItems.some((it) => it.pricePerUnit === null)) {
+          updateStockHistory(stockId, updatedStockHistory);
+        }
+        //router.push(`./`);
       }
     );
   };
