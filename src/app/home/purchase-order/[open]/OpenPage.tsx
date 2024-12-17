@@ -93,6 +93,13 @@ const OpenPage = (code: { code: string }) => {
       page_size: 5,
     }
   );
+
+  const handleRemoveProduct = (productId) => {
+    setTableData((prev: CreateStockHistoryItemRequestv2[]) =>
+      prev.filter((it) => it.productId != productId)
+    );
+  };
+
   const [getSupplierRequest, setGetSupplierRequest] =
     useState<GetSupplierRequest>({
       page: 0,
@@ -224,7 +231,7 @@ const OpenPage = (code: { code: string }) => {
           {
             productId: product.id,
             quantity: 1,
-            pricePerUnit: product.costPrice,
+            pricePerUnit: product.sellingPrice,
             product: product,
           },
         ];
@@ -259,7 +266,9 @@ const OpenPage = (code: { code: string }) => {
     updateStockHistory(stockId, updatedStockHistory).then(
       (res: StockHistoryEntity) => {
         console.log(res);
-        alert("Đã xong !");
+        if (res.stockHistoryItems.some((it) => it.pricePerUnit === null)) {
+          updateStockHistory(stockId, updatedStockHistory);
+        }
         router.push(`./`);
       }
     );
@@ -441,7 +450,7 @@ const OpenPage = (code: { code: string }) => {
           handleQuantityChange={handleQuantityChange}
           handlePriceForUnitChange={handlePriceForUnitChange}
           calculateTotal={calculateTotal}
-          handleRemoveProduct={null}
+          handleRemoveProduct={handleRemoveProduct}
         />
       </div>
 

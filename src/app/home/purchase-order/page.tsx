@@ -111,10 +111,7 @@ const PurchaseOrderPage = () => {
     console.log(query);
     getAllStockHistories(query).then((data) => {
       console.log("data:", data);
-      setPageInfo({
-        ...data.first,
-        totalPage: Math.ceil(9 / data.first.pageSize),
-      });
+      setPageInfo(data.first);
       /*nextPage: 1
       pageSize: 5
       previousPage: null
@@ -430,7 +427,7 @@ const PurchaseOrderPage = () => {
 
       {/* Content */}
       <div className="p-6">
-        <PurchaseOrderTable data={currentRowsData} setFilter={setFilter} />
+        <PurchaseOrderTable data={stockHistories} setFilter={setFilter} />
         <div className="flex items-center space-x-8 mt-4">
           <div className="flex">
             <div>Số bản ghi: </div>
