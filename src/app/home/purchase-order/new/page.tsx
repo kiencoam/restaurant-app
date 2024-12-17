@@ -168,7 +168,7 @@ const NewPage = () => {
           {
             productId: product.id,
             quantity: 1,
-            pricePerUnit: product.sellingPrice,
+            pricePerUnit: product.costPrice,
             product: product,
           },
         ];
@@ -184,7 +184,11 @@ const NewPage = () => {
   };
 
   const handleSubmit = (status: string) => {
-    if (tableData.length == 0 || newStockHistory.supplierId == 0) {
+    if (
+      tableData.length == 0 ||
+      newStockHistory.supplierId == 0 ||
+      tableData.some((it) => it.pricePerUnit === 0)
+    ) {
       alert("Chưa nhập đủ thông tin");
       return;
     }

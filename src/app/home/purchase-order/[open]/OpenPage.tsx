@@ -231,7 +231,7 @@ const OpenPage = (code: { code: string }) => {
           {
             productId: product.id,
             quantity: 1,
-            pricePerUnit: product.sellingPrice,
+            pricePerUnit: product.costPrice,
             product: product,
           },
         ];
@@ -247,7 +247,11 @@ const OpenPage = (code: { code: string }) => {
   };
 
   const handleSubmit = (status: string) => {
-    if (tableData.length == 0 || newStockHistory.supplierId == 0) {
+    if (
+      tableData.length == 0 ||
+      newStockHistory.supplierId == 0 ||
+      tableData.some((it) => it.pricePerUnit === 0)
+    ) {
       alert("Chưa nhập đủ thông tin");
     }
     const updatedStockHistory = {
