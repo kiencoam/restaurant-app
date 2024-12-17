@@ -269,7 +269,7 @@ const OpenPage = (code: { code: string }) => {
         if (res.stockHistoryItems.some((it) => it.pricePerUnit === null)) {
           updateStockHistory(stockId, updatedStockHistory);
         }
-        //router.push(`./`);
+        router.push(`./`);
       }
     );
   };
