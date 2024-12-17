@@ -96,9 +96,8 @@ export default function StaffSchedulePage() {
         (user: UserEntity) =>
           user.role.name === "CHEF" ||
           user.role.name === "WAITER" ||
-          user.role.name === "CASHER"
+          user.role.name === "CASHIER"
       );
-      console.log(user);
       setDisplayUsers(user);
       setAllUsers(user);
     });
