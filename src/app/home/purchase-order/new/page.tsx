@@ -168,7 +168,7 @@ const NewPage = () => {
           {
             productId: product.id,
             quantity: 1,
-            pricePerUnit: product.costPrice,
+            pricePerUnit: product.sellingPrice,
             product: product,
           },
         ];
@@ -200,7 +200,6 @@ const NewPage = () => {
     };
 
     createStockHistory(updatedStockHistory).then((res: StockHistoryEntity) => {
-      alert("Đã xong !");
       router.push(`./`);
     });
   };

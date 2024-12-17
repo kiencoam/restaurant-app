@@ -51,8 +51,8 @@ const PurchaseOrderTable = ({ data, setFilter }: PurchaseOrderTableProps) => {
     if (userName) {
       const query = `page=0&page_size=5&name=${userName}`;
 
-      getAllUsers(query).then((data) => {
-        setUsers(data.second);
+      getAllUsers(query).then((d) => {
+        setUsers(d.second);
       });
     }
   }, [userName]);
@@ -77,7 +77,13 @@ const PurchaseOrderTable = ({ data, setFilter }: PurchaseOrderTableProps) => {
       code: updatingStockHistory.code,
       status: updatingStockHistory.status,
       note: updatingStockHistory.note,
-      stockHistoryItems: updatingStockHistory.stockHistoryItems,
+      stockHistoryItems: updatingStockHistory.stockHistoryItems?.map(
+        (item) => ({
+          productId: item.productId,
+          quantity: item.quantity,
+          pricePerUnit: item.pricePerUnit,
+        })
+      ),
     };
     console.log("payload: ", payload);
     updateStockHistory(updatingStockHistoryId, payload).then((res) => {
@@ -281,13 +287,15 @@ const PurchaseOrderTable = ({ data, setFilter }: PurchaseOrderTableProps) => {
                                   {product.quantity}
                                 </td>
                                 <td className="p-2 border ">
-                                  {product.pricePerUnit.toLocaleString("en-US")}
+                                  {product.pricePerUnit?.toLocaleString(
+                                    "en-US"
+                                  )}
                                 </td>
 
                                 <td className="p-2 border ">
                                   {(
                                     product.pricePerUnit * product.quantity
-                                  ).toLocaleString("en-US")}
+                                  )?.toLocaleString("en-US")}
                                 </td>
                               </tr>
                             )
